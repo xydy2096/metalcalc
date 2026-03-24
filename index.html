@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Operario - Taller Metal</title>
+    <style>
+        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --warning: #f39c12; }
+        body { font-family: sans-serif; margin: 0; padding: 20px; background: #f4f4f4; color: #333; }
+        
+        /* Cabecera fija con Reloj */
+        header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; position: sticky; top: 0; z-index: 10; }
+        #reloj { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+
+        /* Lista de Materiales */
+        .lista-materiales { display: flex; flex-direction: column; gap: 15px; margin-bottom: 100px; }
+        .item { background: white; padding: 20px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .item.cortado { opacity: 0.5; background: #e8f5e9; border-left: 10px solid var(--success); }
+        .info { flex-grow: 1; }
+        .info h3 { margin: 0; font-size: 1.2rem; }
+        
+        /* Botones grandes para taller */
+        .btn { padding: 15px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-left: 10px; }
+        .btn-iniciar { background: var(--primary); color: white; }
+        .btn-check { background: var(--success); color: white; }
+        .btn-cortando { background: var(--warning); color: white; animation: pulse 1.5s infinite; }
+
+        /* Botón Flotante de Error */
+        #btn-error-flotante { position: fixed; bottom: 30px; right: 30px; width: 80px; height: 80px; border-radius: 50%; background: var(--danger); color: white; border: none; font-size: 2rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); cursor: pointer; z-index: 100; display: flex; align-items: center; justify-content: center; }
+
+        /* Ventana Emergente (Modal) */
+        #modal-error { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; text-align: center; }
+        select { width: 100%; padding: 15px; margin: 20px 0; font-size: 1.1rem; border-radius: 8px; }
+        
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><strong>PROYECTO: #1024 - Estructura Nave</strong></div>
+    <div id="reloj">00:00:00</div>
+</header>
+
+<div class="lista-materiales" id="lista">
+    </div>
+
+<button id="btn-error-flotante" onclick="abrirModal()">⚠️</button>
+
+<div id="modal-error">
+    <div class="modal-content">
+        <h2>¿Dónde ha ocurrido el error?</h2>
+        <select id="select-materiales-error"></select>
+        <p>¿Qué hacemos con el sobrante?</p>
+        <button class="btn btn-iniciar" onclick="cerrarModal()">📥 A RETALES</button>
+        <button class="btn btn-iniciar" style="background:#7f8c8d" onclick="cerrarModal()">🗑️ CHATARRA</button>
+        <button class="btn" style="display:block; margin: 20px auto; color: var(--danger)" onclick="cerrarModal()">Cancelar</button>
+    </div>
+</div>
+
+<script>
+    const materiales = [
+        { id: 1, nombre: "Tubo 40x40x1.5", cant: 4, largo: "1500mm", estado: "pendiente" },
+        { id: 2, nombre: "IPN 120", cant: 2, largo: "3200mm", estado: "pendiente" },
+        { id: 3, nombre: "Redondo 16mm", cant: 20, largo: "500mm", estado: "pendiente" }
+    ];
+
+    let materialActualId = null;
+
+    function renderizar() {
+        const lista = document.getElementById('lista');
+        const select = document.getElementById('select-materiales-error');
+        lista.innerHTML = "";
+        select.innerHTML = "";
+
+        materiales.forEach(m => {
+            // Dibujar lista
+            const div = document.createElement('div');
+            div.className = `item ${m.estado === 'cortado' ? 'cortado' : ''}`;
+            div.innerHTML = `
+                <div class="info">
+                    <h3>${m.nombre}</h3>
+                    <p>${m.cant} unidades de ${m.largo}</p>
+                </div>
+                <div>
+                    ${m.estado === 'pendiente' ? `<button class="btn btn-iniciar" onclick="cambiarEstado(${m.id}, 'cortando')">INICIAR</button>` : ''}
+                    ${m.estado === 'cortando' ? `<button class="btn btn-cortando" onclick="cambiarEstado(${m.id}, 'cortado')">MARCAR HECHO ✅</button>` : ''}
+                </div>
+            `;
+            lista.appendChild(div);
+
+            // Rellenar desplegable de error
+            const opt = document.createElement('option');
+            opt.value = m.id;
+            opt.textContent = m.nombre;
+            if (m.id === materialActualId) opt.selected = true;
+            select.appendChild(opt);
+        });
+
+        // Verificación de fin automático
+        if (materiales.every(m => m.estado === 'cortado')) {
+            alert("¡Proceso de corte finalizado automáticamente!");
+        }
+    }
+
+    function cambiarEstado(id, nuevoEstado) {
+        const mat = materiales.find(m => m.id === id);
+        mat.estado = nuevoEstado;
+        if (nuevoEstado === 'cortando') materialActualId = id;
+        renderizar();
+    }
+
+    function abrirModal() { document.getElementById('modal-error').style.display = 'flex'; }
+    function cerrarModal() { document.getElementById('modal-error').style.display = 'none'; }
+
+    // Reloj
+    setInterval(() => {
+        document.getElementById('reloj').textContent = new Date().toLocaleTimeString();
+    }, 1000);
+
+    renderizar();
+</script>
+
+</body>
+</html>
