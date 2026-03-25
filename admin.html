@@ -2,41 +2,29 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>ADMIN - Gestión por Proyectos</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OPERARIO - Selección de Obra</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { padding: 8px; margin-right: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 8px 15px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 4px; }
-        .proyecto-btn { margin-right: 5px; background: #95a5a6; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        body { font-family: sans-serif; padding: 15px; background: #f0f2f5; }
+        .obra-card { background: white; padding: 20px; margin-bottom: 10px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .item-corte { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2c3e50; display: flex; justify-content: space-between; align-items: center; }
+        .btn-obra { background: #3498db; color: white; padding: 15px; width: 100%; border: none; border-radius: 8px; font-size: 1.1rem; margin-bottom: 10px; }
+        .btn-accion { padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>📂 NUEVA LISTA DE CORTE</h2>
-        <input type="text" id="id_trabajo" placeholder="Nº Trabajo (ej: 001)" style="width: 100px; font-weight: bold;">
-        <input type="text" id="n" placeholder="Material">
-        <input type="text" id="m" placeholder="Medida">
-        <button onclick="enviar()">Añadir a la lista</button>
+    <div id="selector-obra">
+        <h3>SELECCIONA EL TRABAJO:</h3>
+        <div id="lista-obras">Buscando obras activas...</div>
     </div>
 
-    <div class="card">
-        <h2>🔍 FILTRAR POR TRABAJO</h2>
-        <div id="filtros-proyectos"></div>
-        <button onclick="cargarTodo()" style="background:#7f8c8d; margin-top:10px;">Ver Todo el Historial</button>
-    </div>
-
-    <div class="card">
-        <h2 id="titulo-lista">📋 Todas las piezas</h2>
-        <table id="tabla">
-            <thead><tr><th>Obra</th><th>Pieza</th><th>Medida</th><th>Estado</th><th>Borrar</th></tr></thead>
-            <tbody id="cuerpo"></tbody>
-        </table>
+    <div id="vista-trabajo" style="display:none;">
+        <button onclick="volver()" style="background:none; border:none; color:#3498db; margin-bottom:10px;">⬅ Volver a obras</button>
+        <h2 id="num-obra">Trabajo --</h2>
+        <div id="piezas-obra"></div>
     </div>
 
 <script>
@@ -51,62 +39,48 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    function enviar() {
-        const idT = document.getElementById('id_trabajo').value;
-        const n = document.getElementById('n').value;
-        const m = document.getElementById('m').value;
-        if(idT && n && m) {
-            db.collection("materiales").add({ 
-                trabajo: idT, 
-                nombre: n, 
-                medida: m, 
-                estado: 'pendiente', 
-                fecha: new Date() 
-            });
-            document.getElementById('n').value = ""; document.getElementById('m').value = "";
-        } else { alert("Falta el Nº de Trabajo o datos"); }
-    }
-
-    // Cargar botones de proyectos únicos y la lista
-    db.collection("materiales").orderBy("fecha", "desc").onSnapshot(snap => {
-        const cuerpo = document.getElementById('cuerpo');
-        const filtros = document.getElementById('filtros-proyectos');
-        const proyectos = new Set();
-        cuerpo.innerHTML = "";
+    // 1. Detectar qué trabajos existen
+    db.collection("materiales").onSnapshot(snap => {
+        const listaObras = document.getElementById('lista-obras');
+        const obras = new Set();
+        snap.forEach(doc => obras.add(doc.data().trabajo));
         
-        snap.forEach(doc => {
-            const d = doc.data();
-            proyectos.add(d.trabajo);
-            renderFila(doc);
-        });
-
-        filtros.innerHTML = "";
-        proyectos.forEach(p => {
-            filtros.innerHTML += `<button class="proyecto-btn" onclick="filtrar('${p}')">Trabajo ${p}</button>`;
+        listaObras.innerHTML = "";
+        obras.forEach(o => {
+            listaObras.innerHTML += `<button class="btn-obra" onclick="verObra('${o}')">OBRA Nº ${o}</button>`;
         });
     });
 
-    function renderFila(doc) {
-        const d = doc.data();
-        const color = d.estado === 'cortado' ? '#27ae60' : (d.estado === 'cortando' ? '#f39c12' : '#7f8c8d');
-        document.getElementById('cuerpo').innerHTML += `
-            <tr>
-                <td><b>${d.trabajo}</b></td>
-                <td>${d.nombre}</td><td>${d.medida}</td>
-                <td><span style="color:white; padding:3px 8px; border-radius:4px; background:${color}">${d.estado}</span></td>
-                <td><button onclick="db.collection('materiales').doc('${doc.id}').delete()" style="background:red">🗑️</button></td>
-            </tr>`;
-    }
-
-    function filtrar(id) {
-        document.getElementById('titulo-lista').innerText = "📋 Piezas del Trabajo " + id;
-        db.collection("materiales").where("trabajo", "==", id).get().then(snap => {
-            document.getElementById('cuerpo').innerHTML = "";
-            snap.forEach(doc => renderFila(doc));
+    function verObra(id) {
+        document.getElementById('selector-obra').style.display = 'none';
+        document.getElementById('vista-trabajo').style.display = 'block';
+        document.getElementById('num-obra').innerText = "Trabajo " + id;
+        
+        db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
+            const contenedor = document.getElementById('piezas-obra');
+            contenedor.innerHTML = "";
+            snap.forEach(doc => {
+                const m = doc.data();
+                if(m.estado !== 'cortado') {
+                    contenedor.innerHTML += `
+                        <div class="item-corte" style="border-left-color:${m.estado==='cortando'?'#f39c12':'#2c3e50'}">
+                            <div><b>${m.nombre}</b><br>${m.medida}</div>
+                            <button class="btn-accion" onclick="cambiar('${doc.id}','${m.estado}')">
+                                ${m.estado === 'pendiente' ? 'INICIAR' : 'HECHO ✅'}
+                            </button>
+                        </div>`;
+                }
+            });
+            if(contenedor.innerHTML === "") contenedor.innerHTML = "🎉 ¡Obra completada!";
         });
     }
 
-    function cargarTodo() { location.reload(); }
+    function cambiar(id, est) {
+        const n = est === 'pendiente' ? 'cortando' : 'cortado';
+        db.collection("materiales").doc(id).update({estado: n});
+    }
+
+    function volver() { location.reload(); }
 </script>
 </body>
 </html>
