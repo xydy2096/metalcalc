@@ -22,10 +22,9 @@
 
 <header>
     <div><strong>OPERARIO TALLER</strong></div>
-    <div id="reloj">00:00:00</div>
 </header>
 
-<div id="lista">Cargando tareas...</div>
+<div id="lista">Conectando...</div>
 
 <button id="btn-error" onclick="abrirModal()">⚠️</button>
 
@@ -85,7 +84,7 @@
             }
         });
 
-        if (!hayTareas) lista.innerHTML = "✅ Todo terminado por ahora.";
+        if (!hayTareas) lista.innerHTML = "✅ Todo terminado.";
     });
 
     function cambiarEstado(id, actual) {
@@ -97,23 +96,13 @@
         const sel = document.getElementById('select-error');
         const id = sel.value;
         const nombre = sel.options[sel.selectedIndex].dataset.nombre;
-
-        // Avisar al admin
-        db.collection("alertas").add({
-            pieza: nombre,
-            problema: tipo,
-            fecha: new Date().toLocaleString()
-        });
-
-        // Marcar como cortado para que desaparezca del movil
+        db.collection("alertas").add({ pieza: nombre, problema: tipo, fecha: new Date().toLocaleString() });
         db.collection("materiales").doc(id).update({ estado: 'cortado' });
         cerrarModal();
-        alert("Error enviado al Panel de Admin");
     }
 
     function abrirModal() { document.getElementById('modal-error').style.display = 'flex'; }
     function cerrarModal() { document.getElementById('modal-error').style.display = 'none'; }
-    setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString(); }, 1000);
 </script>
 </body>
 </html>
