@@ -1,50 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Operario - MSTCALC</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --warning: #f39c12; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
+        header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .item { background: white; padding: 18px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #bdc3c7; margin-bottom: 10px; }
+        .item.cortando { border-left-color: var(--warning); background: #fffdf0; }
+        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; color: white; }
+        #btn-error { position: fixed; bottom: 25px; right: 25px; width: 70px; height: 70px; border-radius: 50%; background: var(--danger); color: white; border: none; font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div><strong>OPERARIO TALLER</strong></div>
+    <div id="reloj">00:00:00</div>
+</header>
+
+<div id="lista">Cargando tareas...</div>
+
+<button id="btn-error" onclick="abrirModal()">⚠️</button>
+
+<div id="modal-error" class="modal">
+    <div class="modal-content">
+        <h3>Reportar Fallo</h3>
+        <select id="select-error" style="width:100%; padding:10px; margin:10px 0;"></select>
+        <button onclick="enviarError('RETALES')" style="background:var(--warning); width:100%; padding:10px; margin-bottom:5px; border:none; border-radius:5px; color:white;">A RETALES</button>
+        <button onclick="enviarError('CHATARRA')" style="background:var(--danger); width:100%; padding:10px; border:none; border-radius:5px; color:white;">A CHATARRA</button>
+        <button onclick="cerrarModal()" style="margin-top:10px; background:none; border:none; color:gray;">Cancelar</button>
+    </div>
+</div>
+
 <script>
-    // ... (Mantén tu firebaseConfig igual) ...
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+        authDomain: "mstcalc.firebaseapp.com",
+        projectId: "mstcalc",
+        storageBucket: "mstcalc.firebasestorage.app",
+        messagingSenderId: "68220801288",
+        appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
+    };
 
-    // CAMBIO: Ahora filtramos para que NO salgan los 'cortado'
-    db.collection("materiales")
-      .where("estado", "!=", "cortado") // <--- Solo lo que falta por hacer
-      .onSnapshot((snapshot) => {
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    db.collection("materiales").onSnapshot((snapshot) => {
         const lista = document.getElementById('lista');
+        const select = document.getElementById('select-error');
         lista.innerHTML = "";
-
-        if (snapshot.empty) {
-            lista.innerHTML = "<div style='text-align:center; padding:20px;'>✅ ¡Todo cortado! No hay tareas pendientes.</div>";
-        }
+        select.innerHTML = "";
+        
+        let hayTareas = false;
 
         snapshot.forEach((doc) => {
             const m = doc.data();
             const id = doc.id;
-            const div = document.createElement('div');
-            div.className = `item ${m.estado}`;
-            div.innerHTML = `
-                <div><strong>${m.nombre}</strong><br><small>${m.medida}</small></div>
-                <button class="btn" style="background:${m.estado === 'cortando' ? '#f39c12' : '#2c3e50'}; color:white;" 
-                onclick="avanzarEstado('${id}', '${m.estado}')">
-                    ${m.estado === 'pendiente' ? 'Iniciar' : 'Terminar ✅'}
-                </button>`;
-            lista.appendChild(div);
+
+            // SOLO MOSTRAMOS SI NO ESTÁ "cortado"
+            if (m.estado !== "cortado") {
+                hayTareas = true;
+                const div = document.createElement('div');
+                div.className = `item ${m.estado}`;
+                div.innerHTML = `
+                    <div><strong>${m.nombre}</strong><br><small>${m.medida}</small></div>
+                    <button class="btn" style="background:${m.estado === 'cortando' ? '#f39c12' : '#2c3e50'}" 
+                    onclick="cambiarEstado('${id}', '${m.estado}')">
+                        ${m.estado === 'pendiente' ? 'Iniciar' : 'Hecho ✅'}
+                    </button>`;
+                lista.appendChild(div);
+
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.dataset.nombre = m.nombre;
+                opt.textContent = m.nombre;
+                select.appendChild(opt);
+            }
         });
+
+        if (!hayTareas) lista.innerHTML = "✅ Todo terminado por ahora.";
     });
-    
-    // Función de error mejorada para que el Admin se entere
-    function gestionarError(destino) {
-        const select = document.getElementById('select-material-error');
-        const idOriginal = select.value;
-        const nombre = select.options[select.selectedIndex].dataset.nombre;
 
-        db.collection("alertas_errores").add({
-            material: nombre,
-            destino: destino,
-            operario: "Taller 1",
-            fecha: new Date().toLocaleString(),
-            visto: false
+    function cambiarEstado(id, actual) {
+        const nuevo = actual === 'pendiente' ? 'cortando' : 'cortado';
+        db.collection("materiales").doc(id).update({ estado: nuevo });
+    }
+
+    function enviarError(tipo) {
+        const sel = document.getElementById('select-error');
+        const id = sel.value;
+        const nombre = sel.options[sel.selectedIndex].dataset.nombre;
+
+        // Avisar al admin
+        db.collection("alertas").add({
+            pieza: nombre,
+            problema: tipo,
+            fecha: new Date().toLocaleString()
         });
 
-        // Marcamos como terminado para que desaparezca de la lista del operario
-        db.collection("materiales").doc(idOriginal).update({ estado: 'cortado' });
+        // Marcar como cortado para que desaparezca del movil
+        db.collection("materiales").doc(id).update({ estado: 'cortado' });
         cerrarModal();
-        alert("Error notificado al administrador.");
+        alert("Error enviado al Panel de Admin");
     }
-    // ... (Resto de funciones iguales) ...
+
+    function abrirModal() { document.getElementById('modal-error').style.display = 'flex'; }
+    function cerrarModal() { document.getElementById('modal-error').style.display = 'none'; }
+    setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString(); }, 1000);
 </script>
+</body>
+</html>
