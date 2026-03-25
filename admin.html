@@ -1,43 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin MSTCALC</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .seccion { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .error-fila { background: #fee; color: #b30000; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        .badge { padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; }
+    </style>
+</head>
 <body>
-    <h2>🚀 Panel de Control - MSTCALC</h2>
-    
-    <div class="card" style="border-top: 5px solid #e74c3c;">
-        <h3 style="color:#e74c3c;">⚠️ AVISOS DE ERRORES / RETALES</h3>
-        <table id="tabla-errores">
-            <thead>
-                <tr>
-                    <th>Pieza</th>
-                    <th>Destino</th>
-                    <th>Hora</th>
-                </tr>
-            </thead>
-            <tbody id="cuerpo-errores"></tbody>
+
+    <div class="seccion">
+        <h2>➕ Añadir Trabajo</h2>
+        <input type="text" id="n" placeholder="Material">
+        <input type="text" id="m" placeholder="Medida">
+        <button onclick="enviar()">Enviar al Taller</button>
+    </div>
+
+    <div class="seccion" style="border-left: 8px solid red;">
+        <h2 style="color:red">⚠️ ALERTAS DEL TALLER</h2>
+        <table>
+            <thead><tr><th>Pieza</th><th>Destino</th><th>Hora</th></tr></thead>
+            <tbody id="lista-alertas"></tbody>
         </table>
     </div>
 
-    <div class="card">
-        <h3>Estado de Producción (En curso)</h3>
-        <table id="tabla-produccion">
-            </table>
+    <div class="seccion">
+        <h2>📋 Estado de la Producción</h2>
+        <table>
+            <thead><tr><th>Pieza</th><th>Medida</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody id="lista-admin"></tbody>
+        </table>
     </div>
 
 <script>
-    // ... (Tu firebaseConfig igual) ...
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+        authDomain: "mstcalc.firebaseapp.com",
+        projectId: "mstcalc",
+        storageBucket: "mstcalc.firebasestorage.app",
+        messagingSenderId: "68220801288",
+        appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    // Nueva función para vigilar los errores en tiempo real
-    db.collection("alertas_errores").orderBy("fecha", "desc").limit(5).onSnapshot((snapshot) => {
-        const tablaErr = document.getElementById('cuerpo-errores');
-        tablaErr.innerHTML = "";
-        snapshot.forEach((doc) => {
-            const err = doc.data();
-            tablaErr.innerHTML += `
-                <tr style="background:#fff5f5; color:#c0392b; font-weight:bold;">
-                    <td>${err.material}</td>
-                    <td>${err.destino}</td>
-                    <td>${err.fecha}</td>
-                </tr>`;
+    function enviar() {
+        const n = document.getElementById('n').value;
+        const m = document.getElementById('m').value;
+        if(n && m) {
+            db.collection("materiales").add({ nombre: n, medida: m, estado: 'pendiente', fecha: new Date() });
+            document.getElementById('n').value = ""; document.getElementById('m').value = "";
+        }
+    }
+
+    // Escuchar Alertas
+    db.collection("alertas").onSnapshot(snap => {
+        const t = document.getElementById('lista-alertas');
+        t.innerHTML = "";
+        snap.forEach(doc => {
+            const d = doc.data();
+            t.innerHTML += `<tr class="error-fila"><td>${d.pieza}</td><td>${d.problema}</td><td>${d.fecha}</td></tr>`;
         });
     });
 
-    // (Tu función de leer materiales y enviarTrabajo igual)
+    // Escuchar Producción
+    db.collection("materiales").orderBy("fecha", "desc").onSnapshot(snap => {
+        const t = document.getElementById('lista-admin');
+        t.innerHTML = "";
+        snap.forEach(doc => {
+            const d = doc.data();
+            const color = d.estado === 'cortando' ? '#f39c12' : (d.estado === 'cortado' ? '#27ae60' : '#7f8c8d');
+            t.innerHTML += `<tr>
+                <td>${d.nombre}</td><td>${d.medida}</td>
+                <td><span class="badge" style="background:${color}">${d.estado.toUpperCase()}</span></td>
+                <td><button onclick="db.collection('materiales').doc('${doc.id}').delete()">🗑️</button></td>
+            </tr>`;
+        });
+    });
 </script>
+</body>
+</html>
