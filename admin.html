@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - MSTCALC Control</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        input, button { padding: 12px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd; }
+        button { background: #2c3e50; color: white; cursor: pointer; font-weight: bold; border: none; }
+        button:hover { background: #34495e; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; }
+        .pendiente { background: #eee; }
+        .cortando { background: #f39c12; color: white; }
+        .cortado { background: #27ae60; color: white; }
+    </style>
+</head>
+<body>
+
+    <h2>🚀 Panel de Control - MSTCALC</h2>
+
+    <div class="card">
+        <h3>Asignar Nuevo Trabajo</h3>
+        <input type="text" id="nombre" placeholder="Nombre (ej: Tubo 40x40)">
+        <input type="text" id="medida" placeholder="Medida (ej: 1200mm)">
+        <button onclick="enviarTrabajo()">Enviar al Taller</button>
+    </div>
+
+    <div class="card">
+        <h3>Estado del Taller en Tiempo Real</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Medida</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tabla-cuerpo"></tbody>
+        </table>
+    </div>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+        authDomain: "mstcalc.firebaseapp.com",
+        projectId: "mstcalc",
+        storageBucket: "mstcalc.firebasestorage.app",
+        messagingSenderId: "68220801288",
+        appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Enviar a la base de datos
+    function enviarTrabajo() {
+        const nom = document.getElementById('nombre').value;
+        const med = document.getElementById('medida').value;
+
+        if(nom && med) {
+            db.collection("materiales").add({
+                nombre: nom,
+                medida: med,
+                estado: 'pendiente',
+                fecha: new Date()
+            });
+            document.getElementById('nombre').value = "";
+            document.getElementById('medida').value = "";
+        } else {
+            alert("Rellena ambos campos");
+        }
+    }
+
+    // Leer el estado del taller
+    db.collection("materiales").orderBy("fecha", "desc").onSnapshot((snapshot) => {
+        const tabla = document.getElementById('tabla-cuerpo');
+        tabla.innerHTML = "";
+        snapshot.forEach((doc) => {
+            const m = doc.data();
+            const id = doc.id;
+            tabla.innerHTML += `
+                <tr>
+                    <td>${m.nombre}</td>
+                    <td>${m.medida}</td>
+                    <td><span class="badge ${m.estado}">${m.estado.toUpperCase()}</span></td>
+                    <td><button style="background:red; padding:5px" onclick="borrar('${id}')">🗑️</button></td>
+                </tr>`;
+        });
+    });
+
+    function borrar(id) {
+        if(confirm("¿Borrar este trabajo?")) {
+            db.collection("materiales").doc(id).delete();
+        }
+    }
+</script>
+</body>
+</html>
