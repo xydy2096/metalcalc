@@ -1,143 +1,50 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Operario Real-Time - MSTCALC</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    
-    <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --warning: #f39c12; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
-        header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; position: sticky; top: 0; z-index: 10; }
-        #reloj { font-size: 1.4rem; font-weight: bold; color: var(--primary); }
-        .lista-materiales { display: flex; flex-direction: column; gap: 12px; padding-bottom: 100px; }
-        .item { background: white; padding: 18px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #bdc3c7; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .item.cortando { border-left-color: var(--warning); background: #fffdf0; }
-        .item.cortado { border-left-color: var(--success); opacity: 0.6; background: #fafffa; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; }
-        #btn-error-flotante { position: fixed; bottom: 25px; right: 25px; width: 75px; height: 75px; border-radius: 50%; background: var(--danger); color: white; border: none; font-size: 2rem; box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4); z-index: 100; cursor: pointer; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
-        select { width: 100%; padding: 12px; margin: 15px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 1rem; }
-    </style>
-</head>
-<body>
-
-<header>
-    <div><small>CONTROL DE PRODUCCIÓN</small><br><strong>MSTCALC TALLER</strong></div>
-    <div id="reloj">00:00:00</div>
-</header>
-
-<div class="lista-materiales" id="lista">Conectando con la base de datos...</div>
-
-<button id="btn-error-flotante" onclick="abrirModal()">⚠️</button>
-
-<div id="modal-error" class="modal">
-    <div class="modal-content">
-        <h3>Registrar Fallo de Corte</h3>
-        <p>Selecciona el material afectado:</p>
-        <select id="select-material-error"></select>
-        <button class="btn" style="background:var(--warning); color:white; width:100%; margin-bottom:10px;" onclick="gestionarError('RETALES')">📥 ENVIAR A RETALES</button>
-        <button class="btn" style="background:var(--danger); color:white; width:100%;" onclick="gestionarError('CHATARRA')">🗑️ TIRAR A CHATARRA</button>
-        <button onclick="cerrarModal()" style="margin-top:15px; background:none; border:none; color:gray; cursor:pointer;">Cancelar</button>
-    </div>
-</div>
-
 <script>
-    // Configuración MSTCALC
-  const firebaseConfig = {
-  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
-  authDomain: "mstcalc.firebaseapp.com",
-  projectId: "mstcalc",
-  storageBucket: "mstcalc.firebasestorage.app",
-  messagingSenderId: "68220801288",
-  appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
-};
+    // ... (Mantén tu firebaseConfig igual) ...
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // Sincronización en tiempo real de la lista de materiales
-    db.collection("materiales").orderBy("nombre").onSnapshot((snapshot) => {
+    // CAMBIO: Ahora filtramos para que NO salgan los 'cortado'
+    db.collection("materiales")
+      .where("estado", "!=", "cortado") // <--- Solo lo que falta por hacer
+      .onSnapshot((snapshot) => {
         const lista = document.getElementById('lista');
-        const select = document.getElementById('select-material-error');
         lista.innerHTML = "";
-        select.innerHTML = "";
 
         if (snapshot.empty) {
-            lista.innerHTML = "<p style='text-align:center;'>No hay materiales asignados hoy.</p>";
+            lista.innerHTML = "<div style='text-align:center; padding:20px;'>✅ ¡Todo cortado! No hay tareas pendientes.</div>";
         }
 
         snapshot.forEach((doc) => {
             const m = doc.data();
             const id = doc.id;
-
-            // Añadir a la lista visual
             const div = document.createElement('div');
             div.className = `item ${m.estado}`;
             div.innerHTML = `
-                <div>
-                    <strong>${m.nombre}</strong><br>
-                    <small>Medida: ${m.medida}</small>
-                </div>
-                <button class="btn" style="background:${m.estado === 'cortando' ? '#f39c12' : (m.estado === 'cortado' ? '#27ae60' : '#2c3e50')}; color:white;" 
+                <div><strong>${m.nombre}</strong><br><small>${m.medida}</small></div>
+                <button class="btn" style="background:${m.estado === 'cortando' ? '#f39c12' : '#2c3e50'}; color:white;" 
                 onclick="avanzarEstado('${id}', '${m.estado}')">
-                    ${m.estado === 'pendiente' ? 'Iniciar' : (m.estado === 'cortando' ? 'Terminar ✅' : 'Hecho')}
+                    ${m.estado === 'pendiente' ? 'Iniciar' : 'Terminar ✅'}
                 </button>`;
             lista.appendChild(div);
-
-            // Añadir al desplegable de errores
-            const opt = document.createElement('option');
-            opt.value = id;
-            opt.dataset.nombre = m.nombre;
-            opt.dataset.medida = m.medida;
-            opt.textContent = `${m.nombre} (${m.medida})`;
-            select.appendChild(opt);
         });
     });
-
-    function avanzarEstado(id, estadoActual) {
-        let nuevoEstado = '';
-        if (estadoActual === 'pendiente') nuevoEstado = 'cortando';
-        else if (estadoActual === 'cortando') nuevoEstado = 'cortado';
-        else return;
-
-        db.collection("materiales").doc(id).update({ estado: nuevoEstado });
-    }
-
+    
+    // Función de error mejorada para que el Admin se entere
     function gestionarError(destino) {
         const select = document.getElementById('select-material-error');
         const idOriginal = select.value;
         const nombre = select.options[select.selectedIndex].dataset.nombre;
-        const medida = select.options[select.selectedIndex].dataset.medida;
 
-        // 1. Guardar el error en la colección de "inventario_errores"
-        db.collection("inventario_errores").add({
+        db.collection("alertas_errores").add({
             material: nombre,
-            medida: medida,
             destino: destino,
-            fecha: new Date().toLocaleString()
+            operario: "Taller 1",
+            fecha: new Date().toLocaleString(),
+            visto: false
         });
 
-        // 2. IMPORTANTE: Creamos una nueva tarea para repetir el corte
-        db.collection("materiales").add({
-            nombre: nombre + " (REPETICIÓN)",
-            medida: medida,
-            estado: 'pendiente'
-        });
-
-        // 3. Opcional: El material que dio error lo marcamos como terminado (porque ya no está en la máquina)
+        // Marcamos como terminado para que desaparezca de la lista del operario
         db.collection("materiales").doc(idOriginal).update({ estado: 'cortado' });
-
         cerrarModal();
-        alert("Pieza enviada a " + destino + ". Se ha añadido una nueva orden de corte a la lista.");
+        alert("Error notificado al administrador.");
     }
-
-    function abrirModal() { document.getElementById('modal-error').style.display = 'flex'; }
-    function cerrarModal() { document.getElementById('modal-error').style.display = 'none'; }
-    setInterval(() => { document.getElementById('reloj').textContent = new Date().toLocaleTimeString(); }, 1000);
+    // ... (Resto de funciones iguales) ...
 </script>
-</body>
-</html>
