@@ -2,40 +2,40 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Admin MSTCALC</title>
+    <title>Panel Control MSTCALC</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
         body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
-        .seccion { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .error-fila { background: #fee; color: #b30000; font-weight: bold; }
-        table { width: 100%; border-collapse: collapse; }
+        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
+        .error-row { background: #ffdada; color: #b30000; font-weight: bold; }
         .badge { padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="seccion">
-        <h2>➕ Añadir Trabajo</h2>
-        <input type="text" id="n" placeholder="Material">
-        <input type="text" id="m" placeholder="Medida">
+    <div class="card">
+        <h2>➕ Añadir Nueva Tarea</h2>
+        <input type="text" id="nombre" placeholder="Material">
+        <input type="text" id="medida" placeholder="Medida">
         <button onclick="enviar()">Enviar al Taller</button>
     </div>
 
-    <div class="seccion" style="border-left: 8px solid red;">
-        <h2 style="color:red">⚠️ ALERTAS DEL TALLER</h2>
+    <div class="card" style="border-left: 10px solid #e74c3c;">
+        <h2 style="color:#e74c3c">⚠️ ALERTAS / ERRORES</h2>
         <table>
             <thead><tr><th>Pieza</th><th>Destino</th><th>Hora</th></tr></thead>
             <tbody id="lista-alertas"></tbody>
         </table>
     </div>
 
-    <div class="seccion">
-        <h2>📋 Estado de la Producción</h2>
+    <div class="card">
+        <h2>📋 Producción General</h2>
         <table>
-            <thead><tr><th>Pieza</th><th>Medida</th><th>Estado</th><th>Acción</th></tr></thead>
-            <tbody id="lista-admin"></tbody>
+            <thead><tr><th>Pieza</th><th>Medida</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="lista-produccion"></tbody>
         </table>
     </div>
 
@@ -52,27 +52,27 @@
     const db = firebase.firestore();
 
     function enviar() {
-        const n = document.getElementById('n').value;
-        const m = document.getElementById('m').value;
+        const n = document.getElementById('nombre').value;
+        const m = document.getElementById('medida').value;
         if(n && m) {
             db.collection("materiales").add({ nombre: n, medida: m, estado: 'pendiente', fecha: new Date() });
-            document.getElementById('n').value = ""; document.getElementById('m').value = "";
+            document.getElementById('nombre').value = ""; document.getElementById('medida').value = "";
         }
     }
 
-    // Escuchar Alertas
+    // Escuchar Alertas de error
     db.collection("alertas").onSnapshot(snap => {
         const t = document.getElementById('lista-alertas');
         t.innerHTML = "";
         snap.forEach(doc => {
             const d = doc.data();
-            t.innerHTML += `<tr class="error-fila"><td>${d.pieza}</td><td>${d.problema}</td><td>${d.fecha}</td></tr>`;
+            t.innerHTML += `<tr class="error-row"><td>${d.pieza}</td><td>${d.problema}</td><td>${d.fecha}</td></tr>`;
         });
     });
 
-    // Escuchar Producción
+    // Escuchar Toda la Producción
     db.collection("materiales").orderBy("fecha", "desc").onSnapshot(snap => {
-        const t = document.getElementById('lista-admin');
+        const t = document.getElementById('lista-produccion');
         t.innerHTML = "";
         snap.forEach(doc => {
             const d = doc.data();
