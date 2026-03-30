@@ -1,42 +1,31 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Operario - MSTCALC</title>
+    <title>OPERARIO - Selección de Obra</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --primary: #2c3e50; --success: #27ae60; --danger: #e74c3c; --warning: #f39c12; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
-        header { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .item { background: white; padding: 18px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid #bdc3c7; margin-bottom: 10px; }
-        .item.cortando { border-left-color: var(--warning); background: #fffdf0; }
-        .btn { padding: 12px 20px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; color: white; }
-        #btn-error { position: fixed; bottom: 25px; right: 25px; width: 70px; height: 70px; border-radius: 50%; background: var(--danger); color: white; border: none; font-size: 2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; text-align: center; }
+        body { font-family: sans-serif; padding: 15px; background: #f0f2f5; }
+        .obra-card { background: white; padding: 20px; margin-bottom: 10px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .item-corte { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2c3e50; display: flex; justify-content: space-between; align-items: center; }
+        .btn-obra { background: #3498db; color: white; padding: 15px; width: 100%; border: none; border-radius: 8px; font-size: 1.1rem; margin-bottom: 10px; }
+        .btn-accion { padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; }
     </style>
 </head>
 <body>
 
-<header>
-    <div><strong>OPERARIO TALLER</strong></div>
-</header>
-
-<div id="lista">Conectando...</div>
-
-<button id="btn-error" onclick="abrirModal()">⚠️</button>
-
-<div id="modal-error" class="modal">
-    <div class="modal-content">
-        <h3>Reportar Fallo</h3>
-        <select id="select-error" style="width:100%; padding:10px; margin:10px 0;"></select>
-        <button onclick="enviarError('RETALES')" style="background:var(--warning); width:100%; padding:10px; margin-bottom:5px; border:none; border-radius:5px; color:white;">A RETALES</button>
-        <button onclick="enviarError('CHATARRA')" style="background:var(--danger); width:100%; padding:10px; border:none; border-radius:5px; color:white;">A CHATARRA</button>
-        <button onclick="cerrarModal()" style="margin-top:10px; background:none; border:none; color:gray;">Cancelar</button>
+    <div id="selector-obra">
+        <h3>SELECCIONA EL TRABAJO:</h3>
+        <div id="lista-obras">Buscando obras activas...</div>
     </div>
-</div>
+
+    <div id="vista-trabajo" style="display:none;">
+        <button onclick="volver()" style="background:none; border:none; color:#3498db; margin-bottom:10px;">⬅ Volver a obras</button>
+        <h2 id="num-obra">Trabajo --</h2>
+        <div id="piezas-obra"></div>
+    </div>
 
 <script>
     const firebaseConfig = {
@@ -47,62 +36,51 @@
         messagingSenderId: "68220801288",
         appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    db.collection("materiales").onSnapshot((snapshot) => {
-        const lista = document.getElementById('lista');
-        const select = document.getElementById('select-error');
-        lista.innerHTML = "";
-        select.innerHTML = "";
+    // 1. Detectar qué trabajos existen
+    db.collection("materiales").onSnapshot(snap => {
+        const listaObras = document.getElementById('lista-obras');
+        const obras = new Set();
+        snap.forEach(doc => obras.add(doc.data().trabajo));
         
-        let hayTareas = false;
-
-        snapshot.forEach((doc) => {
-            const m = doc.data();
-            const id = doc.id;
-
-            // SOLO MOSTRAMOS SI NO ESTÁ "cortado"
-            if (m.estado !== "cortado") {
-                hayTareas = true;
-                const div = document.createElement('div');
-                div.className = `item ${m.estado}`;
-                div.innerHTML = `
-                    <div><strong>${m.nombre}</strong><br><small>${m.medida}</small></div>
-                    <button class="btn" style="background:${m.estado === 'cortando' ? '#f39c12' : '#2c3e50'}" 
-                    onclick="cambiarEstado('${id}', '${m.estado}')">
-                        ${m.estado === 'pendiente' ? 'Iniciar' : 'Hecho ✅'}
-                    </button>`;
-                lista.appendChild(div);
-
-                const opt = document.createElement('option');
-                opt.value = id;
-                opt.dataset.nombre = m.nombre;
-                opt.textContent = m.nombre;
-                select.appendChild(opt);
-            }
+        listaObras.innerHTML = "";
+        obras.forEach(o => {
+            listaObras.innerHTML += `<button class="btn-obra" onclick="verObra('${o}')">OBRA Nº ${o}</button>`;
         });
-
-        if (!hayTareas) lista.innerHTML = "✅ Todo terminado.";
     });
 
-    function cambiarEstado(id, actual) {
-        const nuevo = actual === 'pendiente' ? 'cortando' : 'cortado';
-        db.collection("materiales").doc(id).update({ estado: nuevo });
+    function verObra(id) {
+        document.getElementById('selector-obra').style.display = 'none';
+        document.getElementById('vista-trabajo').style.display = 'block';
+        document.getElementById('num-obra').innerText = "Trabajo " + id;
+        
+        db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
+            const contenedor = document.getElementById('piezas-obra');
+            contenedor.innerHTML = "";
+            snap.forEach(doc => {
+                const m = doc.data();
+                if(m.estado !== 'cortado') {
+                    contenedor.innerHTML += `
+                        <div class="item-corte" style="border-left-color:${m.estado==='cortando'?'#f39c12':'#2c3e50'}">
+                            <div><b>${m.nombre}</b><br>${m.medida}</div>
+                            <button class="btn-accion" onclick="cambiar('${doc.id}','${m.estado}')">
+                                ${m.estado === 'pendiente' ? 'INICIAR' : 'HECHO ✅'}
+                            </button>
+                        </div>`;
+                }
+            });
+            if(contenedor.innerHTML === "") contenedor.innerHTML = "🎉 ¡Obra completada!";
+        });
     }
 
-    function enviarError(tipo) {
-        const sel = document.getElementById('select-error');
-        const id = sel.value;
-        const nombre = sel.options[sel.selectedIndex].dataset.nombre;
-        db.collection("alertas").add({ pieza: nombre, problema: tipo, fecha: new Date().toLocaleString() });
-        db.collection("materiales").doc(id).update({ estado: 'cortado' });
-        cerrarModal();
+    function cambiar(id, est) {
+        const n = est === 'pendiente' ? 'cortando' : 'cortado';
+        db.collection("materiales").doc(id).update({estado: n});
     }
 
-    function abrirModal() { document.getElementById('modal-error').style.display = 'flex'; }
-    function cerrarModal() { document.getElementById('modal-error').style.display = 'none'; }
+    function volver() { location.reload(); }
 </script>
 </body>
 </html>
