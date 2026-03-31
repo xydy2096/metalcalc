@@ -1,112 +1,102 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>ADMIN - Gestión por Proyectos</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        input { padding: 8px; margin-right: 5px; border: 1px solid #ccc; border-radius: 4px; }
-        button { padding: 8px 15px; cursor: pointer; background: #2c3e50; color: white; border: none; border-radius: 4px; }
-        .proyecto-btn { margin-right: 5px; background: #95a5a6; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
-    </style>
-</head>
-<body>
-
-    <div class="card">
-        <h2>📂 NUEVA LISTA DE CORTE</h2>
-        <input type="text" id="id_trabajo" placeholder="Nº Trabajo (ej: 001)" style="width: 100px; font-weight: bold;">
-        <input type="text" id="n" placeholder="Material">
-        <input type="text" id="m" placeholder="Medida">
-        <button onclick="enviar()">Añadir a la lista</button>
+<div class="card" style="background: #f8f9fa; border-left: 8px solid #2c3e50;">
+    <h2>📐 CALCULADORA TÉCNICA Y COMPRAS</h2>
+    <div class="flex">
+        <select id="tipo_mat" style="padding:10px; border-radius:5px;">
+            <option value="Tubo 40x40x2" data-precio="4.50">Tubo 40x40x2 (4.50€/m)</option>
+            <option value="Tubo 60x40x2" data-precio="5.80">Tubo 60x40x2 (5.80€/m)</option>
+            <option value="Angular 30x3" data-precio="3.20">Angular 30x3 (3.20€/m)</option>
+            <option value="Pasamano 40x5" data-precio="2.90">Pasamano 40x5 (2.90€/m)</option>
+        </select>
+        <input type="number" id="base" placeholder="Base (mm)" oninput="calcularTecnico()">
+        <input type="number" id="altura" placeholder="Altura (mm)" oninput="calcularTecnico()">
+        <button onclick="anadirALista()" style="background:#27ae60;">➕ Añadir a Obra</button>
     </div>
 
-    <div class="card">
-        <h2>🔍 FILTRAR POR TRABAJO</h2>
-        <div id="filtros-proyectos"></div>
-        <button onclick="cargarTodo()" style="background:#7f8c8d; margin-top:10px;">Ver Todo el Historial</button>
+    <div id="pre-calculo" style="margin-top:15px; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+        <div style="background:white; padding:10px; border-radius:5px; border:1px solid #ddd;">
+            <small>LONGITUD PIEZA</small><br><strong id="res-long">0</strong> mm
+        </div>
+        <div style="background:white; padding:10px; border-radius:5px; border:1px solid #ddd;">
+            <small>ÁNGULO CORTE</small><br><strong id="res-ang">0</strong>°
+        </div>
+        <div style="background:white; padding:10px; border-radius:5px; border:1px solid #ddd;">
+            <small>PRECIO PIEZA</small><br><strong id="res-coste">0</strong> €
+        </div>
     </div>
+</div>
 
-    <div class="card">
-        <h2 id="titulo-lista">📋 Todas las piezas</h2>
-        <table id="tabla">
-            <thead><tr><th>Obra</th><th>Pieza</th><th>Medida</th><th>Estado</th><th>Borrar</th></tr></thead>
-            <tbody id="cuerpo"></tbody>
-        </table>
-    </div>
+<div class="card" style="background: #2c3e50; color: white;">
+    <h3>💰 RESUMEN DE PEDIDO (Barras de 6m)</h3>
+    <div id="resumen-pedido">Añade materiales para calcular barras...</div>
+    <hr>
+    <h3 id="total-presupuesto">Total Presupuesto: 0.00 €</h3>
+</div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
-        authDomain: "mstcalc.firebaseapp.com",
-        projectId: "mstcalc",
-        storageBucket: "mstcalc.firebasestorage.app",
-        messagingSenderId: "68220801288",
-        appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+// --- LÓGICA DE CÁLCULO ---
+let listaTemporal = []; // Para guardar lo que vamos sumando antes de enviar a Firebase
 
-    function enviar() {
-        const idT = document.getElementById('id_trabajo').value;
-        const n = document.getElementById('n').value;
-        const m = document.getElementById('m').value;
-        if(idT && n && m) {
-            db.collection("materiales").add({ 
-                trabajo: idT, 
-                nombre: n, 
-                medida: m, 
-                estado: 'pendiente', 
-                fecha: new Date() 
-            });
-            document.getElementById('n').value = ""; document.getElementById('m').value = "";
-        } else { alert("Falta el Nº de Trabajo o datos"); }
-    }
+function calcularTecnico() {
+    const b = parseFloat(document.getElementById('base').value) || 0;
+    const h = parseFloat(document.getElementById('altura').value) || 0;
+    const select = document.getElementById('tipo_mat');
+    const precioM = parseFloat(select.options[select.selectedIndex].dataset.precio);
 
-    // Cargar botones de proyectos únicos y la lista
-    db.collection("materiales").orderBy("fecha", "desc").onSnapshot(snap => {
-        const cuerpo = document.getElementById('cuerpo');
-        const filtros = document.getElementById('filtros-proyectos');
-        const proyectos = new Set();
-        cuerpo.innerHTML = "";
+    if (b > 0 && h > 0) {
+        const long = Math.sqrt(Math.pow(b, 2) + Math.pow(h, 2));
+        const ang = (Math.atan(h / b) * (180 / Math.PI)).toFixed(1);
         
-        snap.forEach(doc => {
-            const d = doc.data();
-            proyectos.add(d.trabajo);
-            renderFila(doc);
-        });
+        document.getElementById('res-long').innerText = long.toFixed(0);
+        document.getElementById('res-ang').innerText = ang;
+        document.getElementById('res-coste').innerText = ((long / 1000) * precioM).toFixed(2);
+    }
+}
 
-        filtros.innerHTML = "";
-        proyectos.forEach(p => {
-            filtros.innerHTML += `<button class="proyecto-btn" onclick="filtrar('${p}')">Trabajo ${p}</button>`;
-        });
+function anadirALista() {
+    const idT = document.getElementById('diseno_id').value; // Usamos el ID de trabajo que tengas puesto
+    if(!idT) { alert("Pon primero el Nº de Trabajo arriba"); return; }
+
+    const select = document.getElementById('tipo_mat');
+    const material = select.value;
+    const precioM = parseFloat(select.options[select.selectedIndex].dataset.precio);
+    const long = parseFloat(document.getElementById('res-long').innerText);
+    const angulo = document.getElementById('res-ang').innerText + "°";
+
+    // Guardar en Firebase para el operario
+    db.collection("materiales").add({
+        trabajo: idT,
+        nombre: material,
+        medida: long.toFixed(0) + "mm",
+        angulo: angulo,
+        estado: 'pendiente',
+        precio: ((long / 1000) * precioM),
+        fecha: new Date()
     });
 
-    function renderFila(doc) {
-        const d = doc.data();
-        const color = d.estado === 'cortado' ? '#27ae60' : (d.estado === 'cortando' ? '#f39c12' : '#7f8c8d');
-        document.getElementById('cuerpo').innerHTML += `
-            <tr>
-                <td><b>${d.trabajo}</b></td>
-                <td>${d.nombre}</td><td>${d.medida}</td>
-                <td><span style="color:white; padding:3px 8px; border-radius:4px; background:${color}">${d.estado}</span></td>
-                <td><button onclick="db.collection('materiales').doc('${doc.id}').delete()" style="background:red">🗑️</button></td>
-            </tr>`;
+    actualizarPresupuestoGlobal(material, long, precioM);
+}
+
+function actualizarPresupuestoGlobal(mat, long, precioM) {
+    // Buscamos si el material ya existe en nuestra suma
+    let item = listaTemporal.find(i => i.nombre === mat);
+    if(item) {
+        item.totalLong += long;
+    } else {
+        listaTemporal.push({ nombre: mat, totalLong: long, precioM: precioM });
     }
 
-    function filtrar(id) {
-        document.getElementById('titulo-lista').innerText = "📋 Piezas del Trabajo " + id;
-        db.collection("materiales").where("trabajo", "==", id).get().then(snap => {
-            document.getElementById('cuerpo').innerHTML = "";
-            snap.forEach(doc => renderFila(doc));
-        });
-    }
+    let html = "<ul>";
+    let granTotal = 0;
 
-    function cargarTodo() { location.reload(); }
+    listaTemporal.forEach(i => {
+        const barras = Math.ceil(i.totalLong / 6000); // Dividimos por 6 metros
+        const costeMat = i.totalLong / 1000 * i.precioM;
+        granTotal += costeMat;
+        html += `<li><b>${i.nombre}</b>: ${(i.totalLong/1000).toFixed(2)}m -> <strong>Comprar ${barras} barras</strong> (${costeMat.toFixed(2)}€)</li>`;
+    });
+
+    html += "</ul>";
+    document.getElementById('resumen-pedido').innerHTML = html;
+    document.getElementById('total-presupuesto').innerText = "Total Presupuesto: " + granTotal.toFixed(2) + " €";
+}
 </script>
-</body>
-</html>
