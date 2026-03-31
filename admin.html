@@ -1,102 +1,135 @@
-<div class="card" style="background: #f8f9fa; border-left: 8px solid #2c3e50;">
-    <h2>📐 CALCULADORA TÉCNICA Y COMPRAS</h2>
-    <div class="flex">
-        <select id="tipo_mat" style="padding:10px; border-radius:5px;">
-            <option value="Tubo 40x40x2" data-precio="4.50">Tubo 40x40x2 (4.50€/m)</option>
-            <option value="Tubo 60x40x2" data-precio="5.80">Tubo 60x40x2 (5.80€/m)</option>
-            <option value="Angular 30x3" data-precio="3.20">Angular 30x3 (3.20€/m)</option>
-            <option value="Pasamano 40x5" data-precio="2.90">Pasamano 40x5 (2.90€/m)</option>
-        </select>
-        <input type="number" id="base" placeholder="Base (mm)" oninput="calcularTecnico()">
-        <input type="number" id="altura" placeholder="Altura (mm)" oninput="calcularTecnico()">
-        <button onclick="anadirALista()" style="background:#27ae60;">➕ Añadir a Obra</button>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSTCALC - Sistema Integral de Taller</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <style>
+        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --txt: #334155; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--txt); display: flex; }
+        
+        /* Sidebar Navegación */
+        .sidebar { width: 250px; background: var(--p); height: 100vh; color: white; padding: 20px; position: fixed; }
+        .sidebar h2 { color: var(--s); font-size: 1.2rem; margin-bottom: 30px; }
+        .nav-item { padding: 12px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; }
+        .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: var(--s); }
+        
+        /* Contenido Principal */
+        .main-content { margin-left: 250px; padding: 40px; width: 100%; }
+        .view { display: none; }
+        .view.active { display: block; }
+
+        /* Tarjetas de Menú */
+        .grid-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .card-mod { background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; border: 1px solid #e2e8f0; }
+        .card-mod:hover { border-color: var(--s); transform: translateY(-5px); }
+        .card-mod i { font-size: 2.5rem; display: block; margin-bottom: 15px; }
+
+        /* Estilo para los inputs de los módulos */
+        .input-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        .flex { display: flex; gap: 15px; margin-bottom: 15px; }
+        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100%; }
+        button { padding: 12px 25px; background: var(--s); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>MSTCALC PRO</h2>
+        <div class="nav-item active" onclick="showView('v-inicio')">🏠 Inicio</div>
+        <div class="nav-item" onclick="showView('v-modulos')">🧩 Módulos</div>
+        <div class="nav-item" onclick="showView('v-presupuestos')">💰 Presupuestos</div>
+        <div class="nav-item" onclick="showView('v-precios')">📈 Historial Precios</div>
+        <div class="nav-item" onclick="showView('v-historial')">📁 Historial Obras</div>
     </div>
 
-    <div id="pre-calculo" style="margin-top:15px; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
-        <div style="background:white; padding:10px; border-radius:5px; border:1px solid #ddd;">
-            <small>LONGITUD PIEZA</small><br><strong id="res-long">0</strong> mm
+    <div class="main-content">
+        
+        <div id="v-inicio" class="view active">
+            <h1>Bienvenido al Panel de Control</h1>
+            <p>Selecciona una opción en el menú lateral para empezar.</p>
+            <div class="grid-modules">
+                <div class="card-mod" onclick="showView('v-modulos')">📦<br>Nuevo Trabajo</div>
+                <div class="card-mod" onclick="showView('v-presupuestos')">📊<br>Últimos Cálculos</div>
+                <div class="card-mod" onclick="showView('v-historial')">📋<br>Estado Taller</div>
+            </div>
         </div>
-        <div style="background:white; padding:10px; border-radius:5px; border:1px solid #ddd;">
-            <small>ÁNGULO CORTE</small><br><strong id="res-ang">0</strong>°
-        </div>
-        <div style="background:white; padding:10px; border-radius:5px; border:1px solid #ddd;">
-            <small>PRECIO PIEZA</small><br><strong id="res-coste">0</strong> €
-        </div>
-    </div>
-</div>
 
-<div class="card" style="background: #2c3e50; color: white;">
-    <h3>💰 RESUMEN DE PEDIDO (Barras de 6m)</h3>
-    <div id="resumen-pedido">Añade materiales para calcular barras...</div>
-    <hr>
-    <h3 id="total-presupuesto">Total Presupuesto: 0.00 €</h3>
-</div>
+        <div id="v-modulos" class="view">
+            <h1>Módulos de Fabricación</h1>
+            <div class="grid-modules">
+                <div class="card-mod" onclick="loadSubMod('puerta')">🚪<br>Puertas</div>
+                <div class="card-mod" onclick="loadSubMod('barandilla')">🪜<br>Barandillas</div>
+                <div class="card-mod" onclick="loadSubMod('escalera')">📐<br>Escaleras</div>
+                <div class="card-mod" onclick="loadSubMod('estructuras')">🏗️<br>Estructuras</div>
+            </div>
+
+            <div id="sub-modulo-container" style="margin-top:40px;"></div>
+        </div>
+
+        <div id="v-precios" class="view">
+            <h1>Historial de Precios de Material</h1>
+            <div class="input-box">
+                <table style="width:100%; text-align:left;">
+                    <thead><tr><th>Material</th><th>Último Precio (€/m)</th><th>Fecha</th></tr></thead>
+                    <tbody id="lista-precios">
+                        <tr><td>Tubo 40x40x2</td><td>4.85 €</td><td>20/03/2026</td></tr>
+                        <tr><td>L de 50x5</td><td>5.20 €</td><td>15/03/2026</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
 
 <script>
-// --- LÓGICA DE CÁLCULO ---
-let listaTemporal = []; // Para guardar lo que vamos sumando antes de enviar a Firebase
+    // Tu Config de Firebase (Mantenla siempre igual)
+    const firebaseConfig = {
+        apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+        authDomain: "mstcalc.firebaseapp.com",
+        projectId: "mstcalc",
+        storageBucket: "mstcalc.firebasestorage.app",
+        messagingSenderId: "68220801288",
+        appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-function calcularTecnico() {
-    const b = parseFloat(document.getElementById('base').value) || 0;
-    const h = parseFloat(document.getElementById('altura').value) || 0;
-    const select = document.getElementById('tipo_mat');
-    const precioM = parseFloat(select.options[select.selectedIndex].dataset.precio);
-
-    if (b > 0 && h > 0) {
-        const long = Math.sqrt(Math.pow(b, 2) + Math.pow(h, 2));
-        const ang = (Math.atan(h / b) * (180 / Math.PI)).toFixed(1);
-        
-        document.getElementById('res-long').innerText = long.toFixed(0);
-        document.getElementById('res-ang').innerText = ang;
-        document.getElementById('res-coste').innerText = ((long / 1000) * precioM).toFixed(2);
-    }
-}
-
-function anadirALista() {
-    const idT = document.getElementById('diseno_id').value; // Usamos el ID de trabajo que tengas puesto
-    if(!idT) { alert("Pon primero el Nº de Trabajo arriba"); return; }
-
-    const select = document.getElementById('tipo_mat');
-    const material = select.value;
-    const precioM = parseFloat(select.options[select.selectedIndex].dataset.precio);
-    const long = parseFloat(document.getElementById('res-long').innerText);
-    const angulo = document.getElementById('res-ang').innerText + "°";
-
-    // Guardar en Firebase para el operario
-    db.collection("materiales").add({
-        trabajo: idT,
-        nombre: material,
-        medida: long.toFixed(0) + "mm",
-        angulo: angulo,
-        estado: 'pendiente',
-        precio: ((long / 1000) * precioM),
-        fecha: new Date()
-    });
-
-    actualizarPresupuestoGlobal(material, long, precioM);
-}
-
-function actualizarPresupuestoGlobal(mat, long, precioM) {
-    // Buscamos si el material ya existe en nuestra suma
-    let item = listaTemporal.find(i => i.nombre === mat);
-    if(item) {
-        item.totalLong += long;
-    } else {
-        listaTemporal.push({ nombre: mat, totalLong: long, precioM: precioM });
+    // Navegación entre vistas
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        // (Opcional: añadir clase active al nav-item correspondiente)
     }
 
-    let html = "<ul>";
-    let granTotal = 0;
+    // Cargar lógica de sub-módulos (Inyección de código para reglas manuales)
+    function loadSubMod(tipo) {
+        const container = document.getElementById('sub-modulo-container');
+        if(tipo === 'puerta') {
+            container.innerHTML = `
+                <div class="input-box">
+                    <h3>Configuración de Puerta / Marco</h3>
+                    <div class="flex">
+                        <input type="number" id="ancho" placeholder="Ancho Hueco">
+                        <input type="number" id="alto" placeholder="Alto Hueco">
+                        <select id="tipo-hoja"><option value="40x40">Tubo 40x40</option></select>
+                        <button onclick="calcPuerta()">Calcular</button>
+                    </div>
+                    <div id="res-puerta"></div>
+                </div>`;
+        }
+        // Aquí iremos añadiendo más if(tipo === '...') para los demás módulos
+    }
 
-    listaTemporal.forEach(i => {
-        const barras = Math.ceil(i.totalLong / 6000); // Dividimos por 6 metros
-        const costeMat = i.totalLong / 1000 * i.precioM;
-        granTotal += costeMat;
-        html += `<li><b>${i.nombre}</b>: ${(i.totalLong/1000).toFixed(2)}m -> <strong>Comprar ${barras} barras</strong> (${costeMat.toFixed(2)}€)</li>`;
-    });
-
-    html += "</ul>";
-    document.getElementById('resumen-pedido').innerHTML = html;
-    document.getElementById('total-presupuesto').innerText = "Total Presupuesto: " + granTotal.toFixed(2) + " €";
-}
+    function calcPuerta() {
+        // Aquí es donde introduciremos tus reglas de código manuales poco a poco
+        const a = document.getElementById('ancho').value;
+        const h = document.getElementById('alto').value;
+        document.getElementById('res-puerta').innerHTML = `<strong>Despiece:</strong> 2 uds Verticales de ${h}mm y 2 uds Horizontales de ${a}mm.`;
+    }
 </script>
+</body>
+</html>
