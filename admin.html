@@ -3,35 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSTCALC - Sistema Integral de Taller</title>
+    <title>MSTCALC - Gestión Integral</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --txt: #334155; }
+        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --txt: #334155; --accent: #f39c12; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--txt); display: flex; }
         
-        /* Sidebar Navegación */
         .sidebar { width: 250px; background: var(--p); height: 100vh; color: white; padding: 20px; position: fixed; }
         .sidebar h2 { color: var(--s); font-size: 1.2rem; margin-bottom: 30px; }
         .nav-item { padding: 12px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: var(--s); }
         
-        /* Contenido Principal */
-        .main-content { margin-left: 250px; padding: 40px; width: 100%; }
+        .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
         .view { display: none; }
         .view.active { display: block; }
 
-        /* Tarjetas de Menú */
         .grid-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
         .card-mod { background: white; padding: 30px; border-radius: 15px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); cursor: pointer; transition: 0.3s; border: 1px solid #e2e8f0; }
         .card-mod:hover { border-color: var(--s); transform: translateY(-5px); }
-        .card-mod i { font-size: 2.5rem; display: block; margin-bottom: 15px; }
 
-        /* Estilo para los inputs de los módulos */
-        .input-box { background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
-        .flex { display: flex; gap: 15px; margin-bottom: 15px; }
-        input, select { padding: 12px; border: 1px solid #ddd; border-radius: 8px; width: 100%; }
+        .input-box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .flex { display: flex; gap: 15px; margin-bottom: 15px; align-items: center; }
+        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; width: 100%; font-size: 1rem; }
         button { padding: 12px 25px; background: var(--s); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        
+        .resumen-total { background: var(--p); color: white; padding: 25px; border-radius: 15px; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; color: var(--p); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -39,53 +38,53 @@
     <div class="sidebar">
         <h2>MSTCALC PRO</h2>
         <div class="nav-item active" onclick="showView('v-inicio')">🏠 Inicio</div>
-        <div class="nav-item" onclick="showView('v-modulos')">🧩 Módulos</div>
-        <div class="nav-item" onclick="showView('v-presupuestos')">💰 Presupuestos</div>
-        <div class="nav-item" onclick="showView('v-precios')">📈 Historial Precios</div>
-        <div class="nav-item" onclick="showView('v-historial')">📁 Historial Obras</div>
+        <div class="nav-item" onclick="showView('v-modulos')">🧩 Módulos / Dibujo</div>
+        <div id="nav-pre" class="nav-item" onclick="showView('v-presupuestos')">💰 Presupuesto Actual</div>
+        <div class="nav-item" onclick="showView('v-precios')">📈 Precios Material</div>
     </div>
 
     <div class="main-content">
         
         <div id="v-inicio" class="view active">
-            <h1>Bienvenido al Panel de Control</h1>
-            <p>Selecciona una opción en el menú lateral para empezar.</p>
+            <h1>Panel de Control</h1>
+            <div class="input-box">
+                <label>Nº DE PRESUPUESTO / OBRA:</label>
+                <input type="text" id="id_obra" placeholder="Ej: PRE001" style="font-size: 1.5rem; color: var(--s); font-weight: bold;">
+            </div>
             <div class="grid-modules">
-                <div class="card-mod" onclick="showView('v-modulos')">📦<br>Nuevo Trabajo</div>
-                <div class="card-mod" onclick="showView('v-presupuestos')">📊<br>Últimos Cálculos</div>
-                <div class="card-mod" onclick="showView('v-historial')">📋<br>Estado Taller</div>
+                <div class="card-mod" onclick="showView('v-modulos')">📦<br>Configurar Trabajo</div>
+                <div class="card-mod" onclick="showView('v-precios')">⚙️<br>Ajustar Precios</div>
             </div>
         </div>
 
         <div id="v-modulos" class="view">
-            <h1>Módulos de Fabricación</h1>
+            <h1>Selecciona Módulo</h1>
             <div class="grid-modules">
                 <div class="card-mod" onclick="loadSubMod('puerta')">🚪<br>Puertas</div>
                 <div class="card-mod" onclick="loadSubMod('barandilla')">🪜<br>Barandillas</div>
-                <div class="card-mod" onclick="loadSubMod('escalera')">📐<br>Escaleras</div>
-                <div class="card-mod" onclick="loadSubMod('estructuras')">🏗️<br>Estructuras</div>
             </div>
+            <div id="sub-modulo-container" style="margin-top:30px;"></div>
+        </div>
 
-            <div id="sub-modulo-container" style="margin-top:40px;"></div>
+        <div id="v-presupuestos" class="view">
+            <h1>Revisión de Presupuesto</h1>
+            <div id="contenido-presupuesto">No hay items añadidos aún.</div>
         </div>
 
         <div id="v-precios" class="view">
-            <h1>Historial de Precios de Material</h1>
+            <h1>Base de Datos de Precios</h1>
             <div class="input-box">
-                <table style="width:100%; text-align:left;">
-                    <thead><tr><th>Material</th><th>Último Precio (€/m)</th><th>Fecha</th></tr></thead>
-                    <tbody id="lista-precios">
-                        <tr><td>Tubo 40x40x2</td><td>4.85 €</td><td>20/03/2026</td></tr>
-                        <tr><td>L de 50x5</td><td>5.20 €</td><td>15/03/2026</td></tr>
-                    </tbody>
+                <table id="tabla-precios">
+                    <thead><tr><th>Material</th><th>Precio (€/m)</th></tr></thead>
+                    <tbody id="lista-precios"></tbody>
                 </table>
+                <button onclick="nuevoMaterial()" style="margin-top:15px; background: var(--p);">➕ Añadir Material</button>
             </div>
         </div>
 
     </div>
 
 <script>
-    // Tu Config de Firebase (Mantenla siempre igual)
     const firebaseConfig = {
         apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
         authDomain: "mstcalc.firebaseapp.com",
@@ -97,39 +96,103 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Navegación entre vistas
+    let presupuestoActual = { id: "", items: [], total: 0 };
+    let preciosDB = { "Tubo 40x40x2": 4.85, "L 50x5": 5.20, "Barrote 14mm": 2.50, "Chapa 1.5mm": 22.00 };
+
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        // (Opcional: añadir clase active al nav-item correspondiente)
     }
 
-    // Cargar lógica de sub-módulos (Inyección de código para reglas manuales)
+    function renderPrecios() {
+        const tabla = document.getElementById('lista-precios');
+        tabla.innerHTML = "";
+        for (let mat in preciosDB) {
+            tabla.innerHTML += `<tr><td>${mat}</td><td><input type="number" step="0.01" value="${preciosDB[mat]}" onchange="preciosDB['${mat}']=parseFloat(this.value)"> €</td></tr>`;
+        }
+    }
+
     function loadSubMod(tipo) {
         const container = document.getElementById('sub-modulo-container');
-        if(tipo === 'puerta') {
+        const idPre = document.getElementById('id_obra').value;
+        if(!idPre) return alert("Pon el Nº de Presupuesto primero");
+        presupuestoActual.id = idPre;
+
+        if(tipo === 'barandilla') {
             container.innerHTML = `
-                <div class="input-box">
-                    <h3>Configuración de Puerta / Marco</h3>
-                    <div class="flex">
-                        <input type="number" id="ancho" placeholder="Ancho Hueco">
-                        <input type="number" id="alto" placeholder="Alto Hueco">
-                        <select id="tipo-hoja"><option value="40x40">Tubo 40x40</option></select>
-                        <button onclick="calcPuerta()">Calcular</button>
+                <div class="input-box" style="border-top: 4px solid var(--accent);">
+                    <h3>🪜 Configurador de Barandilla</h3>
+                    <div class="flex"><input type="number" id="l-total" placeholder="Largo (mm)"><input type="number" id="h-total" placeholder="Alto (mm)"></div>
+                    <div class="flex" style="background:#f1f5f9; padding:15px; border-radius:10px;">
+                        <select id="orientacion"><option value="vertical">Vertical</option><option value="horizontal">Horizontal</option></select>
+                        <input type="number" id="separacion" value="100">
                     </div>
-                    <div id="res-puerta"></div>
+                    <button onclick="calcularBarandilla()" style="background:var(--accent); width:100%;">Añadir al Presupuesto</button>
                 </div>`;
         }
-        // Aquí iremos añadiendo más if(tipo === '...') para los demás módulos
+        if(tipo === 'puerta') {
+            container.innerHTML = `<div class="input-box"><h3>🚪 Módulo Puerta</h3><p>Próximamente reglas de chapa/marco...</p></div>`;
+        }
     }
 
-    function calcPuerta() {
-        // Aquí es donde introduciremos tus reglas de código manuales poco a poco
-        const a = document.getElementById('ancho').value;
-        const h = document.getElementById('alto').value;
-        document.getElementById('res-puerta').innerHTML = `<strong>Despiece:</strong> 2 uds Verticales de ${h}mm y 2 uds Horizontales de ${a}mm.`;
+    function calcularBarandilla() {
+        const L = parseFloat(document.getElementById('l-total').value);
+        const H = parseFloat(document.getElementById('h-total').value);
+        const sep = parseFloat(document.getElementById('separacion').value) || 100;
+        const tipo = document.getElementById('orientacion').value;
+
+        let num, long, desc;
+        if(tipo === 'vertical') {
+            num = Math.ceil(L / sep) - 1;
+            long = H - 80;
+            desc = `${num} barrotes VERTICALES de ${long}mm`;
+        } else {
+            num = Math.ceil(H / sep) - 1;
+            long = L;
+            desc = `${num} barras HORIZONTALES de ${long}mm`;
+        }
+
+        const metros = (num * long) / 1000;
+        const coste = metros * (preciosDB["Barrote 14mm"] || 2.5);
+
+        presupuestoActual.items.push({
+            tipo: "Barandilla " + tipo,
+            desc: desc,
+            piezas: [{ n: "Barrote 14", m: long + "mm", c: num, a: "90/90" }],
+            precio: coste
+        });
+        alert("Añadido.");
+        renderPresupuesto();
     }
+
+    function renderPresupuesto() {
+        const cont = document.getElementById('contenido-presupuesto');
+        let html = `<table><tr><th>Descripción</th><th>Precio</th></tr>`;
+        let total = 0;
+        presupuestoActual.items.forEach(item => {
+            html += `<tr><td>${item.desc}</td><td>${item.precio.toFixed(2)}€</td></tr>`;
+            total += item.precio;
+        });
+        html += `</table><div class="resumen-total"><h3>TOTAL: ${total.toFixed(2)}€</h3>
+                 <button onclick="enviarTaller()" style="background:#22c55e; width:100%; padding:20px;">ACEPTAR Y MANDAR A CORTAR</button></div>`;
+        cont.innerHTML = html;
+        showView('v-presupuestos');
+    }
+
+    function enviarTaller() {
+        if(!confirm("¿Enviar cortes al operario?")) return;
+        presupuestoActual.items.forEach(item => {
+            item.piezas.forEach(p => {
+                for(let i=0; i<p.c; i++) {
+                    db.collection("materiales").add({ trabajo: presupuestoActual.id, nombre: p.n, medida: p.m, angulo: p.a, estado: 'pendiente', fecha: new Date() });
+                }
+            });
+        });
+        alert("¡Trabajo en taller!");
+    }
+
+    window.onload = renderPrecios;
 </script>
 </body>
 </html>
