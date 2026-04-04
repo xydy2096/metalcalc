@@ -3,27 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERARIO - Selección de Obra</title>
+    <title>OPERARIO - MSTCALC</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 15px; background: #f0f2f5; }
+        body { font-family: sans-serif; padding: 15px; background: #f0f2f5; margin: 0; }
         .obra-card { background: white; padding: 20px; margin-bottom: 10px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .item-corte { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2c3e50; display: flex; justify-content: space-between; align-items: center; }
-        .btn-obra { background: #3498db; color: white; padding: 15px; width: 100%; border: none; border-radius: 8px; font-size: 1.1rem; margin-bottom: 10px; }
-        .btn-accion { padding: 10px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; }
+        .btn-obra { background: #3498db; color: white; padding: 18px; width: 100%; border: none; border-radius: 12px; font-size: 1.2rem; margin-bottom: 12px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
+        .btn-accion { padding: 12px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; font-weight: bold; }
+        
+        /* Estilos para el dibujo */
+        .contenedor-dibujo { background: #1e293b; border-radius: 12px; padding: 10px; margin-bottom: 15px; text-align: center; border: 2px solid #334155; }
+        .img-esquema { max-width: 100%; border-radius: 8px; background: #1e293b; }
+        .titulo-esquema { color: #94a3b8; font-size: 0.8rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
 <body>
 
     <div id="selector-obra">
-        <h3>SELECCIONA EL TRABAJO:</h3>
-        <div id="lista-obras">Buscando obras activas...</div>
+        <h3 style="text-align: center; color: #2c3e50;">📋 SELECCIONA EL TRABAJO:</h3>
+        <div id="lista-obras" style="margin-top: 20px;">Buscando obras activas...</div>
     </div>
 
     <div id="vista-trabajo" style="display:none;">
-        <button onclick="volver()" style="background:none; border:none; color:#3498db; margin-bottom:10px;">⬅ Volver a obras</button>
-        <h2 id="num-obra">Trabajo --</h2>
+        <button onclick="volver()" style="background:none; border:none; color:#3498db; margin-bottom:15px; font-size: 1rem; cursor: pointer;">⬅ Volver a la lista</button>
+        <h2 id="num-obra" style="color: #2c3e50; margin-top: 0;">Trabajo --</h2>
         <div id="piezas-obra"></div>
     </div>
 
@@ -37,50 +42,3 @@
         appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
     };
     firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // 1. Detectar qué trabajos existen
-    db.collection("materiales").onSnapshot(snap => {
-        const listaObras = document.getElementById('lista-obras');
-        const obras = new Set();
-        snap.forEach(doc => obras.add(doc.data().trabajo));
-        
-        listaObras.innerHTML = "";
-        obras.forEach(o => {
-            listaObras.innerHTML += `<button class="btn-obra" onclick="verObra('${o}')">OBRA Nº ${o}</button>`;
-        });
-    });
-
-    function verObra(id) {
-        document.getElementById('selector-obra').style.display = 'none';
-        document.getElementById('vista-trabajo').style.display = 'block';
-        document.getElementById('num-obra').innerText = "Trabajo " + id;
-        
-        db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
-            const contenedor = document.getElementById('piezas-obra');
-            contenedor.innerHTML = "";
-            snap.forEach(doc => {
-                const m = doc.data();
-                if(m.estado !== 'cortado') {
-                    contenedor.innerHTML += `
-                        <div class="item-corte" style="border-left-color:${m.estado==='cortando'?'#f39c12':'#2c3e50'}">
-                            <div><b>${m.nombre}</b><br>${m.medida}</div>
-                            <button class="btn-accion" onclick="cambiar('${doc.id}','${m.estado}')">
-                                ${m.estado === 'pendiente' ? 'INICIAR' : 'HECHO ✅'}
-                            </button>
-                        </div>`;
-                }
-            });
-            if(contenedor.innerHTML === "") contenedor.innerHTML = "🎉 ¡Obra completada!";
-        });
-    }
-
-    function cambiar(id, est) {
-        const n = est === 'pendiente' ? 'cortando' : 'cortado';
-        db.collection("materiales").doc(id).update({estado: n});
-    }
-
-    function volver() { location.reload(); }
-</script>
-</body>
-</html>
