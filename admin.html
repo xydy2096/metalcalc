@@ -3,80 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSTCALC - Control de Producción</title>
+    <title>MSTCALC PRO - Gestión de Taller</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --txt: #334155; --accent: #f39c12; }
+        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --txt: #334155; --accent: #f39c12; --success: #22c55e; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); color: var(--txt); display: flex; }
-        .sidebar { width: 250px; background: var(--p); height: 100vh; color: white; padding: 20px; position: fixed; }
-        .sidebar h2 { color: var(--s); font-size: 1.2rem; margin-bottom: 30px; }
-        .nav-item { padding: 12px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        
+        /* Sidebar */
+        .sidebar { width: 260px; background: var(--p); height: 100vh; color: white; padding: 20px; position: fixed; }
+        .sidebar h2 { color: var(--s); font-size: 1.2rem; margin-bottom: 30px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+        .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; }
         .nav-item:hover, .nav-item.active { background: rgba(255,255,255,0.1); color: var(--s); }
-        .main-content { margin-left: 250px; padding: 40px; width: calc(100% - 250px); }
-        .view { display: none; } .view.active { display: block; }
-        .input-box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        .flex { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; flex: 1; min-width: 150px; }
-        button { padding: 12px 20px; background: var(--s); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
-        .resumen-total { background: var(--p); color: white; padding: 20px; border-radius: 10px; margin-top: 20px; }
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; }
-        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        
+        /* Main */
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        .view { display: none; animation: fadeIn 0.3s; }
+        .view.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .input-box { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 25px; border: 1px solid #e2e8f0; }
+        .flex { display: flex; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; flex: 1; min-width: 130px; font-size: 1rem; }
+        input:focus { border-color: var(--s); outline: none; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+        
+        button { padding: 12px 20px; background: var(--s); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; margin-top: 15px; }
+        th, td { padding: 15px; border-bottom: 1px solid #f1f5f9; text-align: left; }
+        th { background: #f8fafc; color: var(--p); }
+
+        .btn-enviar { background: var(--success); width: 100%; padding: 20px; font-size: 1.1rem; margin-top: 20px; }
+        .badge-historial { background: #e2e8f0; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; color: var(--p); }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <h2>MSTCALC PRO</h2>
-        <div class="nav-item active" onclick="showView('v-inicio')">🏠 Inicio</div>
-        <div class="nav-item" onclick="showView('v-modulos')">🧩 Módulos de Trabajo</div>
-        <div class="nav-item" onclick="showView('v-presupuestos')">💰 Presupuesto Actual</div>
-        <div class="nav-item" onclick="showView('v-precios')">📈 Base de Precios</div>
+        <div class="nav-item active" onclick="showView('v-inicio')">🏠 Nueva Obra</div>
+        <div class="nav-item" onclick="showView('v-modulos')">🧩 Configurar Piezas</div>
+        <div class="nav-item" onclick="showView('v-presupuestos')">💰 Revisar e Enviar</div>
+        <div class="nav-item" onclick="showView('v-historial')" onclick="renderHistorial()">📁 Historial</div>
+        <div class="nav-item" onclick="showView('v-precios')" style="margin-top: 20px; font-size: 0.9rem; opacity: 0.7;">⚙️ Precios</div>
     </div>
 
     <div class="main-content">
         
-        <!-- VISTA INICIO -->
+        <!-- INICIO -->
         <div id="v-inicio" class="view active">
-            <h1>Nueva Obra / Presupuesto</h1>
+            <h1>Panel de Entrada</h1>
             <div class="input-box">
-                <label>Nº REFERENCIA:</label>
-                <input type="text" id="id_obra" placeholder="Ej: PRE-2024-001">
+                <label style="display:block; margin-bottom:10px; font-weight:bold;">Nº DE PRESUPUESTO / NOMBRE OBRA:</label>
+                <input type="text" id="id_obra" placeholder="Escribe y pulsa ENTER..." style="font-size: 1.5rem; width: 95%;">
+                <p style="color: #64748b; font-size: 0.9rem; margin-top:10px;">💡 Al pulsar Enter saltarás directamente a configuración.</p>
             </div>
         </div>
 
-        <!-- VISTA MODULOS -->
+        <!-- MÓDULOS -->
         <div id="v-modulos" class="view">
-            <h1>Configurador Técnico</h1>
+            <h1>¿Qué vamos a fabricar?</h1>
             <div class="flex">
-                <button onclick="loadSubMod('barandilla')" style="background:#f39c12;">🪜 Barandilla</button>
-                <button onclick="loadSubMod('puerta')" style="background:#3b82f6;">🚪 Puerta</button>
+                <button onclick="loadSubMod('barandilla')" style="background:var(--accent);">🪜 Barandilla / Pasamanos</button>
+                <button onclick="loadSubMod('puerta')" style="background:var(--s);">🚪 Puerta Técnica</button>
             </div>
             <div id="sub-modulo-container" style="margin-top:20px;"></div>
         </div>
 
-        <!-- VISTA PRESUPUESTO -->
+        <!-- REVISIÓN Y ENVÍO -->
         <div id="v-presupuestos" class="view">
-            <h1>Resumen de Presupuesto</h1>
-            <div id="contenido-presupuesto">No hay datos.</div>
+            <h1>Resumen de Trabajo Actual</h1>
+            <div id="contenido-presupuesto">No hay piezas seleccionadas.</div>
         </div>
 
-        <!-- VISTA PRECIOS -->
+        <!-- HISTORIAL -->
+        <div id="v-historial" class="view">
+            <h1>Historial de Trabajos Enviados</h1>
+            <div id="lista-historial"></div>
+        </div>
+
+        <!-- PRECIOS -->
         <div id="v-precios" class="view">
-            <h1>Lista de Materiales y Precios</h1>
+            <h1>Base de Datos de Materiales</h1>
             <div class="input-box">
                 <table id="tabla-precios">
-                    <thead><tr><th>Material (Nombre exacto para operario)</th><th>Precio (€/m o m2)</th></tr></thead>
+                    <thead><tr><th>Material</th><th>Precio (€/m)</th></tr></thead>
                     <tbody id="lista-precios"></tbody>
                 </table>
-                <button onclick="nuevoMaterial()" style="margin-top:10px;">+ Añadir Material</button>
+                <button onclick="nuevoMaterial()" style="margin-top:15px; background:var(--p);">+ Añadir Material</button>
             </div>
         </div>
 
     </div>
 
 <script>
-    // CONFIGURACIÓN FIREBASE
+    // FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
         authDomain: "mstcalc.firebaseapp.com",
@@ -89,345 +112,175 @@
     const db = firebase.firestore();
 
     let presupuestoActual = { id: "", items: [] };
-    // Estos precios se cargan y editan en la pestaña "Precios"
     let preciosDB = JSON.parse(localStorage.getItem('preciosMST')) || {
-        "Tubo 40x40x2": 5.50,
-        "Pletina 40x5": 3.20,
-        "Barrote Redondo 14": 2.80,
-        "Chapa Lisa 1.5mm": 25.00
+        "Tubo 40x40x1.5": 4.50,
+        "Pletina 40x5": 3.10,
+        "Pasamanos Media Caña": 8.90,
+        "Barrote Cuadrado 14": 2.60
     };
 
+    // --- LÓGICA DE NAVEGACIÓN Y ENTER ---
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        if(id === 'v-historial') renderHistorial();
     }
 
-    // GESTIÓN DE PRECIOS
+    document.getElementById('id_obra').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            if(this.value.trim() === "") return alert("Introduce un nombre de obra");
+            presupuestoActual.id = this.value;
+            showView('v-modulos');
+        }
+    });
+
+    // --- GESTIÓN DE MATERIALES ---
     function renderPrecios() {
         const tbody = document.getElementById('lista-precios');
         tbody.innerHTML = "";
         for (let m in preciosDB) {
-            tbody.innerHTML += `<tr><td>${m}</td><td><input type="number" step="0.01" value="${preciosDB[m]}" onchange="actualizarPrecio('${m}', this.value)"> €</td></tr>`;
+            tbody.innerHTML += `<tr><td>${m}</td><td><input type="number" step="0.01" value="${preciosDB[m]}" onchange="preciosDB['${m}']=parseFloat(this.value); localStorage.setItem('preciosMST', JSON.stringify(preciosDB))"> €</td></tr>`;
         }
     }
-    function actualizarPrecio(m, v) { preciosDB[m] = parseFloat(v); localStorage.setItem('preciosMST', JSON.stringify(preciosDB)); }
-    function nuevoMaterial() {
-        let n = prompt("Nombre del material:");
-        if(n) { preciosDB[n] = 0; renderPrecios(); }
-    }
-
-    // SELECTOR DINÁMICO DE MATERIALES
+    function nuevoMaterial() { let n = prompt("Nombre material:"); if(n) { preciosDB[n]=0; renderPrecios(); } }
     function getSelectMateriales(id) {
-        let select = `<select id="${id}"><option value="">-- Elige Material --</option>`;
-        for(let m in preciosDB) { select += `<option value="${m}">${m}</option>`; }
-        return select + `</select>`;
+        let s = `<select id="${id}"><option value="">-- Seleccionar --</option>`;
+        for(let m in preciosDB) s += `<option value="${m}">${m}</option>`;
+        return s + `</select>`;
     }
 
-    // MODULOS
+    // --- CÁLCULOS ---
     function loadSubMod(tipo) {
         const cont = document.getElementById('sub-modulo-container');
-        const idObra = document.getElementById('id_obra').value;
-        if(!idObra) return alert("Introduce el Nº de Obra");
-        presupuestoActual.id = idObra;
-
         if(tipo === 'barandilla') {
             cont.innerHTML = `
-                <div class="input-box" style="border-left: 5px solid #f39c12;">
-                    <h3>📐 Configuración de Barandilla</h3>
-                    <div class="flex">
-                        <input type="number" id="l-total" placeholder="Longitud Total (mm)">
-                        <input type="number" id="h-total" placeholder="Altura Total (mm)">
-                    </div>
-                    <div class="flex">
-                        <label>Pasamanos:</label> ${getSelectMateriales('m-pasamano')}
-                        <label>Base/Inferior:</label> ${getSelectMateriales('m-base')}
-                    </div>
-                    <div class="flex">
-                        <label>Barrotes:</label> ${getSelectMateriales('m-barrote')}
-                        <input type="number" id="sep" value="100" placeholder="Separación (mm)">
-                    </div>
-                    <div class="flex" style="background:#fff3cd; padding:10px; border-radius:8px;">
-                        <input type="number" id="h-suelo" value="0" placeholder="Hueco al suelo (mm)">
-                        <input type="number" id="h-pasamano" value="0" placeholder="Hueco al pasamano (mm)">
-                    </div>
-                    <button onclick="calcBarandilla()" style="background:#f39c12; width:100%;">CALCULAR DESPIECE</button>
+                <div class="input-box" style="border-left:5px solid var(--accent)">
+                    <h3>🪜 Barandilla / Pasamanos</h3>
+                    <div class="flex"><input type="number" id="l-total" placeholder="Largo (mm)"><input type="number" id="h-total" placeholder="Alto (mm)"></div>
+                    <div class="flex">Pasamanos: ${getSelectMateriales('m-pas')} ¿A pared? <input type="checkbox" id="a-pared"></div>
+                    <div class="flex">Base: ${getSelectMateriales('m-inf')} Barrotes: ${getSelectMateriales('m-bar')}</div>
+                    <div class="flex">Suelo: <input type="number" id="h-s" value="100"> Techo: <input type="number" id="h-t" value="100"> Sep: <input type="number" id="sep" value="100"></div>
+                    <button onclick="calcBarandilla()" style="background:var(--accent); width:100%">AÑADIR AL TRABAJO</button>
                 </div>`;
         }
-
         if(tipo === 'puerta') {
             cont.innerHTML = `
-                <div class="input-box" style="border-left: 5px solid #3b82f6;">
-                    <h3>🚪 Configuración de Puerta</h3>
-                    <div class="flex">
-                        <select id="p-tipo"><option value="batiente">Batiente</option><option value="autoportante">Autoportante</option></select>
-                        <input type="number" id="p-w" placeholder="Ancho (mm)">
-                        <input type="number" id="p-h" placeholder="Alto (mm)">
-                    </div>
-                    <div class="flex">
-                        <label>Material Marco:</label> ${getSelectMateriales('m-marco')}
-                        <label>Material Relleno:</label> ${getSelectMateriales('m-relleno')}
-                    </div>
-                    <button onclick="calcPuerta()" style="width:100%;">CALCULAR PUERTA</button>
+                <div class="input-box" style="border-left:5px solid var(--s)">
+                    <h3>🚪 Puerta</h3>
+                    <div class="flex"><select id="p-tipo"><option value="batiente">Batiente</option><option value="autoportante">Autoportante</option></select><input type="number" id="p-w" placeholder="Ancho"><input type="number" id="p-h" placeholder="Alto"></div>
+                    <div class="flex">Marco: ${getSelectMateriales('m-marco')} Relleno: ${getSelectMateriales('m-relleno')}</div>
+                    <button onclick="calcPuerta()" style="width:100%">AÑADIR AL TRABAJO</button>
                 </div>`;
         }
     }
 
-   // --- NUEVO MÓDULO DE COMPONENTES DE BARANDILLA ---
-function loadSubMod(tipo) {
-    const cont = document.getElementById('sub-modulo-container');
-    const idObra = document.getElementById('id_obra').value;
-    if(!idObra) return alert("Introduce el Nº de Obra");
-
-    if(tipo === 'barandilla') {
-        cont.innerHTML = `
-            <div class="input-box" style="border-top: 5px solid #f39c12;">
-                <h3>📐 Configurador por Componentes</h3>
-                
-                <div class="flex">
-                    <input type="number" id="l-total" placeholder="Longitud Total (mm)">
-                    <input type="number" id="h-total" placeholder="Altura Final (mm)">
-                </div>
-
-                <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px;">
-                    <h4>1. Estructura Principal</h4>
-                    <div class="flex">
-                        <label>Pasamanos:</label> ${getSelectMateriales('m-pasamano')}
-                        <label>¿A pared?</label> <input type="checkbox" id="solo-pasamano" onchange="checkSoloPasamano()">
-                    </div>
-                    <div id="cont-estructura">
-                        <div class="flex">
-                            <label>¿Lleva Patas?</label> <input type="checkbox" id="lleva-patas" checked>
-                            <label>Material Patas:</label> ${getSelectMateriales('m-patas')}
-                            <input type="number" id="num-patas" value="2" title="Cantidad de patas" style="width:60px;">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="cont-relleno" style="background:#fff7ed; padding:15px; border-radius:10px;">
-                    <h4>2. Módulo de Relleno (Interior)</h4>
-                    <p style="font-size:0.8rem; color:#9a3412;">Define las pletinas/tubos horizontales que encierran los barrotes</p>
-                    <div class="flex">
-                        <label>Material Guía (H):</label> ${getSelectMateriales('m-guia-h')}
-                        <input type="number" id="h-suelo" value="100" title="Distancia al suelo" style="width:80px;">
-                        <input type="number" id="h-techo" value="100" title="Distancia al pasamanos" style="width:80px;">
-                    </div>
-                    <div class="flex">
-                        <label>Barrotes:</label> ${getSelectMateriales('m-barrote')}
-                        <input type="number" id="sep" value="100" title="Separación">
-                    </div>
-                </div>
-
-                <button onclick="calcBarandillaTecnica()" style="background:#f39c12; width:100%; margin-top:15px;">
-                    GENERAR DESPIECE TÉCNICO
-                </button>
-            </div>`;
-    }
-}
-
-function checkSoloPasamano() {
-    const soloP = document.getElementById('solo-pasamano').checked;
-    document.getElementById('cont-estructura').style.opacity = soloP ? "0.3" : "1";
-    document.getElementById('cont-relleno').style.display = soloP ? "none" : "block";
-}
-
-function calcBarandillaTecnica() {
-    const L = parseFloat(document.getElementById('l-total').value);
-    const H = parseFloat(document.getElementById('h-total').value);
-    const soloP = document.getElementById('solo-pasamano').checked;
-    
-    let despiece = [];
-    let costeObra = 0;
-
-    // 1. PASAMANOS (Siempre va)
-    const matPas = document.getElementById('m-pasamano').value;
-    if(matPas) {
-        despiece.push({ mat: matPas, med: L, cant: 1, ang: "45/45" });
-        costeObra += (L/1000) * preciosDB[matPas];
-    }
-
-    if(!soloP) {
-        // 2. PATAS
-        if(document.getElementById('lleva-patas').checked) {
-            const matPatas = document.getElementById('m-patas').value;
-            const nPatas = parseInt(document.getElementById('num-patas').value);
-            despiece.push({ mat: matPatas, med: H, cant: nPatas, ang: "90/90" });
-            costeObra += (H/1000) * nPatas * preciosDB[matPatas];
+    function calcBarandilla() {
+        const L = parseFloat(document.getElementById('l-total').value);
+        const H = parseFloat(document.getElementById('h-total').value);
+        const aPared = document.getElementById('a-pared').checked;
+        const matPas = document.getElementById('m-pas').value;
+        const matInf = document.getElementById('m-inf').value;
+        const matBar = document.getElementById('m-bar').value;
+        
+        let piezas = [{ mat: matPas, med: L, cant: 1, ang: "45/45" }];
+        if(!aPared) {
+            if(matInf) piezas.push({ mat: matInf, med: L, cant: 1, ang: "90/90" });
+            if(matBar) {
+                const n = Math.ceil(L / parseFloat(document.getElementById('sep').value)) - 1;
+                const largoBar = H - parseFloat(document.getElementById('h-s').value) - parseFloat(document.getElementById('h-t').value);
+                piezas.push({ mat: matBar, med: largoBar, cant: n, ang: "90/90" });
+            }
         }
-
-        // 3. RELLENO (El módulo independiente que mencionas)
-        const matGuia = document.getElementById('m-guia-h').value;
-        const matBar = document.getElementById('m-barrote').value;
-        const distSuelo = parseFloat(document.getElementById('h-suelo').value);
-        const distTecho = parseFloat(document.getElementById('h-techo').value);
-        const sep = parseFloat(document.getElementById('sep').value);
-
-        if(matGuia && matBar) {
-            // Dos guías horizontales (la de arriba y la de abajo del módulo)
-            despiece.push({ mat: matGuia, med: L, cant: 2, ang: "90/90" });
-            
-            // Los barrotes van DENTRO de esas pletinas
-            // El largo del barrote = Altura Total - Distancia Suelo - Distancia Techo
-            const largoBar = H - distSuelo - distTecho;
-            const nBar = Math.ceil(L / sep) - 1;
-            
-            despiece.push({ mat: matBar, med: largoBar, cant: nBar, ang: "90/90" });
-            
-            costeObra += (L*2/1000) * preciosDB[matGuia];
-            costeObra += (largoBar*nBar/1000) * preciosDB[matBar];
-        }
+        presupuestoActual.items.push({ nombre: "Barandilla L:" + L, piezas: piezas });
+        renderPresupuesto();
+        alert("Pieza añadida.");
     }
 
-    presupuestoActual.items.push({
-        nombre: soloP ? "Pasamanos a pared" : "Barandilla Completa",
-        piezas: despiece,
-        precio: costeObra
-    });
-    
-    renderPresupuesto();
-}// --- NUEVO MÓDULO DE COMPONENTES DE BARANDILLA ---
-function loadSubMod(tipo) {
-    const cont = document.getElementById('sub-modulo-container');
-    const idObra = document.getElementById('id_obra').value;
-    if(!idObra) return alert("Introduce el Nº de Obra");
-
-    if(tipo === 'barandilla') {
-        cont.innerHTML = `
-            <div class="input-box" style="border-top: 5px solid #f39c12;">
-                <h3>📐 Configurador por Componentes</h3>
-                
-                <div class="flex">
-                    <input type="number" id="l-total" placeholder="Longitud Total (mm)">
-                    <input type="number" id="h-total" placeholder="Altura Final (mm)">
-                </div>
-
-                <div style="background:#f8fafc; padding:15px; border-radius:10px; margin-bottom:15px;">
-                    <h4>1. Estructura Principal</h4>
-                    <div class="flex">
-                        <label>Pasamanos:</label> ${getSelectMateriales('m-pasamano')}
-                        <label>¿A pared?</label> <input type="checkbox" id="solo-pasamano" onchange="checkSoloPasamano()">
-                    </div>
-                    <div id="cont-estructura">
-                        <div class="flex">
-                            <label>¿Lleva Patas?</label> <input type="checkbox" id="lleva-patas" checked>
-                            <label>Material Patas:</label> ${getSelectMateriales('m-patas')}
-                            <input type="number" id="num-patas" value="2" title="Cantidad de patas" style="width:60px;">
-                        </div>
-                    </div>
-                </div>
-
-                <div id="cont-relleno" style="background:#fff7ed; padding:15px; border-radius:10px;">
-                    <h4>2. Módulo de Relleno (Interior)</h4>
-                    <p style="font-size:0.8rem; color:#9a3412;">Define las pletinas/tubos horizontales que encierran los barrotes</p>
-                    <div class="flex">
-                        <label>Material Guía (H):</label> ${getSelectMateriales('m-guia-h')}
-                        <input type="number" id="h-suelo" value="100" title="Distancia al suelo" style="width:80px;">
-                        <input type="number" id="h-techo" value="100" title="Distancia al pasamanos" style="width:80px;">
-                    </div>
-                    <div class="flex">
-                        <label>Barrotes:</label> ${getSelectMateriales('m-barrote')}
-                        <input type="number" id="sep" value="100" title="Separación">
-                    </div>
-                </div>
-
-                <button onclick="calcBarandillaTecnica()" style="background:#f39c12; width:100%; margin-top:15px;">
-                    GENERAR DESPIECE TÉCNICO
-                </button>
-            </div>`;
+    function calcPuerta() {
+        const W = parseFloat(document.getElementById('p-w').value);
+        const H = parseFloat(document.getElementById('p-h').value);
+        const tipo = document.getElementById('p-tipo').value;
+        const matM = document.getElementById('m-marco').value;
+        let anchoHoja = (tipo === 'autoportante') ? W * 1.35 : W;
+        
+        let piezas = [
+            { mat: matM, med: anchoHoja, cant: 2, ang: "45/45" },
+            { mat: matM, med: H, cant: 2, ang: "45/45" }
+        ];
+        presupuestoActual.items.push({ nombre: "Puerta " + tipo, piezas: piezas });
+        renderPresupuesto();
+        alert("Puerta añadida.");
     }
-}
-
-function checkSoloPasamano() {
-    const soloP = document.getElementById('solo-pasamano').checked;
-    document.getElementById('cont-estructura').style.opacity = soloP ? "0.3" : "1";
-    document.getElementById('cont-relleno').style.display = soloP ? "none" : "block";
-}
-
-function calcBarandillaTecnica() {
-    const L = parseFloat(document.getElementById('l-total').value);
-    const H = parseFloat(document.getElementById('h-total').value);
-    const soloP = document.getElementById('solo-pasamano').checked;
-    
-    let despiece = [];
-    let costeObra = 0;
-
-    // 1. PASAMANOS (Siempre va)
-    const matPas = document.getElementById('m-pasamano').value;
-    if(matPas) {
-        despiece.push({ mat: matPas, med: L, cant: 1, ang: "45/45" });
-        costeObra += (L/1000) * preciosDB[matPas];
-    }
-
-    if(!soloP) {
-        // 2. PATAS
-        if(document.getElementById('lleva-patas').checked) {
-            const matPatas = document.getElementById('m-patas').value;
-            const nPatas = parseInt(document.getElementById('num-patas').value);
-            despiece.push({ mat: matPatas, med: H, cant: nPatas, ang: "90/90" });
-            costeObra += (H/1000) * nPatas * preciosDB[matPatas];
-        }
-
-        // 3. RELLENO (El módulo independiente que mencionas)
-        const matGuia = document.getElementById('m-guia-h').value;
-        const matBar = document.getElementById('m-barrote').value;
-        const distSuelo = parseFloat(document.getElementById('h-suelo').value);
-        const distTecho = parseFloat(document.getElementById('h-techo').value);
-        const sep = parseFloat(document.getElementById('sep').value);
-
-        if(matGuia && matBar) {
-            // Dos guías horizontales (la de arriba y la de abajo del módulo)
-            despiece.push({ mat: matGuia, med: L, cant: 2, ang: "90/90" });
-            
-            // Los barrotes van DENTRO de esas pletinas
-            // El largo del barrote = Altura Total - Distancia Suelo - Distancia Techo
-            const largoBar = H - distSuelo - distTecho;
-            const nBar = Math.ceil(L / sep) - 1;
-            
-            despiece.push({ mat: matBar, med: largoBar, cant: nBar, ang: "90/90" });
-            
-            costeObra += (L*2/1000) * preciosDB[matGuia];
-            costeObra += (largoBar*nBar/1000) * preciosDB[matBar];
-        }
-    }
-
-    presupuestoActual.items.push({
-        nombre: soloP ? "Pasamanos a pared" : "Barandilla Completa",
-        piezas: despiece,
-        precio: costeObra
-    });
-    
-    renderPresupuesto();
-}
 
     function renderPresupuesto() {
-        const div = document.getElementById('contenido-presupuesto');
-        let html = `<table><tr><th>Obra: ${presupuestoActual.id}</th><th>Piezas</th><th>Precio Est.</th></tr>`;
-        let total = 0;
-        presupuestoActual.items.forEach((it, idx) => {
-            html += `<tr><td>${it.nombre}</td><td>${it.piezas.length} tipos</td><td>${it.precio.toFixed(2)}€</td></tr>`;
-            total += it.precio;
+        const cont = document.getElementById('contenido-presupuesto');
+        if(presupuestoActual.items.length === 0) { cont.innerHTML = "No hay piezas."; return; }
+        
+        let html = `<h3>Obra: ${presupuestoActual.id}</h3><table><tr><th>Elemento</th><th>Cortes</th></tr>`;
+        presupuestoActual.items.forEach(it => {
+            let cortes = it.piezas.map(p => `${p.cant}x ${p.mat} (${p.med}mm)`).join("<br>");
+            html += `<tr><td>${it.nombre}</td><td>${cortes}</td></tr>`;
         });
-        html += `</table><div class="resumen-total">TOTAL: ${total.toFixed(2)}€ <br><br> 
-                 <button onclick="enviarTaller()" style="background:#22c55e;">✅ ENVIAR CORTES AL OPERARIO</button></div>`;
-        div.innerHTML = html;
+        html += `</table><button class="btn-enviar" onclick="enviarTallerAgrupado()">🚀 ENVIAR AGRUPADO AL OPERARIO</button>`;
+        cont.innerHTML = html;
         showView('v-presupuestos');
     }
 
-    function enviarTaller() {
+    // --- ENVÍO, AGRUPACIÓN Y RESET ---
+    function enviarTallerAgrupado() {
+        if(presupuestoActual.items.length === 0) return;
+        if(!confirm("¿Enviar cortes? Se agruparán iguales y se reseteará la pantalla.")) return;
+
+        let mapaCorte = {};
         presupuestoActual.items.forEach(it => {
             it.piezas.forEach(p => {
-                for(let i=0; i<p.cant; i++){
-                    db.collection("materiales").add({
-                        trabajo: presupuestoActual.id,
-                        nombre: p.mat,
-                        medida: p.med + "mm",
-                        angulo: p.ang,
-                        estado: "pendiente",
-                        fecha: new Date()
-                    });
-                }
+                let clave = `${p.mat}_${p.med}_${p.ang}`;
+                if(mapaCorte[clave]) mapaCorte[clave].cant += p.cant;
+                else mapaCorte[clave] = { ...p };
             });
         });
-        alert("Cortes enviados con éxito.");
+
+        for(let k in mapaCorte) {
+            let f = mapaCorte[k];
+            db.collection("materiales").add({
+                trabajo: presupuestoActual.id,
+                nombre: f.mat,
+                medida: f.med + " mm",
+                cantidad: f.cant,
+                angulo: f.ang,
+                estado: "pendiente",
+                fecha: new Date()
+            });
+        }
+
+        // Guardar en Historial Local
+        let historial = JSON.parse(localStorage.getItem('historialMST')) || [];
+        historial.push({ id: presupuestoActual.id, fecha: new Date().toLocaleString(), items: presupuestoActual.items });
+        localStorage.setItem('historialMST', JSON.stringify(historial));
+
+        alert("¡Enviado con éxito!");
+        
+        // RESET TOTAL
+        presupuestoActual = { id: "", items: [] };
+        document.getElementById('id_obra').value = "";
+        document.getElementById('contenido-presupuesto').innerHTML = "No hay piezas.";
+        document.getElementById('sub-modulo-container').innerHTML = "";
+        showView('v-inicio');
+        document.getElementById('id_obra').focus();
+    }
+
+    function renderHistorial() {
+        const cont = document.getElementById('lista-historial');
+        let historial = JSON.parse(localStorage.getItem('historialMST')) || [];
+        if(historial.length === 0) { cont.innerHTML = "Historial vacío."; return; }
+        
+        cont.innerHTML = historial.reverse().map(h => `
+            <div class="input-box">
+                <div class="flex"><strong>Obra: ${h.id}</strong> <span class="badge-historial">${h.fecha}</span></div>
+                <p style="margin:0; font-size:0.9rem;">${h.items.length} elementos enviados.</p>
+            </div>
+        `).join("");
     }
 
     window.onload = renderPrecios;
