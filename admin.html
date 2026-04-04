@@ -132,10 +132,109 @@
                 </div>`;
         }
         if(tipo === 'puerta') {
-            container.innerHTML = `<div class="input-box"><h3>🚪 Módulo Puerta</h3><p>Próximamente reglas de chapa/marco...</p></div>`;
-        }
+    container.innerHTML = `
+        <div class="input-box" style="border-top: 4px solid #3b82f6;">
+            <h3>🚪 Configurador de Puerta Técnica</h3>
+            <div class="flex">
+                <select id="tipo-apertura" onchange="toggleAutoportante()">
+                    <option value="batiente">Batiente (Bisagras)</option>
+                    <option value="corredera">Corredera sobre Raíl</option>
+                    <option value="autoportante">Autoportante (Sin Raíl)</option>
+                </select>
+                <input type="number" id="p-ancho" placeholder="Luz de paso (mm)">
+                <input type="number" id="p-alto" placeholder="Alto (mm)">
+            </div>
+
+            <div id="panel-autoportante" style="display:none; background:#eff6ff; padding:15px; border-radius:10px; margin-bottom:15px;">
+                <label>⚖️ Cálculo de Cola (Contrapeso):</label>
+                <p style="font-size:0.8rem; color: #1e40af;">Fórmula: Cola = Luz x 0.35 (Seguridad estándar)</p>
+                <div class="flex">
+                    <input type="number" id="p-peso" placeholder="Peso est. hoja (kg)">
+                    <input type="text" id="res-cola" readonly placeholder="Largo de cola" style="background:#dbeafe;">
+                </div>
+            </div>
+
+            <div style="background:#f8fafc; padding:15px; border-radius:10px;">
+                <label>🎨 Diseño de Relleno:</label>
+                <div class="flex">
+                    <select id="p-relleno">
+                        <option value="chapa-total">Forrada Chapa (100%)</option>
+                        <option value="chapa-parcial">Chapa Media Altura</option>
+                        <option value="barrotes-v">Barrotes Verticales</option>
+                        <option value="barrotes-h">Barrotes Horizontales</option>
+                        <option value="malla">Malla Electrosoldada</option>
+                    </select>
+                    <input type="number" id="p-sep" value="100" title="Separación barrotes" style="width:80px;">
+                </div>
+            </div>
+
+            <button onclick="calcularPuerta()" style="margin-top:15px; width:100%; background:#3b82f6;">
+                Calcular Despiece de Puerta
+            </button>
+        </div>`;
+}
+
+// Función para mostrar/ocultar extras de autoportante
+function toggleAutoportante() {
+    const tipo = document.getElementById('tipo-apertura').value;
+    const panel = document.getElementById('panel-autoportante');
+    panel.style.display = (tipo === 'autoportante') ? 'block' : 'none';
+}
+
+function calcularPuerta() {
+    const luz = parseFloat(document.getElementById('p-ancho').value);
+    const alto = parseFloat(document.getElementById('p-alto').value);
+    const tipo = document.getElementById('tipo-apertura').value;
+    const relleno = document.getElementById('p-relleno').value;
+    
+    let largoTotalHoja = luz;
+    let notas = `Puerta ${tipo}`;
+
+    // --- REGLA AUTOPORTANTE ---
+    if(tipo === 'autoportante') {
+        const factorCola = 0.35; // Puedes ajustar este factor según tu herraje
+        const cola = luz * factorCola;
+        largoTotalHoja = luz + cola;
+        notas += ` | Cola contrapeso: ${cola.toFixed(0)}mm | Total: ${largoTotalHoja.toFixed(0)}mm`;
+        document.getElementById('res-cola').value = "Cola: " + cola.toFixed(0) + " mm";
     }
 
+    // --- CÁLCULO DE MATERIAL (MARCO) ---
+    // Asumimos marco de Tubo 40x40 para el ejemplo
+    const perimetro = (largoTotalHoja * 2) + (alto * 2);
+    let costeObra = (perimetro / 1000) * preciosDB["Tubo 40x40x2"];
+
+    // --- CÁLCULO DE RELLENO ---
+    let piezasRelleno = [];
+    if(relleno.includes('chapa')) {
+        const factorH = relleno === 'chapa-total' ? 1 : 0.5;
+        const m2 = (largoTotalHoja * (alto * factorH)) / 1000000;
+        costeObra += m2 * preciosDB["Chapa 1.5mm"];
+        piezasRelleno.push({ n: "Panel Chapa", m: `${largoTotalHoja}x${alto*factorH}mm`, c: 1, a: "Corte Recto" });
+    }
+
+    if(relleno.includes('barrotes')) {
+        const sep = parseFloat(document.getElementById('p-sep').value);
+        const num = Math.ceil(largoTotalHoja / sep) - 1;
+        costeObra += (num * (alto / 1000)) * preciosDB["Barrote 14mm"];
+        piezasRelleno.push({ n: "Barrote Relleno", m: alto + "mm", c: num, a: "90/90" });
+    }
+
+    // --- GUARDAR EN PRESUPUESTO ---
+    presupuestoActual.items.push({
+        tipo: "Puerta " + tipo,
+        desc: `${notas} - Relleno: ${relleno}`,
+        piezas: [
+            { n: "Largueros Marco", m: alto + "mm", c: 2, a: "45/45" },
+            { n: "Travesaños Marco", m: largoTotalHoja + "mm", c: 2, a: "45/45" },
+            ...piezasRelleno
+        ],
+        precio: costeObra
+    });
+
+    renderPresupuesto();
+    alert("Puerta configurada y añadida al presupuesto.");
+}
     function calcularBarandilla() {
         const L = parseFloat(document.getElementById('l-total').value);
         const H = parseFloat(document.getElementById('h-total').value);
