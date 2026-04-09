@@ -42,3 +42,76 @@
         appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
     };
     firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 1. Mostrar las obras disponibles
+    db.collection("materiales").onSnapshot(snap => {
+        const listaObras = document.getElementById('lista-obras');
+        const obras = new Set();
+        snap.forEach(doc => {
+            if(doc.data().trabajo) obras.add(doc.data().trabajo);
+        });
+        
+        listaObras.innerHTML = "";
+        if(obras.size === 0) listaObras.innerHTML = "<p style='text-align:center;'>No hay trabajos pendientes.</p>";
+        
+        obras.forEach(o => {
+            listaObras.innerHTML += `<button class="btn-obra" onclick="verObra('${o}')">📂 OBRA: ${o}</button>`;
+        });
+    });
+
+    function verObra(id) {
+        document.getElementById('selector-obra').style.display = 'none';
+        document.getElementById('vista-trabajo').style.display = 'block';
+        document.getElementById('num-obra').innerText = "Orden: " + id;
+        
+        // Escuchar las piezas de esta obra específica
+        db.collection("materiales").where("trabajo", "==", id).orderBy("fecha", "asc").onSnapshot(snap => {
+            const contenedor = document.getElementById('piezas-obra');
+            contenedor.innerHTML = "";
+            
+            snap.forEach(doc => {
+                const m = doc.data();
+
+                // SI ES UN DIBUJO/ESQUEMA
+                if(m.estado === 'info' && m.imagen) {
+                    contenedor.innerHTML += `
+                        <div class="contenedor-dibujo">
+                            <div class="titulo-esquema">${m.nombre}</div>
+                            <img src="${m.imagen}" class="img-esquema">
+                        </div>`;
+                } 
+                // SI ES UNA PIEZA DE CORTE
+                else if(m.estado !== 'cortado') {
+                    contenedor.innerHTML += `
+                        <div class="item-corte" style="border-left-color:${m.estado==='cortando'?'#f39c12':'#2c3e50'}">
+                            <div>
+                                <span style="background:#eee; padding:2px 6px; border-radius:4px; font-weight:bold;">${m.cantidad || 1}x</span>
+                                <b>${m.nombre}</b><br>
+                                <span style="color:#3498db; font-size:1.1rem; font-weight:bold;">${m.medida}</span>
+                            </div>
+                            <button class="btn-accion" onclick="cambiar('${doc.id}','${m.estado}')">
+                                ${m.estado === 'pendiente' ? 'INICIAR' : 'HECHO ✅'}
+                            </button>
+                        </div>`;
+                }
+            });
+            
+            if(contenedor.innerHTML === "") {
+                contenedor.innerHTML = "<div class='obra-card'>🎉 ¡Todo listo! Esta obra no tiene más piezas pendientes.</div>";
+            }
+        });
+    }
+
+    function cambiar(id, est) {
+        const n = est === 'pendiente' ? 'cortando' : 'cortado';
+        db.collection("materiales").doc(id).update({estado: n});
+    }
+
+    function volver() {
+        document.getElementById('selector-obra').style.display = 'block';
+        document.getElementById('vista-trabajo').style.display = 'none';
+    }
+</script>
+</body>
+</html>
