@@ -1,116 +1,237 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERARIO - MSTCALC</title>
+    <title>MSTCALC ELITE V3 - Precisión de Taller</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 15px; background: #f0f2f5; margin: 0; }
-        .obra-card { background: white; padding: 20px; margin-bottom: 10px; border-radius: 10px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .item-corte { background: white; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 5px solid #2c3e50; display: flex; justify-content: space-between; align-items: center; }
-        .btn-obra { background: #3498db; color: white; padding: 18px; width: 100%; border: none; border-radius: 12px; font-size: 1.2rem; margin-bottom: 12px; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
-        .btn-accion { padding: 12px 20px; background: #2c3e50; color: white; border: none; border-radius: 5px; font-weight: bold; }
-        
-        /* Estilos para el dibujo */
-        .contenedor-dibujo { background: #1e293b; border-radius: 12px; padding: 10px; margin-bottom: 15px; text-align: center; border: 2px solid #334155; }
-        .img-esquema { max-width: 100%; border-radius: 8px; background: #1e293b; }
-        .titulo-esquema { color: #94a3b8; font-size: 0.8rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --accent: #f59e0b; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #334155; }
+        .sidebar { width: 260px; background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; }
+        .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
+        .nav-item.active { background: #1e293b; color: var(--s); }
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .flex { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        input, select { padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; flex: 1; }
+        canvas { background: #1e293b; border-radius: 12px; border: 4px solid #334155; }
+        .mat-container { position: relative; flex: 1; }
+        .sug-list { position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid #ddd; z-index: 100; display: none; border-radius: 8px; }
+        .sug-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.8rem; }
+        button { padding: 12px 20px; background: var(--s); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="selector-obra">
-        <h3 style="text-align: center; color: #2c3e50;">📋 SELECCIONA EL TRABAJO:</h3>
-        <div id="lista-obras" style="margin-top: 20px;">Buscando obras activas...</div>
+    <div class="sidebar">
+        <h2>MSTCALC V3</h2>
+        <div class="nav-item active" onclick="showView('v-inicio')">🏠 Nueva Obra</div>
+        <div class="nav-item" onclick="showView('v-puerta')">🚪 Puerta Técnica</div>
+        <div class="nav-item" onclick="showView('v-resumen')">🧾 Presupuesto</div>
     </div>
 
-    <div id="vista-trabajo" style="display:none;">
-        <button onclick="volver()" style="background:none; border:none; color:#3498db; margin-bottom:15px; font-size: 1rem; cursor: pointer;">⬅ Volver a la lista</button>
-        <h2 id="num-obra" style="color: #2c3e50; margin-top: 0;">Trabajo --</h2>
-        <div id="piezas-obra"></div>
+    <div class="main-content">
+        <div id="v-inicio" class="view active">
+            <h1>Registro de Obra</h1>
+            <div class="card"><input type="text" id="id_obra" placeholder="Nombre Obra / Cliente..." style="font-size: 1.5rem; width: 95%;"></div>
+        </div>
+
+        <div id="v-puerta" class="view">
+            <h1>Configuración de Puerta y Marco</h1>
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1.2;">
+                    <div class="card">
+                        <h3>📐 Dimensiones de Hueco (Luz)</h3>
+                        <div class="flex">
+                            <input type="number" id="p-w" placeholder="Ancho Total" oninput="dibujar()">
+                            <input type="number" id="p-h" placeholder="Alto Total" oninput="dibujar()">
+                            <input type="number" id="p-faldon" placeholder="Holgura (mm)" value="10" oninput="dibujar()">
+                        </div>
+                        <div class="flex">
+                            <div class="mat-container">
+                                <input type="text" id="m-cerco" placeholder="Perfil Marco (U o Tubo)..." onkeyup="buscarMat(this)">
+                                <div class="sug-list"></div>
+                            </div>
+                            <div class="mat-container">
+                                <input type="text" id="m-hoja" placeholder="Perfil Hoja Puerta..." onkeyup="buscarMat(this)">
+                                <div class="sug-list"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="border-left: 5px solid var(--accent);">
+                        <h3>🎨 Relleno y Diseño</h3>
+                        <div class="flex">
+                            <select id="p-orientacion" onchange="dibujar()">
+                                <option value="vertical">Barros Verticales</option>
+                                <option value="horizontal">Barros Horizontales</option>
+                            </select>
+                            <input type="number" id="p-sep" value="100" placeholder="Separación" oninput="dibujar()">
+                        </div>
+                        <div class="flex">
+                            <div class="mat-container">
+                                <input type="text" id="m-barrote" placeholder="Material Relleno..." onkeyup="buscarMat(this)">
+                                <div class="sug-list"></div>
+                            </div>
+                            <select id="p-inglete">
+                                <option value="45">Corte Inglete (45°)</option>
+                                <option value="90">Corte Recto (90°)</option>
+                            </select>
+                        </div>
+                        <button onclick="añadirElemento()" style="width:100%; margin-top:10px; background:var(--p);">AÑADIR A LISTA DE CORTE</button>
+                    </div>
+                </div>
+
+                <div style="flex: 1; text-align: center;">
+                    <div class="card" style="background: #1e293b;">
+                        <canvas id="p-canvas" width="380" height="450"></canvas>
+                        <div id="p-info" style="color: #94a3b8; margin-top:10px; font-family: monospace; font-size: 0.8rem;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="v-resumen" class="view">
+            <h1>Resumen de Cortes</h1>
+            <div id="render-desglose"></div>
+            <button onclick="enviarTaller()" style="width:100%; background: var(--success); padding: 20px; font-size: 1.2rem; margin-top:20px;">🚀 ENVIAR AL TALLER</button>
+        </div>
     </div>
 
 <script>
-    const firebaseConfig = {
-        apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
-        authDomain: "mstcalc.firebaseapp.com",
-        projectId: "mstcalc",
-        storageBucket: "mstcalc.firebasestorage.app",
-        messagingSenderId: "68220801288",
-        appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
-    };
+    const firebaseConfig = { apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0", authDomain: "mstcalc.firebaseapp.com", projectId: "mstcalc", storageBucket: "mstcalc.firebasestorage.app", messagingSenderId: "68220801288", appId: "1:68220801288:web:cf0a033e03658c3f579cbd" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // 1. Mostrar las obras disponibles
-    db.collection("materiales").onSnapshot(snap => {
-        const listaObras = document.getElementById('lista-obras');
-        const obras = new Set();
-        snap.forEach(doc => {
-            if(doc.data().trabajo) obras.add(doc.data().trabajo);
-        });
-        
-        listaObras.innerHTML = "";
-        if(obras.size === 0) listaObras.innerHTML = "<p style='text-align:center;'>No hay trabajos pendientes.</p>";
-        
-        obras.forEach(o => {
-            listaObras.innerHTML += `<button class="btn-obra" onclick="verObra('${o}')">📂 OBRA: ${o}</button>`;
-        });
+    let obra = { id: "", elementos: [] };
+    let materiales = JSON.parse(localStorage.getItem('mats_v3')) || { "Tubo 40x40x1.5": 5.5, "Pletina 40x5": 3.2, "Barrote 14": 2.9 };
+
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    document.getElementById('id_obra').addEventListener('keypress', (e) => {
+        if(e.key === 'Enter') { obra.id = e.target.value; showView('v-puerta'); }
     });
 
-    function verObra(id) {
-        document.getElementById('selector-obra').style.display = 'none';
-        document.getElementById('vista-trabajo').style.display = 'block';
-        document.getElementById('num-obra').innerText = "Orden: " + id;
-        
-        // Escuchar las piezas de esta obra específica
-        db.collection("materiales").where("trabajo", "==", id).orderBy("fecha", "asc").onSnapshot(snap => {
-            const contenedor = document.getElementById('piezas-obra');
-            contenedor.innerHTML = "";
-            
-            snap.forEach(doc => {
-                const m = doc.data();
-
-                // SI ES UN DIBUJO/ESQUEMA
-                if(m.estado === 'info' && m.imagen) {
-                    contenedor.innerHTML += `
-                        <div class="contenedor-dibujo">
-                            <div class="titulo-esquema">${m.nombre}</div>
-                            <img src="${m.imagen}" class="img-esquema">
-                        </div>`;
-                } 
-                // SI ES UNA PIEZA DE CORTE
-                else if(m.estado !== 'cortado') {
-                    contenedor.innerHTML += `
-                        <div class="item-corte" style="border-left-color:${m.estado==='cortando'?'#f39c12':'#2c3e50'}">
-                            <div>
-                                <span style="background:#eee; padding:2px 6px; border-radius:4px; font-weight:bold;">${m.cantidad || 1}x</span>
-                                <b>${m.nombre}</b><br>
-                                <span style="color:#3498db; font-size:1.1rem; font-weight:bold;">${m.medida}</span>
-                            </div>
-                            <button class="btn-accion" onclick="cambiar('${doc.id}','${m.estado}')">
-                                ${m.estado === 'pendiente' ? 'INICIAR' : 'HECHO ✅'}
-                            </button>
-                        </div>`;
-                }
-            });
-            
-            if(contenedor.innerHTML === "") {
-                contenedor.innerHTML = "<div class='obra-card'>🎉 ¡Todo listo! Esta obra no tiene más piezas pendientes.</div>";
-            }
+    function buscarMat(input) {
+        let val = input.value.toLowerCase();
+        let list = input.nextElementSibling;
+        list.innerHTML = "";
+        if(!val) { list.style.display = "none"; return; }
+        Object.keys(materiales).filter(m => m.toLowerCase().includes(val)).forEach(m => {
+            let d = document.createElement('div'); d.className = "sug-item"; d.innerText = m;
+            d.onclick = () => { input.value = m; list.style.display = "none"; dibujar(); };
+            list.appendChild(d);
         });
+        list.style.display = "block";
     }
 
-    function cambiar(id, est) {
-        const n = est === 'pendiente' ? 'cortando' : 'cortado';
-        db.collection("materiales").doc(id).update({estado: n});
+    function dibujar() {
+        const c = document.getElementById('p-canvas');
+        const ctx = c.getContext('2d');
+        const W = parseFloat(document.getElementById('p-w').value) || 0;
+        const H = parseFloat(document.getElementById('p-h').value) || 0;
+        const f = parseFloat(document.getElementById('p-faldon').value) || 0;
+        const sep = parseFloat(document.getElementById('p-sep').value) || 100;
+        const ori = document.getElementById('p-orientacion').value;
+
+        ctx.clearRect(0,0,400,450);
+        if(!W || !H) return;
+
+        const esc = Math.min(300/W, 300/H);
+        const w = W * esc, h = H * esc, f_esc = f * esc;
+        const ox = (380-w)/2, oy = (450-h)/2;
+
+        // Marco Exterior (Cerco)
+        ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
+        ctx.strokeRect(ox, oy, w, h);
+
+        // Hoja (Puerta) con faldamiento
+        ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 3;
+        ctx.strokeRect(ox + f_esc, oy + f_esc, w - (f_esc*2), h - (f_esc*2));
+
+        // Relleno
+        ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1;
+        if(ori === 'vertical') {
+            for(let x = ox+f_esc+sep*esc; x < ox+w-f_esc; x += sep*esc) {
+                ctx.beginPath(); ctx.moveTo(x, oy+f_esc); ctx.lineTo(x, oy+h-f_esc); ctx.stroke();
+            }
+        } else {
+            for(let y = oy+f_esc+sep*esc; y < oy+h-f_esc; y += sep*esc) {
+                ctx.beginPath(); ctx.moveTo(ox+f_esc, y); ctx.lineTo(ox+w-f_esc, y); ctx.stroke();
+            }
+        }
+        document.getElementById('p-info').innerText = `Hueco: ${W}x${H} | Hoja: ${W-(f*2)}x${H-(f*2)}`;
     }
 
-    function volver() {
-        document.getElementById('selector-obra').style.display = 'block';
-        document.getElementById('vista-trabajo').style.display = 'none';
+    function añadirElemento() {
+        const canvas = document.getElementById('p-canvas');
+        const W = parseFloat(document.getElementById('p-w').value);
+        const H = parseFloat(document.getElementById('p-h').value);
+        const f = parseFloat(document.getElementById('p-faldon').value);
+        const matC = document.getElementById('m-cerco').value;
+        const matH = document.getElementById('m-hoja').value;
+        const matB = document.getElementById('m-barrote').value;
+        const inglete = document.getElementById('p-inglete').value;
+        const ori = document.getElementById('p-orientacion').value;
+
+        const wHoja = W - (f * 2);
+        const hHoja = H - (f * 2);
+
+        let piezas = [
+            { m: matC, l: W, c: 2, ang: "90°", tipo: "Marco" },
+            { m: matC, l: H, c: 2, ang: "90°", tipo: "Marco" },
+            { m: matH, l: wHoja, c: 2, ang: inglete+"°", tipo: "Hoja" },
+            { m: matH, l: hHoja, c: 2, ang: inglete+"°", tipo: "Hoja" }
+        ];
+
+        if(matB) {
+            const sep = parseFloat(document.getElementById('p-sep').value);
+            if(ori === 'vertical') {
+                const n = Math.floor(wHoja / sep);
+                piezas.push({ m: matB, l: hHoja - 80, c: n, ang: "90°", tipo: "Relleno" });
+            } else {
+                const n = Math.floor(hHoja / sep);
+                piezas.push({ m: matB, l: wHoja - 80, c: n, ang: "90°", tipo: "Relleno" });
+            }
+        }
+
+        obra.elementos.push({ 
+            nombre: `Puerta ${W}x${H}`, 
+            piezas: piezas, 
+            esquema: canvas.toDataURL() 
+        });
+        alert("Añadido con éxito.");
+    }
+
+    function enviarTaller() {
+        obra.elementos.forEach(el => {
+            // Mandar esquema UNA SOLA VEZ por elemento
+            db.collection("materiales").add({
+                trabajo: obra.id,
+                nombre: "ESQUEMA " + el.nombre,
+                imagen: el.esquema,
+                estado: "info",
+                fecha: new Date()
+            });
+
+            el.piezas.forEach(p => {
+                db.collection("materiales").add({
+                    trabajo: obra.id,
+                    nombre: `${p.m} (${p.tipo})`,
+                    medida: `${p.l}mm`,
+                    cantidad: p.c,
+                    angulo: p.ang, // <-- AHORA SE ENVÍA EL ÁNGULO
+                    estado: "pendiente",
+                    fecha: new Date()
+                });
+            });
+        });
+        alert("Enviado al taller.");
+        location.reload();
     }
 </script>
 </body>
