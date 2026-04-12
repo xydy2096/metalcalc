@@ -2,99 +2,146 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V17 - Logística de Taller</title>
+    <title>MSTCALC V19 - PANEL ADMINISTRADOR</title>
     <style>
         :root { 
-            --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
-            --danger: #ef4444; --border: #cbd5e1; --sidebar-w: 260px;
+            --p: #0f172a; --s: #3b82f6; --bg: #f8fafc; --success: #10b981; 
+            --danger: #ef4444; --border: #e2e8f0; --sidebar-w: 280px;
         }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
         
         /* Sidebar */
-        .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; }
-        .sidebar h2 { color: var(--s); border-bottom: 2px solid #334155; padding-bottom: 15px; }
-        .nav-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; color: #cbd5e1; }
-        .nav-item.active { background: var(--s); color: white; }
+        .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; }
+        .sidebar h2 { color: var(--s); font-size: 1.5rem; font-weight: 800; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 25px; }
+        .nav-group-title { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin: 20px 0 10px 0; font-weight: 900; }
+        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; color: #cbd5e1; }
+        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
+        .nav-item.active { background: var(--s); color: white; font-weight: 600; }
 
-        .main-content { margin-left: var(--sidebar-w); padding: 40px; width: 100%; }
+        /* Contenido */
+        .main-content { margin-left: var(--sidebar-w); padding: 40px; width: calc(100% - var(--sidebar-w)); }
         .view { display: none; }
         .view.active { display: block; }
 
-        /* Estructura de Tablas y Cards */
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; background: #f8fafc; padding: 12px; font-size: 0.8rem; color: #64748b; border-bottom: 2px solid #e2e8f0; }
+        /* Tarjetas y Formularios */
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px; border: 1px solid var(--border); }
+        .flex { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
+        .flex > div { flex: 1; min-width: 150px; }
+        
+        label { display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
+        input, select { padding: 12px; border: 2px solid #f1f5f9; border-radius: 10px; width: 100%; box-sizing: border-box; background: #f8fafc; }
+        
+        /* Tablas */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th { text-align: left; padding: 12px; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #f1f5f9; }
         td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
 
-        /* Badges de Ubicación */
-        .loc-tag { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
-        .chatarra-tag { background: #fee2e2; color: #991b1b; }
-        
-        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        /* Botones */
+        .btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.2s; }
         .btn-main { background: var(--s); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger { background: var(--danger); color: white; font-size: 0.8rem; }
+        
+        .badge-loc { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V17</h2>
-        <div class="nav-item" onclick="showView('v-prontuario')">📖 Prontuario (Precios)</div>
-        <div class="nav-item active" onclick="showView('v-stock')">🏭 Stock en Taller</div>
-        <div class="nav-item" onclick="showView('v-chatarra')">🗑️ Cubeta Chatarra</div>
+        <h2>MSTCALC V19</h2>
+        
+        <div class="nav-group-title">Oficina y Precios</div>
+        <div class="nav-item active" onclick="showView('v-prontuario')">📖 Prontuario Maestro</div>
+        
+        <div class="nav-group-title">Logística Taller</div>
+        <div class="nav-item" onclick="showView('v-stock')">🏗️ Gestión de Cantilevers</div>
+        <div class="nav-item" onclick="showView('v-chatarra')">🗑️ Registro de Chatarra</div>
+
+        <div class="nav-group-title">Producción</div>
+        <div class="nav-item" onclick="showView('v-barandilla')">🪜 Ingeniería Barandillas</div>
+        <div class="nav-item" onclick="showView('v-presupuesto')">🧾 Presupuesto Final</div>
     </div>
 
     <div class="main-content">
 
-        <div id="v-prontuario" class="view">
-            <h1>📖 Prontuario de Metales</h1>
+        <div id="v-prontuario" class="view active">
+            <h1>📖 Prontuario Maestro</h1>
+            <p>Define aquí los materiales que compras y su precio por metro. Esto sirve de catálogo para todo lo demás.</p>
             <div class="card">
-                <h3>Añadir Perfil al Catálogo</h3>
-                <div style="display:flex; gap:10px;">
-                    <input type="text" id="pro-nom" placeholder="Nombre Perfil (Ej: IPN 120)">
-                    <input type="number" id="pro-pre" placeholder="Precio €/m">
-                    <button class="btn btn-main" onclick="addProntuario()">Añadir al Catálogo</button>
+                <div class="flex">
+                    <div><label>Nombre Perfil</label><input type="text" id="p-nom" placeholder="Tubo 40x40x2"></div>
+                    <div><label>Precio Compra (€/m)</label><input type="number" id="p-pre" step="0.01"></div>
+                    <button class="btn btn-main" onclick="saveProntuario()">Añadir al Catálogo</button>
                 </div>
             </div>
             <div class="card">
-                <table id="tabla-pro">
+                <table id="t-pro">
                     <thead><tr><th>Perfil</th><th>Precio Base</th><th>Acción</th></tr></thead>
-                    <tbody id="body-pro"></tbody>
+                    <tbody id="b-pro"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="v-stock" class="view active">
-            <h1>🏭 Material Disponible en Taller</h1>
-            <div class="card" style="background: #e0f2fe;">
-                <h3>Entrada de Material a Ubicación</h3>
-                <div style="display:flex; gap:10px; flex-wrap: wrap;">
-                    <select id="stock-perfil-sel" style="flex:1; padding:10px; border-radius:8px;"></select>
-                    <input type="number" id="stock-cant" placeholder="Metros" style="width:100px; padding:10px; border-radius:8px;">
-                    <select id="stock-loc" style="flex:1; padding:10px; border-radius:8px;">
-                        <option value="Cantilever 1">Cantilever 1 (Pesado)</option>
-                        <option value="Cantilever 2">Cantilever 2 (Tubería)</option>
-                        <option value="Cantilever 3">Cantilever 3 (Inox)</option>
-                        <option value="Estantería Retales">Estantería Retales</option>
-                    </select>
-                    <button class="btn btn-main" onclick="addStockReal()">Registrar en Taller</button>
+        <div id="v-stock" class="view">
+            <h1>🏗️ Gestión de Cantilevers y Ubicación</h1>
+            <div class="card" style="background: #eff6ff; border: 1px solid #dbeafe;">
+                <h3>Dar de alta material en taller</h3>
+                <div class="flex">
+                    <div><label>Material (del Prontuario)</label><select id="s-sel-pro"></select></div>
+                    <div><label>Metros totales</label><input type="number" id="s-mts"></div>
+                    <div><label>Ubicación Física</label>
+                        <select id="s-loc">
+                            <option value="Cantilever A">Cantilever A</option>
+                            <option value="Cantilever B">Cantilever B</option>
+                            <option value="Estantería Retales">Estantería Retales</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-main" onclick="addStockReal()">Registrar Entrada</button>
                 </div>
             </div>
-
             <div class="card">
-                <table id="tabla-stock">
-                    <thead><tr><th>Material</th><th>Metros</th><th>Ubicación</th><th>Estado / Acción</th></tr></thead>
-                    <tbody id="body-stock"></tbody>
+                <table id="t-stock">
+                    <thead><tr><th>Material</th><th>Metros</th><th>Ubicación</th><th>Acción</th></tr></thead>
+                    <tbody id="b-stock"></tbody>
                 </table>
+            </div>
+        </div>
+
+        <div id="v-barandilla" class="view">
+            <h1>🪜 Ingeniería de Reparto</h1>
+            <div class="flex">
+                <div class="card" style="flex:1">
+                    <div class="flex">
+                        <div><label>Largo (mm)</label><input type="number" id="b-l" value="2000" oninput="calcBar()"></div>
+                        <div><label>Alto (mm)</label><input type="number" id="b-h" value="1000" oninput="calcBar()"></div>
+                    </div>
+                    <div><label>Material a usar</label><select id="b-sel-mat" onchange="calcBar()"></select></div>
+                    <div id="b-resultado" style="margin-top:20px; padding:15px; background:#f1f5f9; border-radius:10px; font-weight:bold; color:var(--s);"></div>
+                    <button class="btn btn-main" style="width:100%; margin-top:15px;" onclick="vincularObra()">Vincular a Presupuesto</button>
+                </div>
+                <div class="card" style="flex:1.2; background:#0f172a; display:flex; justify-content:center; align-items:center;">
+                    <canvas id="c-bar" width="400" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="v-presupuesto" class="view">
+            <h1>🧾 Presupuesto Final de Obra</h1>
+            <div class="card" id="presu-detalle"></div>
+            <div class="card">
+                <div class="flex">
+                    <div><label>Mano de Obra (€)</label><input type="number" id="m-obra" value="0" oninput="renderPresu()"></div>
+                    <div><label>Margen Beneficio (%)</label><input type="number" id="m-porcent" value="30" oninput="renderPresu()"></div>
+                </div>
+                <h2 style="font-size:2.5rem; color:var(--success); margin-top:20px;">Total: <span id="total-final">0.00 €</span></h2>
             </div>
         </div>
 
         <div id="v-chatarra" class="view">
-            <h1>🗑️ Registro de Chatarra y Desperdicio</h1>
+            <h1>🗑️ Registro de Desperdicio</h1>
             <div class="card">
-                <table id="tabla-chatarra">
+                <table id="t-chat">
                     <thead><tr><th>Fecha</th><th>Material</th><th>Metros</th><th>Motivo</th></tr></thead>
-                    <tbody id="body-chatarra"></tbody>
+                    <tbody id="b-chat"></tbody>
                 </table>
             </div>
         </div>
@@ -102,107 +149,128 @@
     </div>
 
 <script>
-    let prontuario = JSON.parse(localStorage.getItem('mst_pro')) || [];
-    let stockReal = JSON.parse(localStorage.getItem('mst_stock_fisico')) || [];
-    let chatarra = JSON.parse(localStorage.getItem('mst_chatarra')) || [];
+    // Memoria del Navegador
+    let prontuario = JSON.parse(localStorage.getItem('m_pro')) || [];
+    let stock = JSON.parse(localStorage.getItem('m_stock')) || [];
+    let obra = []; 
+    let chatarra = JSON.parse(localStorage.getItem('m_chat')) || [];
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if(id === 'v-stock') refreshStockUI();
+        if(id === 'v-barandilla') { refreshBarUI(); calcBar(); }
+        if(id === 'v-presupuesto') renderPresu();
     }
 
     // --- LÓGICA PRONTUARIO ---
-    function addProntuario() {
-        const nom = document.getElementById('pro-nom').value.toUpperCase();
-        const pre = parseFloat(document.getElementById('pro-pre').value);
+    function saveProntuario() {
+        const nom = document.getElementById('p-nom').value.toUpperCase();
+        const pre = parseFloat(document.getElementById('p-pre').value);
         if(nom && pre) {
             prontuario.push({nom, pre});
-            save();
-            renderProntuario();
-            refreshStockUI();
+            sync(); renderPro();
         }
     }
 
-    function renderProntuario() {
-        let h = "";
-        prontuario.forEach((p, i) => {
-            h += `<tr><td><b>${p.nom}</b></td><td>${p.pre} €/m</td><td><button onclick="delPro(${i})">❌</button></td></tr>`;
-        });
-        document.getElementById('body-pro').innerHTML = h;
+    function renderPro() {
+        document.getElementById('b-pro').innerHTML = prontuario.map((p,i) => `
+            <tr><td><b>${p.nom}</b></td><td>${p.pre.toFixed(2)} €/m</td><td><button class="btn-danger" onclick="delPro(${i})">❌</button></td></tr>
+        `).join('');
     }
 
     // --- LÓGICA STOCK REAL ---
     function refreshStockUI() {
-        const sel = document.getElementById('stock-perfil-sel');
-        sel.innerHTML = prontuario.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('');
+        document.getElementById('s-sel-pro').innerHTML = prontuario.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('');
         renderStock();
     }
 
     function addStockReal() {
-        const mat = document.getElementById('stock-perfil-sel').value;
-        const mts = parseFloat(document.getElementById('stock-cant').value);
-        const loc = document.getElementById('stock-loc').value;
+        const mat = document.getElementById('s-sel-pro').value;
+        const mts = parseFloat(document.getElementById('s-mts').value);
+        const loc = document.getElementById('s-loc').value;
         if(mat && mts) {
-            stockReal.push({id: Date.now(), mat, mts, loc});
-            save();
-            renderStock();
+            stock.push({id: Date.now(), mat, mts, loc});
+            sync(); renderStock();
         }
-    }
-
-    function moverA(index, nuevaLoc) {
-        if(nuevaLoc === "CHATARRA") {
-            const item = stockReal[index];
-            chatarra.push({fecha: new Date().toLocaleDateString(), mat: item.mat, mts: item.mts, motivo: "Error / Desperdicio"});
-            stockReal.splice(index, 1);
-        } else {
-            stockReal[index].loc = nuevaLoc;
-        }
-        save();
-        renderStock();
-        renderChatarra();
     }
 
     function renderStock() {
-        let h = "";
-        stockReal.forEach((s, i) => {
-            h += `<tr>
-                <td><b>${s.mat}</b></td>
-                <td>${s.mts} m</td>
-                <td><span class="loc-tag">${s.loc}</span></td>
-                <td>
-                    <select onchange="moverA(${i}, this.value)" style="padding:5px; border-radius:5px;">
-                        <option value="">Cambiar ubicación...</option>
-                        <option value="Cantilever 1">Cantilever 1</option>
-                        <option value="Cantilever 2">Cantilever 2</option>
-                        <option value="Cantilever 3">Cantilever 3</option>
-                        <option value="Estantería Retales">Estantería Retales</option>
-                        <option value="CHATARRA">🗑️ TIRAR A CHATARRA</option>
-                    </select>
-                </td>
-            </tr>`;
-        });
-        document.getElementById('body-stock').innerHTML = h;
+        document.getElementById('b-stock').innerHTML = stock.map((s,i) => `
+            <tr><td><b>${s.mat}</b></td><td>${s.mts} m</td><td><span class="badge-loc">${s.loc}</span></td><td><button class="btn-danger" onclick="delStock(${i})">Eliminar</button></td></tr>
+        `).join('');
     }
 
-    function renderChatarra() {
-        let h = "";
-        chatarra.forEach(c => {
-            h += `<tr><td>${c.fecha}</td><td>${c.mat}</td><td>${c.mts}m</td><td>${c.motivo}</td></tr>`;
-        });
-        document.getElementById('body-chatarra').innerHTML = h;
+    // --- LÓGICA BARANDILLA ---
+    function refreshBarUI() {
+        document.getElementById('b-sel-mat').innerHTML = prontuario.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('');
     }
 
-    function save() {
-        localStorage.setItem('mst_pro', JSON.stringify(prontuario));
-        localStorage.setItem('mst_stock_fisico', JSON.stringify(stockReal));
-        localStorage.setItem('mst_chatarra', JSON.stringify(chatarra));
+    function calcBar() {
+        const L = parseFloat(document.getElementById('b-l').value);
+        const H = parseFloat(document.getElementById('b-h').value);
+        const mat = document.getElementById('b-sel-mat').value;
+        const G = 20; // Grosor barrote aprox.
+        const E = 120; // Espacio máx.
+        
+        const n = Math.ceil((L - E) / (G + E));
+        const eReal = (L - (n * G)) / (n + 1);
+        const mTotales = ((L*2 + H*2) + (n * H)) / 1000;
+
+        document.getElementById('b-resultado').innerHTML = `
+            REPARTO: ${n} barrotes a ${eReal.toFixed(1)}mm<br>
+            HIERRO TOTAL: ${mTotales.toFixed(2)} metros
+        `;
+
+        drawBar(L, H, n, G, eReal);
+        return { desc: `Barandilla ${L}x${H}`, mat, mts: mTotales };
     }
+
+    function drawBar(L, H, n, G, e) {
+        const c = document.getElementById('c-bar'); const ctx = c.getContext('2d');
+        ctx.clearRect(0,0,400,250);
+        const esc = 300 / L;
+        ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 2;
+        ctx.strokeRect(50, 50, L*esc, H*esc);
+        ctx.fillStyle = "#64748b";
+        let x = 50 + (e * esc);
+        for(let i=0; i<n; i++) { ctx.fillRect(x, 50, G*esc, H*esc); x += (G+e)*esc; }
+    }
+
+    function vincularObra() {
+        obra.push(calcBar());
+        alert("Añadido al presupuesto.");
+    }
+
+    // --- PRESUPUESTO ---
+    function renderPresu() {
+        let h = "<table><tr><th>Descripción</th><th>Material</th><th>Metros</th><th>Precio/m</th><th>Subtotal</th></tr>";
+        let costMat = 0;
+        obra.forEach(item => {
+            const pBase = prontuario.find(p => p.nom === item.mat)?.pre || 0;
+            const sub = item.mts * pBase;
+            costMat += sub;
+            h += `<tr><td>${item.desc}</td><td>${item.mat}</td><td>${item.mts.toFixed(2)}m</td><td>${pBase}€</td><td>${sub.toFixed(2)}€</td></tr>`;
+        });
+        document.getElementById('presu-detalle').innerHTML = h + "</table>";
+        
+        const mano = parseFloat(document.getElementById('m-obra').value) || 0;
+        const margen = (parseFloat(document.getElementById('m-porcent').value) / 100) + 1;
+        document.getElementById('total-final').innerText = ((costMat + mano) * margen).toFixed(2) + " €";
+    }
+
+    function sync() {
+        localStorage.setItem('m_pro', JSON.stringify(prontuario));
+        localStorage.setItem('m_stock', JSON.stringify(stock));
+        localStorage.setItem('m_chat', JSON.stringify(chatarra));
+    }
+
+    function delPro(i) { prontuario.splice(i,1); sync(); renderPro(); }
+    function delStock(i) { stock.splice(i,1); sync(); renderStock(); }
 
     // Init
-    renderProntuario();
-    refreshStockUI();
-    renderChatarra();
+    renderPro();
 </script>
 </body>
 </html>
