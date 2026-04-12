@@ -2,100 +2,160 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V9.5 - Control de Producción Total</title>
+    <title>MSTCALC V10 - Gestión de Hierro, Pintura y Stock</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; --accent: #f59e0b; --danger: #ef4444; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; }
+        :root { --p: #0f172a; --s: #3b82f6; --bg: #f8fafc; --success: #10b981; --accent: #f59e0b; --danger: #ef4444; --border: #e2e8f0; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
         
-        .sidebar { width: 260px; background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; }
-        .sidebar h2 { color: var(--s); border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 20px; }
-        .nav-item { padding: 12px; margin-bottom: 6px; border-radius: 10px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
-        .nav-item:hover, .nav-item.active { background: #1e293b; color: var(--s); font-weight: bold; }
+        /* Sidebar Gigante */
+        .sidebar { width: 280px; background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; }
+        .sidebar h2 { color: var(--s); border-bottom: 2px solid #1e293b; padding-bottom: 15px; margin-bottom: 25px; font-size: 1.5rem; letter-spacing: 1px; }
+        .nav-group { margin-bottom: 25px; }
+        .nav-group-title { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin-bottom: 10px; font-weight: 800; }
+        .nav-item { padding: 14px; margin-bottom: 5px; border-radius: 12px; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 12px; font-size: 0.95rem; }
+        .nav-item:hover { background: rgba(59, 130, 246, 0.1); color: var(--s); }
+        .nav-item.active { background: var(--s); color: white; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
-        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
+        /* Contenedor Principal */
+        .main-content { margin-left: 280px; padding: 40px; width: calc(100% - 280px); }
         .view { display: none; }
-        .view.active { display: block; }
+        .view.active { display: block; animation: slideUp 0.4s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
-        .flex { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: flex-end; }
-        .flex > div { flex: 1; min-width: 140px; }
+        /* Tarjetas y Componentes */
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); margin-bottom: 30px; border: 1px solid var(--border); }
+        .card h3 { margin-top: 0; border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 20px; color: var(--p); display: flex; justify-content: space-between; }
+        
+        .flex { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; align-items: flex-end; }
+        .flex > div { flex: 1; min-width: 180px; }
 
-        label { display: block; font-size: 0.7rem; font-weight: bold; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
-        input, select { padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; width: 100%; box-sizing: border-box; }
+        label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select, textarea { padding: 12px 15px; border: 2px solid var(--border); border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 1rem; transition: border-color 0.2s; background: #fcfcfc; }
+        input:focus, select:focus { border-color: var(--s); outline: none; background: white; }
 
-        /* Buscador */
+        /* Buscador de Perfiles */
         .search-box { position: relative; }
-        .results-list { position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid #e2e8f0; border-radius: 8px; z-index: 1000; display: none; max-height: 150px; overflow-y: auto; }
-        .result-item { padding: 8px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 0.8rem; }
-        .result-item:hover { background: #f8fafc; color: var(--s); }
+        .results-list { position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid var(--border); border-radius: 12px; z-index: 1000; display: none; max-height: 250px; overflow-y: auto; box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
+        .result-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: 0.2s; }
+        .result-item:hover { background: var(--s); color: white; }
 
-        canvas { background: #0f172a; border-radius: 10px; border: 2px solid #334155; }
-        button { padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-add { background: var(--p); color: white; width: 100%; }
-        .btn-send { background: var(--success); color: white; width: 100%; font-size: 1.1rem; padding: 15px; }
+        /* Dibujos Técnicos */
+        .canvas-container { display: flex; gap: 25px; background: #1e293b; padding: 30px; border-radius: 25px; justify-content: center; box-shadow: inset 0 2px 10px rgba(0,0,0,0.2); }
+        canvas { background: #0f172a; border-radius: 15px; border: 3px solid #334155; }
+
+        /* Botones Especiales */
+        button { padding: 14px 25px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; transition: all 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-add { background: var(--p); color: white; width: 100%; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-add:hover { background: #1e293b; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .btn-send { background: var(--success); color: white; width: 100%; font-size: 1.3rem; padding: 25px; margin-top: 20px; }
+        .btn-save { background: var(--s); color: white; }
+
+        /* Tablas de Gestión */
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th { background: #f1f5f9; color: #475569; padding: 15px; text-align: left; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Alertas y Stock de Pintura */
+        .paint-badge { padding: 4px 10px; border-radius: 6px; font-weight: bold; font-size: 0.75rem; }
+        .badge-imp { background: #dcfce7; color: #166534; }
+        .badge-lac { background: #e0f2fe; color: #075985; }
         
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background: #f8fafc; color: #64748b; padding: 10px; text-align: left; }
-        td { padding: 10px; border-bottom: 1px solid #f1f5f9; }
-        
-        .alert-card { border-left: 5px solid var(--danger); background: #fef2f2; padding: 15px; border-radius: 8px; margin-bottom: 10px; color: #991b1b; }
-        .stock-card { border-left: 5px solid var(--success); background: #f0fdf4; padding: 15px; border-radius: 8px; margin-bottom: 10px; }
+        .total-box { background: var(--p); color: white; padding: 35px; border-radius: 25px; margin-top: 30px; display: flex; justify-content: space-between; align-items: center; }
+        .total-box h2 { margin: 0; font-size: 2.5rem; color: var(--success); }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V9.5</h2>
-        <div class="nav-item active" onclick="showView('v-inicio')">🏠 Proyecto</div>
-        <div class="nav-item" onclick="showView('v-puerta')">📐 Puertas</div>
-        <div class="nav-item" onclick="showView('v-barandilla')">🪜 Barandillas</div>
-        <div class="nav-item" onclick="showView('v-resumen')">🧾 Presupuesto</div>
-        <div class="nav-item" onclick="showView('v-stock-taller')">📦 Stock Taller</div>
-        <div class="nav-item" onclick="showView('v-alertas')">⚠️ Errores Taller</div>
-        <div class="nav-item" onclick="showView('v-prontuario')">📕 Prontuario</div>
+        <h2>MSTCALC V10</h2>
+        
+        <div class="nav-group">
+            <div class="nav-group-title">Producción</div>
+            <div class="nav-item active" onclick="showView('v-inicio')">📋 Proyecto y Obra</div>
+            <div class="nav-item" onclick="showView('v-puerta')">🚪 Ingeniería Puertas</div>
+            <div class="nav-item" onclick="showView('v-barandilla')">🪜 Ingeniería Barandillas</div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-title">Finanzas y Costes</div>
+            <div class="nav-item" onclick="showView('v-resumen')">🧾 Presupuesto Final</div>
+            <div class="nav-item" onclick="showView('v-pinturas-config')">🎨 Pinturas (Prontuario)</div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-group-title">Almacén y Taller</div>
+            <div class="nav-item" onclick="showView('v-stock-hierro')">🏗️ Stock de Hierro</div>
+            <div class="nav-item" onclick="showView('v-stock-pintura')">🥫 Stock de Pintura</div>
+            <div class="nav-item" onclick="showView('v-prontuario')">📕 Prontuario Hierro</div>
+            <div class="nav-item" onclick="showView('v-alertas')">⚠️ Incidencias</div>
+        </div>
     </div>
 
     <div class="main-content">
+
         <div id="v-inicio" class="view active">
-            <h1>Registro de Nueva Obra</h1>
-            <div class="card"><input type="text" id="id_obra" placeholder="Cliente / Ref. Obra..." style="font-size: 1.4rem;"></div>
+            <h1>Configuración de Obra</h1>
+            <div class="card">
+                <h3>Datos Principales</h3>
+                <div class="flex">
+                    <div style="flex:2"><label>Nombre del Cliente / Referencia</label><input type="text" id="id_obra" placeholder="Ej: Juan Pérez - Portal 4"></div>
+                    <div><label>Fecha de Entrega</label><input type="date" id="obra-fecha"></div>
+                </div>
+                <div class="flex">
+                    <div>
+                        <label>Acabado del Trabajo</label>
+                        <select id="obra-acabado" onchange="togglePinturaUI()">
+                            <option value="bruto">Sin Acabado (Hierro Negro)</option>
+                            <option value="imprimacion">Solo Imprimación</option>
+                            <option value="lacado">Imprimación + Lacado (RAL)</option>
+                        </select>
+                    </div>
+                    <div id="div-ral" style="display:none">
+                        <label>Color RAL</label>
+                        <input type="text" id="obra-ral" placeholder="Ej: RAL 7016" oninput="comprobarStockPintura(this.value)">
+                        <div id="aviso-stock-pintura"></div>
+                    </div>
+                </div>
+                <textarea id="obra-obs" placeholder="Observaciones generales para el taller..." rows="3"></textarea>
+            </div>
         </div>
 
         <div id="v-puerta" class="view">
-            <h1>Configurador de Puertas</h1>
+            <h1>Configurador de Puertas Metálicas</h1>
             <div class="flex">
-                <div style="flex: 1.5;">
+                <div style="flex: 1.6;">
                     <div class="card">
-                        <h3>Medidas y Perfiles</h3>
+                        <h3>1. Estructura y Perfiles</h3>
                         <div class="flex">
-                            <div><label>Ancho Hueco</label><input type="number" id="p-w" value="1000" oninput="calcularP()"></div>
-                            <div><label>Alto Hueco</label><input type="number" id="p-h" value="2000" oninput="calcularP()"></div>
-                            <div><label>Tipo Marco</label><select id="p-marco-tipo" onchange="calcularP()"><option value="completo">Completo</option><option value="u">En U</option></select></div>
+                            <div><label>Ancho (mm)</label><input type="number" id="p-w" value="1000" oninput="calcularP()"></div>
+                            <div><label>Alto (mm)</label><input type="number" id="p-h" value="2000" oninput="calcularP()"></div>
+                            <div><label>Config.</label><select id="p-marco-tipo" onchange="calcularP()"><option value="completo">Marco Completo</option><option value="u">Marco en U</option></select></div>
                         </div>
                         <div class="flex">
-                            <div class="search-box" style="flex:2"><label>Perfil Marco</label><input type="text" id="m-marco-search" onkeyup="buscador(this, 'marco')"><div id="res-marco" class="results-list"></div></div>
-                            <div><label>Cara</label><select id="p-cara-m" onchange="calcularP()"><option value="a">A</option><option value="b">B</option></select></div>
+                            <div class="search-box" style="flex:2"><label>Perfil de Marco</label><input type="text" id="m-marco-search" onkeyup="buscador(this, 'marco')"><div id="res-marco" class="results-list"></div></div>
+                            <div><label>Cara Descuento</label><select id="p-cara-m" onchange="calcularP()"><option value="a">Cara A</option><option value="b">Cara B</option></select></div>
                         </div>
                         <div class="flex">
-                            <div class="search-box" style="flex:2"><label>Perfil Hoja</label><input type="text" id="m-hoja-search" onkeyup="buscador(this, 'hoja')"><div id="res-hoja" class="results-list"></div></div>
-                            <div><label>Cara</label><select id="p-cara-h" onchange="calcularP()"><option value="a">A</option><option value="b">B</option></select></div>
+                            <div class="search-box" style="flex:2"><label>Perfil de Hoja</label><input type="text" id="m-hoja-search" onkeyup="buscador(this, 'hoja')"><div id="res-hoja" class="results-list"></div></div>
+                            <div><label>Cara Hoja</label><select id="p-cara-h" onchange="calcularP()"><option value="a">Cara A</option><option value="b">Cara B</option></select></div>
                         </div>
                     </div>
-                    <div class="card" style="border-left: 5px solid var(--accent);">
-                        <h3>Holguras (mm)</h3>
+                    <div class="card" style="border-left: 8px solid var(--accent);">
+                        <h3>2. Ajustes de Montaje (Holguras)</h3>
                         <div class="flex">
-                            <div><label>Sup</label><input type="number" id="f-sup" value="5" oninput="calcularP()"></div>
-                            <div><label>Inf</label><input type="number" id="f-inf" value="10" oninput="calcularP()"></div>
-                            <div><label>Izq</label><input type="number" id="f-izq" value="5" oninput="calcularP()"></div>
-                            <div><label>Der</label><input type="number" id="f-der" value="5" oninput="calcularP()"></div>
+                            <div><label>Holgura Sup.</label><input type="number" id="f-sup" value="5" oninput="calcularP()"></div>
+                            <div><label>Holgura Inf.</label><input type="number" id="f-inf" value="10" oninput="calcularP()"></div>
+                            <div><label>Izq.</label><input type="number" id="f-izq" value="5" oninput="calcularP()"></div>
+                            <div><label>Der.</label><input type="number" id="f-der" value="5" oninput="calcularP()"></div>
                         </div>
-                        <button class="btn-add" onclick="añadirPuerta()">AÑADIR PUERTA A LA OBRA</button>
+                        <button class="btn-add" onclick="añadirPuerta()">Añadir Puerta al Presupuesto</button>
                     </div>
                 </div>
                 <div style="flex: 1;">
-                    <div class="flex" style="flex-direction: column;">
+                    <div class="canvas-container" style="flex-direction:column">
                         <canvas id="c-marco" width="280" height="280"></canvas>
                         <canvas id="c-hoja" width="280" height="280"></canvas>
                     </div>
@@ -103,85 +163,163 @@
             </div>
         </div>
 
-        <div id="v-barandilla" class="view">
-            <h1>Configurador de Barandillas</h1>
+        <div id="v-pinturas-config" class="view">
+            <h1>📕 Prontuario de Pinturas y Rendimientos</h1>
             <div class="card">
+                <h3>Añadir Nueva Pintura / Imprimación</h3>
                 <div class="flex">
-                    <div><label>Longitud (mm)</label><input type="number" id="b-l" value="2000"></div>
-                    <div><label>Altura (mm)</label><input type="number" id="b-h" value="1000"></div>
-                    <div><label>Nº Postes</label><input type="number" id="b-postes" value="2"></div>
-                    <div><label>Nº Barrotes</label><input type="number" id="b-cant-bar" value="15"></div>
+                    <div style="flex:2"><label>Nombre del Producto</label><input type="text" id="pi-nom" placeholder="Ej: Imprimación Epoxi"></div>
+                    <div><label>Tipo</label><select id="pi-tipo"><option value="imp">Imprimación</option><option value="lac">Acabado / Laca</option></select></div>
                 </div>
                 <div class="flex">
-                    <div class="search-box"><label>Pasamanos</label><input type="text" id="m-pasa-search" onkeyup="buscador(this, 'pasa')"><div id="res-pasa" class="results-list"></div></div>
-                    <div class="search-box"><label>Postes</label><input type="text" id="m-poste-search" onkeyup="buscador(this, 'poste')"><div id="res-poste" class="results-list"></div></div>
-                    <div class="search-box"><label>Barrotes</label><input type="text" id="m-bar-search" onkeyup="buscador(this, 'bar')"><div id="res-bar" class="results-list"></div></div>
+                    <div><label>Rendimiento ($m^2/L$)</label><input type="number" id="pi-rend" value="8" step="0.1"></div>
+                    <div><label>Nº de Manos</label><input type="number" id="pi-manos" value="2"></div>
+                    <div><label>Formato (Litros)</label><input type="number" id="pi-formato" value="4"></div>
+                    <div><label>Precio/Bote (€)</label><input type="number" id="pi-precio" value="45" step="0.01"></div>
+                    <button class="btn-save" onclick="guardarPinturaConfig()">Guardar en Prontuario</button>
                 </div>
-                <button class="btn-add" onclick="añadirBarandilla()">AÑADIR BARANDILLA A LA OBRA</button>
             </div>
+            <div class="card">
+                <h3>Pinturas Registradas</h3>
+                <div id="tabla-pinturas-config"></div>
+            </div>
+        </div>
+
+        <div id="v-stock-pintura" class="view">
+            <h1>🥫 Almacén de Pinturas (Stock Real)</h1>
+            <div class="card">
+                <h3>Registrar Entrada de Botes</h3>
+                <div class="flex">
+                    <div style="flex:2"><label>Producto (RAL o Nombre)</label><input type="text" id="st-pi-nom"></div>
+                    <div><label>Cantidad (Botes)</label><input type="number" id="st-pi-cant" value="1"></div>
+                    <button class="btn-save" onclick="añadirStockPintura()">Añadir al Almacén</button>
+                </div>
+            </div>
+            <div class="card" id="cont-stock-pintura"></div>
         </div>
 
         <div id="v-resumen" class="view">
-            <h1>🧾 Resumen y Presupuesto</h1>
-            <div class="card" id="resumen-lista"></div>
-            <div class="card">
-                <div class="flex">
-                    <div><label>Mano Obra (€)</label><input type="number" id="mano-obra" value="100" oninput="renderResumen()"></div>
-                    <div><label>Mult. Material</label><input type="number" id="mult-mat" value="1.1" step="0.1" oninput="renderResumen()"></div>
-                    <div><label>Varios (€)</label><input type="number" id="varios" value="30" oninput="renderResumen()"></div>
-                    <div><label>% Beneficio</label><input type="number" id="margen" value="30" oninput="renderResumen()"></div>
+            <h1>🧾 Análisis de Costes y Presupuesto Final</h1>
+            <div class="card" id="resumen-lista-piezas"></div>
+            
+            <div class="flex">
+                <div class="card" style="flex:1">
+                    <h3>Desglose de Pintura Necesaria</h3>
+                    <div id="desglose-pintura"></div>
                 </div>
-                <div class="total-banner">
-                    <h2 id="total-txt">TOTAL: 0.00 €</h2>
-                    <button class="btn-send" onclick="enviarTaller()">🚀 ENVIAR AL TALLER</button>
+                <div class="card" style="flex:1">
+                    <h3>Parámetros de Obra</h3>
+                    <div class="flex">
+                        <div><label>Mano de Obra (€)</label><input type="number" id="mano-obra" value="150" oninput="renderResumen()"></div>
+                        <div><label>Margen Beneficio (%)</label><input type="number" id="margen" value="30" oninput="renderResumen()"></div>
+                    </div>
+                    <div class="flex">
+                        <div><label>Dificultad (Mult. Mat)</label><input type="number" id="mult-mat" value="1.1" step="0.05" oninput="renderResumen()"></div>
+                        <div><label>Varios/Herrajes (€)</label><input type="number" id="varios" value="50" oninput="renderResumen()"></div>
+                    </div>
                 </div>
+            </div>
+
+            <div class="total-box">
+                <div>
+                    <span style="opacity: 0.7; font-weight: bold;">TOTAL PRESUPUESTO (IVA NO INCL.)</span>
+                    <h2 id="total-txt">0.00 €</h2>
+                </div>
+                <button class="btn-send" onclick="enviarTaller()">🚀 LANZAR ORDEN DE FABRICACIÓN</button>
             </div>
         </div>
 
-        <div id="v-stock-taller" class="view">
-            <h1>📦 Material en Stock de Taller</h1>
-            <p><small>Material recuperado de errores o sobrantes registrados por el operario.</small></p>
-            <div id="lista-stock-real"></div>
-        </div>
-
-        <div id="v-alertas" class="view">
-            <h1>⚠️ Reportes de Error del Operario</h1>
-            <div id="lista-alertas-real"></div>
-        </div>
-
         <div id="v-prontuario" class="view">
-            <h1>📕 Prontuario de Perfiles</h1>
+            <h1>📕 Prontuario de Hierro</h1>
             <div class="card">
                 <div class="flex">
-                    <input type="text" id="st-n" placeholder="Nombre (ej: Tubo 40x40)">
+                    <input type="text" id="st-n" placeholder="Nombre (Tubo 40x40x2)">
                     <input type="number" id="st-a" placeholder="Cara A">
                     <input type="number" id="st-b" placeholder="Cara B">
                     <input type="number" id="st-p" placeholder="€/m">
-                    <button onclick="guardarP()" style="background:var(--s); color:white;">GUARDAR PERFIL</button>
+                    <button onclick="guardarP()" class="btn-save">Guardar Perfil</button>
                 </div>
                 <div id="cont-tabla-prontuario"></div>
             </div>
         </div>
+
+        <div id="v-alertas" class="view">
+            <h1>⚠️ Reportes de Error y Stock de Taller</h1>
+            <div id="cont-alertas"></div>
+            <div id="cont-stock-taller"></div>
+        </div>
+
     </div>
 
 <script>
+    // CONFIGURACIÓN FIREBASE
     const firebaseConfig = { apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0", authDomain: "mstcalc.firebaseapp.com", projectId: "mstcalc", storageBucket: "mstcalc.firebasestorage.app", messagingSenderId: "68220801288", appId: "1:68220801288:web:cf0a033e03658c3f579cbd" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // ESTADO DE LA APLICACIÓN
     let obraItems = [];
-    let prontuario = JSON.parse(localStorage.getItem('prontuario_v95')) || {};
+    let prontuario = JSON.parse(localStorage.getItem('prontuario_v10')) || {};
+    let prontuarioPinturas = JSON.parse(localStorage.getItem('prontuario_pinturas_v10')) || [];
+    let stockPintura = {}; // RAL -> Botes
 
+    // NAVEGACIÓN
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        
         if(id === 'v-resumen') renderResumen();
         if(id === 'v-prontuario') renderProntuario();
-        if(id === 'v-alertas') cargarAlertas();
-        if(id === 'v-stock-taller') cargarStockTaller();
+        if(id === 'v-pinturas-config') renderPinturasConfig();
+        if(id === 'v-stock-pintura') syncStockPintura();
+        if(id === 'v-alertas') { cargarAlertas(); cargarStockTaller(); }
     }
 
-    // BUSCADOR
+    // LÓGICA DE PINTURA
+    function togglePinturaUI() {
+        const acabado = document.getElementById('obra-acabado').value;
+        document.getElementById('div-ral').style.display = (acabado === 'lacado') ? 'block' : 'none';
+    }
+
+    function guardarPinturaConfig() {
+        const p = {
+            id: Date.now(),
+            nom: document.getElementById('pi-nom').value,
+            tipo: document.getElementById('pi-tipo').value,
+            rend: parseFloat(document.getElementById('pi-rend').value),
+            manos: parseInt(document.getElementById('pi-manos').value),
+            formato: parseFloat(document.getElementById('pi-formato').value),
+            precio: parseFloat(document.getElementById('pi-precio').value)
+        };
+        prontuarioPinturas.push(p);
+        localStorage.setItem('prontuario_pinturas_v10', JSON.stringify(prontuarioPinturas));
+        renderPinturasConfig();
+    }
+
+    function renderPinturasConfig() {
+        let h = "<table><tr><th>Producto</th><th>Tipo</th><th>Rend.</th><th>Manos</th><th>Bote</th><th>Precio</th><th>Acción</th></tr>";
+        prontuarioPinturas.forEach(p => {
+            h += `<tr>
+                <td>${p.nom}</td>
+                <td><span class="paint-badge badge-${p.tipo}">${p.tipo === 'imp' ? 'Imprimación' : 'Lacado'}</span></td>
+                <td>${p.rend} $m^2/L$</td>
+                <td>${p.manos}</td>
+                <td>${p.formato}L</td>
+                <td>${p.precio}€</td>
+                <td><button onclick="borrarPintura(${p.id})">❌</button></td>
+            </tr>`;
+        });
+        document.getElementById('tabla-pinturas-config').innerHTML = h + "</table>";
+    }
+
+    function borrarPintura(id) {
+        prontuarioPinturas = prontuarioPinturas.filter(p => p.id !== id);
+        localStorage.setItem('prontuario_pinturas_v10', JSON.stringify(prontuarioPinturas));
+        renderPinturasConfig();
+    }
+
+    // BUSCADOR Y CÁLCULOS TÉCNICOS
     function buscador(input, tipo) {
         const val = input.value.toLowerCase();
         const resDiv = document.getElementById('res-' + tipo);
@@ -198,7 +336,6 @@
         resDiv.style.display="block";
     }
 
-    // CÁLCULO PUERTAS
     function calcularP() {
         const W = parseFloat(document.getElementById('p-w').value) || 0;
         const H = parseFloat(document.getElementById('p-h').value) || 0;
@@ -216,7 +353,8 @@
     function dibujar(id, W, H, gR, tipo, color, titulo, tW, tH) {
         const c = document.getElementById(id); const ctx = c.getContext('2d');
         ctx.clearRect(0,0,280,280);
-        const esc = Math.min(220/W, 220/H);
+        if(!W || !H) return;
+        const esc = Math.min(200/W, 200/H);
         const ox = (280-W*esc)/2, oy = (280-H*esc)/2;
         const g = (gR || 2) * esc;
         ctx.strokeStyle=color; ctx.lineWidth=g;
@@ -224,111 +362,167 @@
         ctx.moveTo(ox+g/2, oy+H*esc); ctx.lineTo(ox+g/2, oy+g/2); ctx.lineTo(ox+W*esc-g/2, oy+g/2); ctx.lineTo(ox+W*esc-g/2, oy+H*esc);
         if(tipo==='completo') ctx.lineTo(ox+g/2, oy+H*esc);
         ctx.stroke();
-        ctx.fillStyle="white"; ctx.fillText(`${titulo}: ${Math.round(tW)}x${Math.round(tH)} mm`, 10, 20);
+        ctx.fillStyle="white"; ctx.font="bold 12px Arial";
+        ctx.fillText(`${titulo}: ${Math.round(tW)}x${Math.round(tH)} mm`, 10, 25);
+        ctx.fillStyle=color; ctx.fillText(Math.round(tW)+"mm", ox+W*esc/2-15, oy-10);
     }
 
     function añadirPuerta() {
         const obra = document.getElementById('id_obra').value;
-        if(!obra) return alert("Pon el nombre de la obra");
+        if(!obra) return alert("Indica el cliente");
+        
         const W = parseFloat(document.getElementById('p-w').value);
         const H = parseFloat(document.getElementById('p-h').value);
         const matM = document.getElementById('m-marco-search').value;
         const matH = document.getElementById('m-hoja-search').value;
+        const pM = prontuario[matM] || {a:40, b:40};
+        const pH = prontuario[matH] || {a:40, b:40};
+
         const gM = prontuario[matM] ? parseFloat(prontuario[matM][document.getElementById('p-cara-m').value]) : 0;
-        const wH = W - (gM*2) - (parseFloat(document.getElementById('f-izq').value) + parseFloat(document.getElementById('f-der').value));
         const tipoM = document.getElementById('p-marco-tipo').value;
+        const wH = W - (gM*2) - (parseFloat(document.getElementById('f-izq').value) + parseFloat(document.getElementById('f-der').value));
         const hH = H - (gM*(tipoM==='completo'?2:1)) - (parseFloat(document.getElementById('f-sup').value) + parseFloat(document.getElementById('f-inf').value));
 
-        obraItems.push({
-            obra: obra,
-            piezas: [
-                {m: matM, l: W, c: (tipoM==='u'?1:2), t: "Marco Horiz."},
-                {m: matM, l: H, c: 2, t: "Marco Vert."},
-                {m: matH, l: wH, c: 2, t: "Hoja Horiz."},
-                {m: matH, l: hH, c: 2, t: "Hoja Vert."}
-            ],
-            imgs: [document.getElementById('c-marco').toDataURL(), document.getElementById('c-hoja').toDataURL()]
-        });
-        alert("Puerta añadida.");
+        // Cálculo de PERÍMETRO para Pintura (2 * (A+B))
+        const periM = (parseFloat(pM.a) + parseFloat(pM.b)) * 2;
+        const periH = (parseFloat(pH.a) + parseFloat(pH.b)) * 2;
+
+        let piezas = [
+            {m: matM, l: W, c: (tipoM==='u'?1:2), t: "Marco H", s: (periM * W * (tipoM==='u'?1:2)) / 1000000},
+            {m: matM, l: H, c: 2, t: "Marco V", s: (periM * H * 2) / 1000000},
+            {m: matH, l: wH, c: 2, t: "Hoja H", s: (periH * wH * 2) / 1000000},
+            {m: matH, l: hH, c: 2, t: "Hoja V", s: (periH * hH * 2) / 1000000}
+        ];
+
+        obraItems.push({ obra: obra, piezas: piezas, imgs: [document.getElementById('c-marco').toDataURL(), document.getElementById('c-hoja').toDataURL()] });
+        alert("Añadido.");
     }
 
-    function añadirBarandilla() {
-        const obra = document.getElementById('id_obra').value;
-        const L = parseFloat(document.getElementById('b-l').value);
-        const H = parseFloat(document.getElementById('b-h').value);
-        obraItems.push({
-            obra: obra,
-            piezas: [
-                {m: document.getElementById('m-pasa-search').value, l: L, c: 1, t: "Pasamanos"},
-                {m: document.getElementById('m-poste-search').value, l: H, c: document.getElementById('b-postes').value, t: "Postes"},
-                {m: document.getElementById('m-bar-search').value, l: H-80, c: document.getElementById('b-cant-bar').value, t: "Barrotes"}
-            ],
-            imgs: []
-        });
-        alert("Barandilla añadida.");
-    }
-
+    // PRESUPUESTO GIGANTE
     function renderResumen() {
-        let mat = 0;
-        let h = "<table><tr><th>Perfil</th><th>Medida</th><th>Cant</th><th>Coste Base</th></tr>";
-        const m = parseFloat(document.getElementById('mult-mat').value);
+        let matHierro = 0;
+        let areaTotal = 0;
+        let html = "<table><tr><th>Material</th><th>Medida</th><th>Cant</th><th>Área ($m^2$)</th><th>Subtotal</th></tr>";
+        const mult = parseFloat(document.getElementById('mult-mat').value);
+
         obraItems.forEach(it => {
             it.piezas.forEach(p => {
-                let pBase = (prontuario[p.m]?.p || 0);
-                let cost = (p.l/1000) * p.c * pBase * m;
-                mat += cost;
-                h += `<tr><td>${p.m}</td><td>${Math.round(p.l)}mm</td><td>${p.c}</td><td>${cost.toFixed(2)}€</td></tr>`;
+                let cost = (p.l/1000) * p.c * (prontuario[p.m]?.p || 0) * mult;
+                matHierro += cost;
+                areaTotal += p.s;
+                html += `<tr><td>${p.m}</td><td>${Math.round(p.l)}mm</td><td>${p.c}</td><td>${p.s.toFixed(2)}</td><td>${cost.toFixed(2)}€</td></tr>`;
             });
         });
-        const final = (mat + parseFloat(document.getElementById('mano-obra').value) + parseFloat(document.getElementById('varios').value)) * ((parseFloat(document.getElementById('margen').value)/100)+1);
-        document.getElementById('total-txt').innerText = "TOTAL: " + final.toFixed(2) + " €";
-        document.getElementById('resumen-lista').innerHTML = h + "</table>";
-    }
+        document.getElementById('resumen-lista-piezas').innerHTML = html + "</table>";
 
-    async function enviarTaller() {
-        for(let it of obraItems) {
-            it.imgs.forEach((img) => db.collection("materiales").add({ trabajo: it.obra, nombre: "PLANO", imagen: img, estado: "info", fecha: new Date() }));
-            for(let p of it.piezas) await db.collection("materiales").add({ trabajo: it.obra, nombre: p.m + " ("+p.t+")", medida: Math.round(p.l)+"mm", cantidad: p.c, estado: "pendiente", fecha: new Date() });
+        // CÁLCULO DE PINTURA
+        let matPintura = 0;
+        let htmlP = `Área Total a Pintar: <b>${areaTotal.toFixed(2)} $m^2$</b><br><hr>`;
+        const acabado = document.getElementById('obra-acabado').value;
+
+        if(acabado !== 'bruto') {
+            const imp = prontuarioPinturas.find(p => p.tipo === 'imp');
+            if(imp) {
+                let litros = (areaTotal * imp.manos) / imp.rend;
+                let botes = Math.ceil(litros / imp.formato);
+                let costeImp = botes * imp.precio;
+                matPintura += costeImp;
+                htmlP += `• Imprimación: ${litros.toFixed(1)}L (${botes} botes de ${imp.formato}L) -> ${costeImp.toFixed(2)}€<br>`;
+            }
+            if(acabado === 'lacado') {
+                const lac = prontuarioPinturas.find(p => p.tipo === 'lac');
+                if(lac) {
+                    let litros = (areaTotal * lac.manos) / lac.rend;
+                    let botes = Math.ceil(litros / lac.formato);
+                    let costeLac = botes * lac.precio;
+                    matPintura += costeLac;
+                    htmlP += `• Lacado RAL: ${litros.toFixed(1)}L (${botes} botes de ${lac.formato}L) -> ${costeLac.toFixed(2)}€<br>`;
+                }
+            }
         }
-        alert("¡Enviado!"); location.reload();
+        document.getElementById('desglose-pintura').innerHTML = htmlP;
+
+        const mano = parseFloat(document.getElementById('mano-obra').value);
+        const varios = parseFloat(document.getElementById('varios').value);
+        const margen = (parseFloat(document.getElementById('margen').value)/100) + 1;
+        const final = (matHierro + matPintura + mano + varios) * margen;
+
+        document.getElementById('total-txt').innerText = final.toFixed(2) + " €";
     }
 
-    // FUNCIONES DE TALLER (ERRORES Y STOCK)
+    // GESTIÓN DE STOCK PINTURA
+    function comprobarStockPintura(val) {
+        if(!val) return;
+        const aviso = document.getElementById('aviso-stock-pintura');
+        if(stockPintura[val.toUpperCase()]) {
+            aviso.innerHTML = `<span style="color:var(--success); font-weight:bold;">✅ Hay ${stockPintura[val.toUpperCase()]} botes en stock.</span>`;
+        } else {
+            aviso.innerHTML = `<span style="color:var(--danger);">❌ No hay stock de ${val}. Toca comprar.</span>`;
+        }
+    }
+
+    async function añadirStockPintura() {
+        const nom = document.getElementById('st-pi-nom').value.toUpperCase();
+        const cant = parseInt(document.getElementById('st-pi-cant').value);
+        await db.collection("stock_pintura").doc(nom).set({ botes: firebase.firestore.FieldValue.increment(cant) }, {merge: true});
+        syncStockPintura();
+    }
+
+    function syncStockPintura() {
+        db.collection("stock_pintura").onSnapshot(snap => {
+            let h = "<table><tr><th>Producto/RAL</th><th>Botes disponibles</th></tr>";
+            snap.forEach(doc => {
+                stockPintura[doc.id] = doc.data().botes;
+                h += `<tr><td><b>${doc.id}</b></td><td>${doc.data().botes}</td></tr>`;
+            });
+            document.getElementById('cont-stock-pintura').innerHTML = h + "</table>";
+        });
+    }
+
+    // GESTIÓN DE TALLER
     function cargarAlertas() {
         db.collection("alertas").orderBy("fecha", "desc").onSnapshot(snap => {
-            const cont = document.getElementById('lista-alertas-real');
-            cont.innerHTML = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                cont.innerHTML += `<div class="alert-card"><b>${d.error}</b><br><small>${d.fecha.toDate().toLocaleString()}</small></div>`;
-            });
+            let h = "<h3>Incidencias Recientes</h3>";
+            snap.forEach(doc => { h += `<div style="padding:10px; background:#fef2f2; border-radius:10px; margin-bottom:10px;">⚠️ ${doc.data().error}</div>`; });
+            document.getElementById('cont-alertas').innerHTML = h;
         });
     }
 
     function cargarStockTaller() {
         db.collection("materiales").where("estado", "==", "error-stock").onSnapshot(snap => {
-            const cont = document.getElementById('lista-stock-real');
-            cont.innerHTML = "";
-            snap.forEach(doc => {
-                const d = doc.data();
-                cont.innerHTML += `<div class="stock-card"><b>${d.nombre}</b> - ${d.medida} (Cantidad: ${d.cantidad})<br><small>Obra origen: ${d.trabajo}</small></div>`;
-            });
+            let h = "<h3>Sobrantes en Taller</h3>";
+            snap.forEach(doc => { h += `<div style="padding:10px; background:#f0fdf4; border-radius:10px; margin-bottom:10px;">📦 ${doc.data().nombre} - ${doc.data().medida}</div>`; });
+            document.getElementById('cont-stock-taller').innerHTML = h;
         });
     }
 
-    // PRONTUARIO
+    async function enviarTaller() {
+        const acabado = document.getElementById('obra-acabado').value;
+        const ral = document.getElementById('obra-ral').value;
+        for(let it of obraItems) {
+            it.imgs.forEach(img => db.collection("materiales").add({ trabajo: it.obra, nombre: "PLANO " + acabado.toUpperCase(), imagen: img, estado: "info", fecha: new Date() }));
+            for(let p of it.piezas) {
+                await db.collection("materiales").add({ trabajo: it.obra, nombre: p.m + " ("+p.t+")", medida: Math.round(p.l)+"mm", cantidad: p.c, estado: "pendiente", acabado: acabado, ral: ral, fecha: new Date() });
+            }
+        }
+        alert("Orden enviada y descontada."); location.reload();
+    }
+
+    // PRONTUARIO HIERRO
     function guardarP() {
         const n = document.getElementById('st-n').value;
         prontuario[n] = { a: document.getElementById('st-a').value, b: document.getElementById('st-b').value, p: document.getElementById('st-p').value };
-        localStorage.setItem('prontuario_v95', JSON.stringify(prontuario)); renderProntuario();
+        localStorage.setItem('prontuario_v10', JSON.stringify(prontuario)); renderProntuario();
     }
-
     function renderProntuario() {
-        let h = "<table><tr><th>Nombre</th><th>Medidas</th><th>€/m</th><th>Acción</th></tr>";
+        let h = "<table>";
         for(let k in prontuario) h += `<tr><td>${k}</td><td>${prontuario[k].a}x${prontuario[k].b}</td><td>${prontuario[k].p}€</td><td><button onclick="borrarP('${k}')">❌</button></td></tr>`;
         document.getElementById('cont-tabla-prontuario').innerHTML = h + "</table>";
     }
-    function borrarP(k) { delete prontuario[k]; localStorage.setItem('prontuario_v95', JSON.stringify(prontuario)); renderProntuario(); }
+    function borrarP(k) { delete prontuario[k]; localStorage.setItem('prontuario_v10', JSON.stringify(prontuario)); renderProntuario(); }
+
+    // Carga inicial
+    syncStockPintura();
 </script>
 </body>
 </html>
