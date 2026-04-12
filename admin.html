@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V47 - FORMATOS COMERCIALES Y CHAPAS</title>
+    <title>MSTCALC V50 - SISTEMA INTEGRAL COMPLETO</title>
     <style>
         :root { 
             --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
@@ -10,6 +10,7 @@
         }
         body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
         
+        /* SIDEBAR */
         .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; border-right: 4px solid var(--s); z-index: 100; }
         .sidebar h2 { color: var(--s); font-size: 1.4rem; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
         .nav-group-title { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin: 25px 0 10px 0; font-weight: 900; letter-spacing: 1px; }
@@ -17,8 +18,9 @@
         .nav-item:hover { background: rgba(59, 130, 246, 0.1); color: white; }
         .nav-item.active { background: var(--s); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
+        /* CONTENIDO */
         .main-content { margin-left: var(--sidebar-w); padding: 40px; width: calc(100% - var(--sidebar-w)); }
-        .view { display: none; max-width: 1200px; margin: 0 auto; }
+        .view { display: none; max-width: 1100px; margin: 0 auto; }
         .view.active { display: block; animation: fadeIn 0.3s ease; }
 
         .card { background: white; padding: 25px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
@@ -28,173 +30,208 @@
         label { display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
         input, select { padding: 10px; border: 2px solid #f1f5f9; border-radius: 8px; width: 100%; background: #f8fafc; font-size: 0.9rem; }
         
-        .btn-add { background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; }
+        /* RESULTADOS Y TALLER */
+        .result-box { background: #0f172a; color: #f8fafc; padding: 20px; border-radius: 12px; font-family: 'Consolas', monospace; margin-top: 15px; border-left: 5px solid var(--s); }
+        .corte-item { background: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid #334155; margin-bottom: 10px; color: #e2e8f0; }
+        .faldamiento-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
         
-        /* TABLAS Y CATEGORÍAS */
+        canvas { background: #0f172a; border-radius: 12px; width: 100%; height: auto; border: 1px solid #334155; }
+        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.85rem; }
         th { background: #f8fafc; color: #64748b; font-size: 0.7rem; text-transform: uppercase; }
-        
-        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase; }
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; text-transform: uppercase; }
         .badge-perfil { background: #e0f2fe; color: #0369a1; }
         .badge-chapa { background: #fef3c7; color: #92400e; }
 
-        .face-preview { background: #1e293b; border-radius: 8px; padding: 10px; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80px; margin-top: 5px; }
+        .face-preview { background: #1e293b; border-radius: 8px; padding: 10px; color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80px; }
         .rect-box { border: 2px solid var(--s); position: relative; background: rgba(59, 130, 246, 0.1); }
-        .label-dim { position: absolute; font-size: 9px; color: #94a3b8; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V47</h2>
+        <h2>MSTCALC V50</h2>
         <div class="nav-item active" onclick="showView('v-datos', this)">📝 Datos Presupuesto</div>
         <div class="nav-group-title">Fabricación</div>
         <div class="nav-item" onclick="showView('v-puertas', this)">🚪 Puertas</div>
-        <div class="nav-item" onclick="showView('v-prontuario', this)">📖 Prontuario Maestro</div>
+        <div class="nav-item" onclick="showView('v-barandillas', this)">🪜 Barandillas</div>
+        <div class="nav-item" onclick="showView('v-chapa', this)">✂️ Optimizador Chapa</div>
         <div class="nav-group-title">Inventario</div>
-        <div class="nav-item" onclick="showView('v-stock', this)">🏗️ Stock (Próximamente)</div>
+        <div class="nav-item" onclick="showView('v-prontuario', this)">📖 Prontuario Maestro</div>
+        <div class="nav-item" onclick="showView('v-stock', this)">🏗️ Stock</div>
+        <div class="nav-group-title">Finanzas</div>
+        <div class="nav-item" onclick="showView('v-presupuesto', this)">🧾 Presupuesto</div>
     </div>
 
     <div class="main-content">
         <div id="v-datos" class="view active">
-            <h1>📝 Proyecto Actual</h1>
-            <div class="card"><div class="flex"><div style="flex: 2;"><label>Obra</label><input type="text" id="c-obra"></div><div><label>Fecha</label><input type="date" id="c-fecha"></div></div></div>
-        </div>
-
-        <div id="v-prontuario" class="view">
-            <h1>📖 Prontuario Maestro</h1>
-            
-            <div class="card">
-                <label style="margin-bottom: 15px; display: block; color: var(--s);">➕ REGISTRAR NUEVO MATERIAL</label>
-                <div class="flex">
-                    <div style="flex: 0.5;">
-                        <label>Tipo</label>
-                        <select id="new-tipo" onchange="toggleInputs()">
-                            <option value="perfil">Perfil (Tubo/Lama)</option>
-                            <option value="chapa">Chapa (Formato)</option>
-                        </select>
-                    </div>
-                    <div><label>Nombre / Ref</label><input type="text" id="new-nom" placeholder="Ej: Chapa Lisa 2mm"></div>
-                    <div><label id="label-a">Cara A / Ancho (mm)</label><input type="number" id="new-a"></div>
-                    <div><label id="label-b">Cara B / Largo (mm)</label><input type="number" id="new-b"></div>
-                    <div><label>Espesor (mm)</label><input type="number" id="new-e"></div>
-                    <div><button class="btn-add" onclick="addMaterial()">Guardar</button></div>
-                </div>
-            </div>
-
-            <div class="card">
-                <table>
-                    <thead><tr><th>Cat.</th><th>Referencia</th><th>Medidas Reales</th><th>Espesor</th><th>Acción</th></tr></thead>
-                    <tbody id="tabla-body"></tbody>
-                </table>
-            </div>
+            <h1>📝 Información del Proyecto</h1>
+            <div class="card"><div class="flex"><div style="flex: 2;"><label>Cliente / Referencia</label><input type="text" id="c-obra"></div><div><label>Fecha</label><input type="date" id="c-fecha"></div></div></div>
         </div>
 
         <div id="v-puertas" class="view">
             <h1>🚪 Ingeniería de Puertas</h1>
             <div class="card">
                 <div class="flex">
-                    <div>
-                        <label>Perfil Marco</label>
-                        <select id="dr-mat-marco" onchange="calcPuerta()"></select>
+                    <div><label>Apertura</label><select id="dr-tipo" onchange="toggleFaldamientos(); calcPuerta();"><option value="abatible1">1 Hoja</option><option value="abatible2" selected>2 Hojas</option></select></div>
+                    <div><label>Perfil Marco</label><select id="dr-mat-marco" onchange="calcPuerta()"></select></div>
+                    <div><label>Frente Marco</label><select id="dr-ori-m" onchange="calcPuerta()"><option value="a">Cara A</option><option value="b">Cara B</option></select></div>
+                    <div><label>Vista</label><div class="face-preview" id="preview-marco"></div></div>
+                </div>
+                <div class="flex" style="margin-top:20px;">
+                    <div><label>Ancho Hueco (W)</label><input type="number" id="dr-w" value="2000" oninput="calcPuerta()"></div>
+                    <div><label>Alto Hueco (H)</label><input type="number" id="dr-h" value="2100" oninput="calcPuerta()"></div>
+                    <div><label>Perfil Hoja</label><select id="dr-mat-hoja" onchange="calcPuerta()"></select></div>
+                </div>
+                <div id="desigual-container" style="margin-top:20px;">
+                    <div class="flex">
+                        <div><label>Reparto</label><select id="dr-hojas-modo" onchange="calcPuerta()"><option value="iguales">Iguales</option><option value="desiguales">Desiguales</option></select></div>
+                        <div id="w-hoja1-box" style="visibility:hidden;"><label>Ancho Hoja 1</label><input type="number" id="dr-w-h1" value="1200" oninput="calcPuerta()"></div>
                     </div>
-                    <div>
-                        <label>Previsualización Marco (A x B)</label>
-                        <div class="face-preview" id="preview-marco"></div>
-                    </div>
-                    <div>
-                        <label>Frente del Marco</label>
-                        <select id="dr-ori-m" onchange="calcPuerta()">
-                            <option value="a">Usar Cara A como frontal</option>
-                            <option value="b">Usar Cara B como frontal</option>
-                        </select>
+                </div>
+                <div id="faldamientos-container" style="margin-top:20px;">
+                    <label>Faldamientos / Solapes (mm)</label>
+                    <div class="faldamiento-grid">
+                        <div><label>Sup</label><input type="number" id="f-sup" value="20" oninput="calcPuerta()"></div>
+                        <div><label>Inf</label><input type="number" id="f-inf" value="0" oninput="calcPuerta()"></div>
+                        <div><label>Izq</label><input type="number" id="f-izq" value="20" oninput="calcPuerta()"></div>
+                        <div><label>Der</label><input type="number" id="f-der" value="20" oninput="calcPuerta()"></div>
                     </div>
                 </div>
             </div>
-            <div id="res-taller" class="card" style="background:#0f172a; color:white;"></div>
+            <div class="card" style="background: #0f172a;"><canvas id="dr-canvas" width="600" height="300"></canvas></div>
+            <div id="dr-despiece"></div>
+            <div class="result-box" id="dr-final"></div>
         </div>
+
+        <div id="v-prontuario" class="view">
+            <h1>📖 Prontuario Maestro</h1>
+            <div class="card">
+                <label style="color:var(--s); margin-bottom:15px; display:block;">➕ REGISTRAR PERFIL O CHAPA COMERCIAL</label>
+                <div class="flex">
+                    <div style="flex:0.5;"><label>Tipo</label><select id="new-tipo"><option value="perfil">Perfil</option><option value="chapa">Chapa</option></select></div>
+                    <div style="flex:1.5;"><label>Nombre</label><input type="text" id="new-nom"></div>
+                    <div><label>A / Ancho</label><input type="number" id="new-a"></div>
+                    <div><label>B / Largo</label><input type="number" id="new-b"></div>
+                    <div><label>e (mm)</label><input type="number" id="new-e"></div>
+                    <div><button onclick="addMaterial()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; width:100%; cursor:pointer; font-weight:bold;">Guardar</button></div>
+                </div>
+            </div>
+            <div class="card">
+                <table id="tabla-materiales">
+                    <thead><tr><th>Cat.</th><th>Referencia</th><th>Medidas</th><th>e</th><th>Acción</th></tr></thead>
+                    <tbody id="lista-mat-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="v-barandillas" class="view"><h1>🪜 Barandillas</h1><div class="card">En desarrollo.</div></div>
+        <div id="v-chapa" class="view"><h1>✂️ Optimizador</h1><div class="card">En desarrollo.</div></div>
+        <div id="v-stock" class="view"><h1>🏗️ Stock</h1><div class="card">En desarrollo.</div></div>
+        <div id="v-presupuesto" class="view"><h1>🧾 Presupuesto</h1><div class="card">En desarrollo.</div></div>
     </div>
 
     <script>
         let prontuario = [
-            { tipo: 'perfil', nom: "Tubo 80x40", a: 80, b: 40, e: 2 },
-            { tipo: 'perfil', nom: "Tubo 100x40", a: 100, b: 40, e: 3 },
-            { tipo: 'chapa', nom: "Formato Estándar", a: 1000, b: 2000, e: 2 },
-            { tipo: 'chapa', nom: "Formato Grande", a: 1500, b: 3000, e: 3 }
+            { tipo: 'perfil', nom: "Rect 80x40", a: 80, b: 40, e: 2 },
+            { tipo: 'perfil', nom: "Rect 100x40", a: 100, b: 40, e: 3 },
+            { tipo: 'perfil', nom: "Cuad 40x40", a: 40, b: 40, e: 1.5 },
+            { tipo: 'perfil', nom: "Cuad 60x60", a: 60, b: 60, e: 2 },
+            { tipo: 'perfil', nom: "Redondo Ø40", a: 40, b: 40, e: 2 },
+            { tipo: 'chapa', nom: "Formato 2000x1000", a: 1000, b: 2000, e: 2 },
+            { tipo: 'chapa', nom: "Formato 3000x1500", a: 1500, b: 3000, e: 3 }
         ];
-
-        function toggleInputs() {
-            const tipo = document.getElementById('new-tipo').value;
-            document.getElementById('label-a').innerText = (tipo === 'perfil') ? 'Cara A (mm)' : 'Ancho (mm)';
-            document.getElementById('label-b').innerText = (tipo === 'perfil') ? 'Cara B (mm)' : 'Largo (mm)';
-        }
 
         function addMaterial() {
             const tipo = document.getElementById('new-tipo').value;
             const nom = document.getElementById('new-nom').value;
             const a = parseFloat(document.getElementById('new-a').value);
             const b = parseFloat(document.getElementById('new-b').value);
-            const e = parseFloat(document.getElementById('new-e').value);
-
+            const e = parseFloat(document.getElementById('new-e').value) || 0;
             if(nom && a && b) {
                 prontuario.push({ tipo, nom, a, b, e });
                 actualizarInterfaz();
-                // Limpiar
-                document.getElementById('new-nom').value = "";
-                document.getElementById('new-a').value = "";
-                document.getElementById('new-b').value = "";
-                document.getElementById('new-e').value = "";
+                document.getElementById('new-nom').value = ""; document.getElementById('new-a').value = ""; document.getElementById('new-b').value = ""; document.getElementById('new-e').value = "";
             }
         }
 
         function actualizarInterfaz() {
-            // Tabla Prontuario
-            document.getElementById('tabla-body').innerHTML = prontuario.map((m, i) => `
+            // Tabla
+            document.getElementById('lista-mat-body').innerHTML = prontuario.map((m, i) => `
                 <tr>
                     <td><span class="badge badge-${m.tipo}">${m.tipo}</span></td>
                     <td><strong>${m.nom}</strong></td>
-                    <td>${m.a} x ${m.b} mm</td>
-                    <td>${m.e} mm</td>
-                    <td><button onclick="eliminar(${i})" style="border:none; background:none; cursor:pointer;">❌</button></td>
+                    <td>${m.a}x${m.b}</td>
+                    <td>${m.e}</td>
+                    <td><button onclick="eliminarMat(${i})" style="border:none; background:none; cursor:pointer;">❌</button></td>
                 </tr>
             `).join('');
 
-            // Selectores (Solo perfiles para marcos de puerta)
-            const selMarco = document.getElementById('dr-mat-marco');
+            // Selects
             const perfiles = prontuario.filter(m => m.tipo === 'perfil');
-            selMarco.innerHTML = perfiles.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
-            
+            const opts = perfiles.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
+            document.getElementById('dr-mat-marco').innerHTML = opts;
+            document.getElementById('dr-mat-hoja').innerHTML = opts;
             calcPuerta();
+        }
+
+        function toggleFaldamientos() {
+            const tipo = document.getElementById('dr-tipo').value;
+            document.getElementById('desigual-container').style.display = (tipo === 'abatible2') ? 'block' : 'none';
         }
 
         function calcPuerta() {
             const perfiles = prontuario.filter(m => m.tipo === 'perfil');
-            const mat = perfiles[document.getElementById('dr-mat-marco').value];
-            if(!mat) return;
+            const pMarco = perfiles[document.getElementById('dr-mat-marco').value];
+            const pHoja = perfiles[document.getElementById('dr-mat-hoja').value];
+            if(!pMarco || !pHoja) return;
 
-            // Preview Visual
             const ori = document.getElementById('dr-ori-m').value;
-            const width = 50;
-            const height = width * (mat.b / mat.a);
-            document.getElementById('preview-marco').innerHTML = `
-                <div class="rect-box" style="width:${width}px; height:${height}px; border-width:${ori === 'a' ? '4px 1px' : '1px 4px'}">
-                </div>
-                <div style="font-size:10px; margin-top:5px;">A:${mat.a} x B:${mat.b}</div>
-            `;
+            const eM = (ori === 'a') ? pMarco.a : pMarco.b;
+            const W = parseFloat(document.getElementById('dr-w').value) || 0;
+            const H = parseFloat(document.getElementById('dr-h').value) || 0;
+            const fSup = parseFloat(document.getElementById('f-sup').value) || 0;
+            const fInf = parseFloat(document.getElementById('f-inf').value) || 0;
+            const fIzq = parseFloat(document.getElementById('f-izq').value) || 0;
+            const fDer = parseFloat(document.getElementById('f-der').value) || 0;
 
-            document.getElementById('res-taller').innerHTML = `
-                <h3 style="color:var(--s); margin-top:0;">📋 Despiece de Taller</h3>
-                <p>Marco seleccionado: <strong>${mat.nom}</strong> (Espesor pared: ${mat.e}mm)</p>
-                <p>Cara al frente: <strong>${ori === 'a' ? mat.a : mat.b} mm</strong></p>
+            // Preview Marco
+            const pw = 40; const ph = pw * (pMarco.b / pMarco.a);
+            document.getElementById('preview-marco').innerHTML = `<div class="rect-box" style="width:${pw}px; height:${ph}px; border-width:${ori==='a'?'3px 1px':'1px 3px'}"></div>`;
+
+            const nH = (document.getElementById('dr-tipo').value === "abatible2") ? 2 : 1;
+            const modoHojas = document.getElementById('dr-hojas-modo').value;
+            document.getElementById('w-hoja1-box').style.visibility = (modoHojas === 'desiguales' && nH === 2) ? 'visible' : 'hidden';
+
+            const aireTotal = 15;
+            const anchoLibre = W - (eM * 2) - aireTotal;
+            const hH = (H - eM - 15) + fSup + fInf;
+
+            let hW1, hW2;
+            if (nH === 2 && modoHojas === "desiguales") {
+                hW1 = parseFloat(document.getElementById('dr-w-h1').value) || (anchoLibre/2);
+                hW1 += fIzq;
+                hW2 = (anchoLibre - (hW1 - fIzq)) + fDer;
+            } else {
+                hW1 = (anchoLibre / nH) + (fIzq / nH) + (fDer / nH);
+                hW2 = hW1;
+            }
+
+            document.getElementById('dr-despiece').innerHTML = `
+                <div class="corte-item"><label>MARCO</label>• 2x ${H}mm | • 1x ${W}mm</div>
+                <div class="corte-item"><label>HOJA 1</label>• 2x ${hH.toFixed(0)}mm | • 2x ${hW1.toFixed(0)}mm</div>
+                ${nH === 2 ? `<div class="corte-item"><label>HOJA 2</label>• 2x ${hH.toFixed(0)}mm | • 2x ${hW2.toFixed(0)}mm</div>` : ''}
             `;
+            document.getElementById('dr-final').innerHTML = `CORTE: ${hW1.toFixed(0)}x${hH.toFixed(0)}${nH===2?' y '+hW2.toFixed(0)+'x'+hH.toFixed(0):''} mm`;
+            
+            // Canvas
+            const ctx = document.getElementById('dr-canvas').getContext('2d');
+            ctx.clearRect(0,0,600,300);
+            ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 4; ctx.strokeRect(150, 50, 300, 200);
         }
 
-        function eliminar(i) {
-            prontuario.splice(i, 1);
-            actualizarInterfaz();
-        }
-
+        function eliminarMat(i) { prontuario.splice(i, 1); actualizarInterfaz(); }
         function showView(id, el) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -202,10 +239,7 @@
             el.classList.add('active');
         }
 
-        window.onload = () => {
-            document.getElementById('c-fecha').valueAsDate = new Date();
-            actualizarInterfaz();
-        };
+        window.onload = () => { document.getElementById('c-fecha').valueAsDate = new Date(); actualizarInterfaz(); toggleFaldamientos(); };
     </script>
 </body>
 </html>
