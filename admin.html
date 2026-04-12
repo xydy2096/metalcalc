@@ -2,322 +2,238 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V28 - INGENIERÍA INTEGRAL PROFESIONAL</title>
+    <title>MSTCALC V30 - INGENIERÍA TOTAL</title>
     <style>
         :root { 
             --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
-            --danger: #ef4444; --border: #cbd5e1; --sidebar-w: 280px;
+            --danger: #ef4444; --border: #cbd5e1; --sidebar-w: 300px;
         }
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; }
         
-        /* Sidebar Navigation */
-        .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; z-index: 100; }
-        .sidebar h2 { color: var(--s); font-size: 1.4rem; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px; }
-        .nav-group-title { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin: 20px 0 10px 0; font-weight: 900; letter-spacing: 1px; }
-        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; color: #cbd5e1; font-size: 0.85rem; }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
-        .nav-item.active { background: var(--s); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        /* SIDEBAR PRO */
+        .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; border-right: 4px solid var(--s); }
+        .sidebar h2 { color: var(--s); font-size: 1.6rem; margin-bottom: 30px; letter-spacing: 2px; text-align: center; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .nav-group { margin-bottom: 25px; }
+        .nav-group-title { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 10px; font-weight: 900; }
+        .nav-item { padding: 14px; margin-bottom: 8px; border-radius: 8px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.03); }
+        .nav-item:hover { background: rgba(59, 130, 246, 0.2); }
+        .nav-item.active { background: var(--s); color: white; font-weight: bold; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
 
-        /* Main Layout */
-        .main-content { margin-left: var(--sidebar-w); padding: 40px; width: calc(100% - var(--sidebar-w)); }
-        .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* MAIN CONTENT */
+        .main-content { margin-left: var(--sidebar-w); padding: 40px; width: 100%; }
+        .view { display: none; max-width: 1100px; margin: 0 auto; }
+        .view.active { display: block; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Componentes UI */
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px; border: 1px solid var(--border); }
-        .flex { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
-        .flex > div { flex: 1; min-width: 140px; }
+        .card { background: white; padding: 30px; border-radius: 15px; shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border); margin-bottom: 30px; }
+        .flex { display: flex; gap: 20px; flex-wrap: wrap; }
+        .flex > div { flex: 1; min-width: 180px; }
         
-        label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
-        input, select, textarea { padding: 12px; border: 2px solid #f1f5f9; border-radius: 10px; width: 100%; box-sizing: border-box; background: #f8fafc; font-size: 0.9rem; }
+        label { display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 10px; }
+        input, select { padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; width: 100%; font-size: 1rem; transition: 0.2s; }
+        input:focus { border-color: var(--s); outline: none; background: #fff; }
         
-        .btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.2s; border-bottom: 3px solid rgba(0,0,0,0.1); }
+        /* TABLAS Y RESULTADOS */
+        .result-box { background: #0f172a; color: #f8fafc; padding: 25px; border-radius: 12px; font-family: 'Consolas', monospace; position: relative; overflow: hidden; border-left: 6px solid var(--s); }
+        .grid-taller { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+        .corte-card { background: #1e293b; padding: 20px; border-radius: 10px; border: 1px solid #334155; }
+        .corte-card h4 { margin-top: 0; color: var(--s); border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .val { color: var(--success); font-weight: bold; font-size: 1.2rem; }
+        .badge { background: #334155; color: #cbd5e1; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
+        th { background: #f8fafc; text-align: left; padding: 15px; font-size: 0.8rem; color: #64748b; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
+        
+        .btn { padding: 14px 25px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; }
         .btn-main { background: var(--s); color: white; }
-        .btn-add { background: var(--p); color: white; }
-        .btn-danger { background: var(--danger); color: white; padding: 5px 10px; font-size: 0.7rem; }
-
-        .result-box { background: #0f172a; color: #3b82f6; padding: 20px; border-radius: 15px; margin-top: 15px; font-family: 'Courier New', monospace; line-height: 1.6; border-left: 5px solid var(--s); }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: bold; background: #334155; color: #94a3b8; }
-        
-        .grid-despiece { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
-        .item-corte { background: #1e293b; color: #f8fafc; padding: 15px; border-radius: 10px; border: 1px solid #334155; }
-        .val-destaque { color: var(--success); font-weight: bold; font-size: 1.1rem; }
-
-        canvas { background: #0f172a; border-radius: 15px; width: 100%; max-width: 500px; }
+        .btn-main:hover { background: #2563eb; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V28</h2>
-        <div class="nav-group-title">Logística</div>
-        <div class="nav-item active" onclick="showView('v-prontuario')">📖 Catálogo Materiales</div>
-        <div class="nav-item" onclick="showView('v-stock')">🏗️ Stock Cantilevers</div>
-        <div class="nav-item" onclick="showView('v-inv-pintura')">🎨 Botes de Pintura</div>
+        <h2>MSTCALC PRO</h2>
+        
+        <div class="nav-group">
+            <div class="nav-group-title">Suministros</div>
+            <div class="nav-item active" onclick="showView('v-prontuario')">📖 Prontuario Precios</div>
+            <div class="nav-item" onclick="showView('v-stock')">🏗️ Stock Cantilever</div>
+            <div class="nav-item" onclick="showView('v-almacen-pintura')">🎨 Botes de Pintura</div>
+        </div>
 
-        <div class="nav-group-title">Taller - Fabricación</div>
-        <div class="nav-item" onclick="showView('v-puerta')">🚪 Puerta Marco U</div>
-        <div class="nav-item" onclick="showView('v-barandilla')">🪜 Barandilla Maestro</div>
-        <div class="nav-item" onclick="showView('v-chapa')">✂️ Corte de Chapas</div>
-        <div class="nav-item" onclick="showView('v-pintura-calc')">🖌️ Cálculo de Gasto</div>
+        <div class="nav-group">
+            <div class="nav-group-title">Fabricación</div>
+            <div class="nav-item" onclick="showView('v-puerta')">🚪 Puerta (Marco U)</div>
+            <div class="nav-item" onclick="showView('v-barandilla')">🪜 Barandilla Maestro</div>
+            <div class="nav-item" onclick="showView('v-chapa')">✂️ Optimizador Chapa</div>
+        </div>
 
-        <div class="nav-group-title">Administración</div>
-        <div class="nav-item" onclick="showView('v-presupuesto')">🧾 Presupuesto Obra</div>
+        <div class="nav-group">
+            <div class="nav-group-title">Salida</div>
+            <div class="nav-item" onclick="showView('v-presupuesto')">🧾 Presupuesto Final</div>
+        </div>
     </div>
 
     <div class="main-content">
 
-        <div id="v-prontuario" class="view active">
-            <h1>📖 Prontuario Maestro</h1>
+        <div id="v-puerta" class="view">
+            <h1>🚪 Ingeniería de Puertas (Marco en U)</h1>
             <div class="card">
                 <div class="flex">
-                    <div><label>Perfil</label><input type="text" id="p-nom" placeholder="Tubo 40x40x2"></div>
-                    <div><label>Precio €/m</label><input type="number" id="p-pre" step="0.01"></div>
-                    <button class="btn btn-main" onclick="savePro()">Guardar</button>
+                    <div><label>Ancho Hueco Obra</label><input type="number" id="dr-w" value="1000" oninput="calcPuerta()"></div>
+                    <div><label>Alto Hueco Obra</label><input type="number" id="dr-h" value="2100" oninput="calcPuerta()"></div>
+                    <div><label>Holgura Aire Lateral</label><input type="number" id="dr-gx" value="10" oninput="calcPuerta()"></div>
+                    <div><label>Holgura Suelo (U)</label><input type="number" id="dr-gy" value="15" oninput="calcPuerta()"></div>
                 </div>
-            </div>
-            <div class="card"><table id="t-pro"><thead><tr><th>Perfil</th><th>Precio</th><th>Acción</th></tr></thead><tbody id="b-pro"></tbody></table></div>
-        </div>
-
-        <div id="v-stock" class="view">
-            <h1>🏗️ Stock en Cantilevers</h1>
-            <div class="card">
-                <div class="flex">
-                    <div><label>Material</label><select id="s-sel-pro"></select></div>
-                    <div><label>Metros</label><input type="number" id="s-mts"></div>
-                    <div><label>Ubicación</label>
-                        <select id="s-loc">
-                            <option>Cantilever A (Superior)</option>
-                            <option>Cantilever B (General)</option>
-                            <option>Zona Retales</option>
+                <div class="flex" style="margin-top:20px;">
+                    <div><label>Perfil Marco (mm)</label><input type="number" id="dr-em" value="40" oninput="calcPuerta()"></div>
+                    <div><label>Perfil Hoja (mm)</label><input type="number" id="dr-eh" value="40" oninput="calcPuerta()"></div>
+                    <div><label>Tipo de Encuentro</label>
+                        <select id="dr-enc" onchange="calcPuerta()">
+                            <option value="45">Inglete 45°</option>
+                            <option value="90">Testa 90°</option>
                         </select>
                     </div>
-                    <button class="btn btn-main" onclick="addStock()">Entrada</button>
                 </div>
             </div>
-            <div class="card"><table id="t-stock"><thead><tr><th>Perfil</th><th>Metros</th><th>Lugar</th></tr></thead><tbody id="b-stock"></tbody></table></div>
-        </div>
 
-        <div id="v-puerta" class="view">
-            <h1>🚪 Ingeniería de Puertas (Marco U + Despiece)</h1>
-            <div class="card">
-                <div class="flex">
-                    <div><label>Ancho Hueco</label><input type="number" id="dr-w" value="1000" oninput="calcDoorU()"></div>
-                    <div><label>Alto Hueco</label><input type="number" id="dr-h" value="2100" oninput="calcDoorU()"></div>
-                    <div><label>H. Lateral</label><input type="number" id="dr-gx" value="10" oninput="calcDoorU()"></div>
-                    <div><label>H. Suelo</label><input type="number" id="dr-gy" value="15" oninput="calcDoorU()"></div>
-                </div>
-                <div class="flex" style="margin-top:15px;">
-                    <div><label>Grosor Marco (mm)</label><input type="number" id="dr-esp-m" value="40" oninput="calcDoorU()"></div>
-                    <div><label>Grosor Hoja (mm)</label><input type="number" id="dr-esp-h" value="40" oninput="calcDoorU()"></div>
-                </div>
-            </div>
-            <div class="grid-despiece" id="dr-listado-corte"></div>
-            <div class="result-box" id="dr-res-final"></div>
+            <div class="grid-taller" id="dr-taller"></div>
+            <div class="result-box" id="dr-final" style="margin-top:20px;"></div>
         </div>
 
         <div id="v-barandilla" class="view">
-            <h1>🪜 Barandilla Maestro (Personalizada)</h1>
-            <div class="flex">
-                <div class="card" style="flex:1">
-                    <h3>Configuración Estructural</h3>
-                    <div class="flex">
-                        <div><label>Largo Total</label><input type="number" id="b-l" value="2000" oninput="calcBarFull()"></div>
-                        <div><label>Alto Barandilla</label><input type="number" id="b-h" value="1000" oninput="calcBarFull()"></div>
-                    </div>
-                    <div class="flex" style="margin-top:15px;">
-                        <div><label>Grosor Pilares</label><input type="number" id="b-gp" value="40" oninput="calcBarFull()"></div>
-                        <div><label>Grosor Barrotes</label><input type="number" id="b-gb" value="16" oninput="calcBarFull()"></div>
-                    </div>
-                    <div class="flex" style="margin-top:15px;">
-                        <div><label>Dist. Suelo</label><input type="number" id="b-gs" value="50" oninput="calcBarFull()"></div>
-                        <div><label>Orientación</label>
-                            <select id="b-ori" onchange="calcBarFull()">
-                                <option value="V">Verticales</option>
-                                <option value="H">Horizontales</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="b-res-corte" class="result-box"></div>
+            <h1>🪜 Barandilla Maestro (Vertical / Horizontal)</h1>
+            <div class="card">
+                <div class="flex">
+                    <div><label>Largo Total (mm)</label><input type="number" id="br-l" value="3000" oninput="calcBar()"></div>
+                    <div><label>Alto Total (mm)</label><input type="number" id="br-h" value="1000" oninput="calcBar()"></div>
+                    <div><label>Zócalo Suelo (mm)</label><input type="number" id="br-z" value="50" oninput="calcBar()"></div>
                 </div>
-                <div class="card" style="flex:1.2; text-align:center;">
-                    <canvas id="c-bar" width="500" height="300"></canvas>
+                <div class="flex" style="margin-top:20px;">
+                    <div><label>Perfil Pilares</label><input type="number" id="br-ep" value="40" oninput="calcBar()"></div>
+                    <div><label>Perfil Barrotes</label><input type="number" id="br-eb" value="16" oninput="calcBar()"></div>
+                    <div><label>Orientación</label>
+                        <select id="br-ori" onchange="calcBar()">
+                            <option value="V">Barrotes Verticales</option>
+                            <option value="H">Barrotes Horizontales</option>
+                        </select>
+                    </div>
                 </div>
+            </div>
+            <div class="grid-taller" id="br-taller"></div>
+        </div>
+
+        <div id="v-prontuario" class="view">
+            <h1>📖 Prontuario de Precios</h1>
+            <div class="card">
+                <div class="flex">
+                    <input type="text" id="p-nom" placeholder="Ej: Tubo 40x40x2">
+                    <input type="number" id="p-pre" placeholder="Precio €/m">
+                    <button class="btn btn-main" onclick="addPro()">Añadir</button>
+                </div>
+                <table style="margin-top:20px;"><tbody id="b-pro"></tbody></table>
             </div>
         </div>
 
-        <div id="v-chapa" class="view">
-            <h1>✂️ Optimizador de Chapa Multimedida</h1>
-            <div class="card">
-                <div class="flex">
-                    <div><label>Ancho Chapa</label><input type="number" id="ch-w" value="2000"></div>
-                    <div><label>Alto Chapa</label><input type="number" id="ch-h" value="1000"></div>
-                </div>
-                <div id="ch-items" style="margin-top:15px;"></div>
-                <button class="btn btn-add" onclick="addChapaItem()">+ Añadir Pieza</button>
-                <button class="btn btn-main" onclick="calcChapaPro()">Calcular</button>
-                <div id="ch-res" class="result-box"></div>
-            </div>
-        </div>
-
-        <div id="v-inv-pintura" class="view">
-            <h1>🎨 Almacén de Pintura</h1>
-            <div class="card">
-                <div class="flex">
-                    <input type="text" id="p-col" placeholder="RAL 7016">
-                    <input type="number" id="p-lit" placeholder="Litros">
-                    <button class="btn btn-main" onclick="addPaint()">Guardar</button>
-                </div>
-            </div>
-            <div class="card"><table id="t-paint"><thead><tr><th>Color</th><th>Stock</th></tr></thead><tbody id="b-paint"></tbody></table></div>
-        </div>
-
-        <div id="v-presupuesto" class="view">
-            <h1>🧾 Presupuesto de Obra</h1>
-            <div class="card" id="presu-detalle"></div>
-            <div class="card">
-                <div class="flex">
-                    <div><label>Mano Obra €</label><input type="number" id="m-obra" value="150" oninput="renderPresu()"></div>
-                    <div><label>Margen %</label><input type="number" id="m-margen" value="30" oninput="renderPresu()"></div>
-                </div>
-                <h2 id="total-f" style="font-size:3.5rem; color:var(--success);">0.00 €</h2>
-            </div>
-        </div>
+        <div id="v-stock" class="view"><h1>🏗️ Stock Cantilever</h1><div class="card"><p>Cargando inventario físico...</p></div></div>
+        <div id="v-almacen-pintura" class="view"><h1>🎨 Almacén de Pintura</h1><div class="card" id="b-pintura"></div></div>
+        <div id="v-presupuesto" class="view"><h1>🧾 Presupuesto Final</h1><div class="card" id="b-presu"></div></div>
 
     </div>
 
 <script>
-    let prontuario = JSON.parse(localStorage.getItem('m_pro')) || [];
-    let stock = JSON.parse(localStorage.getItem('m_stock')) || [];
-    let paint = JSON.parse(localStorage.getItem('m_paint')) || [];
-    let obra = [];
+    let db_pro = JSON.parse(localStorage.getItem('db_pro')) || [];
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'v-stock') refreshStockUI();
-        if(id === 'v-puerta') calcDoorU();
-        if(id === 'v-barandilla') calcBarFull();
-        if(id === 'v-inv-pintura') renderPaint();
-        if(id === 'v-presupuesto') renderPresu();
+        if(id === 'v-puerta') calcPuerta();
+        if(id === 'v-barandilla') calcBar();
     }
 
-    // --- LOGICA PRONTUARIO ---
-    function savePro() {
-        const nom = document.getElementById('p-nom').value.toUpperCase();
-        const pre = parseFloat(document.getElementById('p-pre').value);
-        if(nom && pre) { prontuario.push({nom, pre}); sync(); renderPro(); }
-    }
-    function renderPro() {
-        document.getElementById('b-pro').innerHTML = prontuario.map((p,i) => `<tr><td>${p.nom}</td><td>${p.pre} €/m</td><td><button onclick="delPro(${i})">❌</button></td></tr>`).join('');
-    }
-
-    // --- LOGICA PUERTAS (MARCO U - V10 PERFECTA) ---
-    function calcDoorU() {
+    // --- LÓGICA PUERTA (MARCO U + DESPIECE V10) ---
+    function calcPuerta() {
         const W = parseFloat(document.getElementById('dr-w').value);
         const H = parseFloat(document.getElementById('dr-h').value);
         const GX = parseFloat(document.getElementById('dr-gx').value);
         const GY = parseFloat(document.getElementById('dr-gy').value);
-        const em = parseFloat(document.getElementById('dr-esp-m').value);
-        const eh = parseFloat(document.getElementById('dr-esp-h').value);
+        const EM = parseFloat(document.getElementById('dr-em').value);
+        const EH = parseFloat(document.getElementById('dr-eh').value);
+        const ENC = document.getElementById('dr-enc').value;
 
-        const hW = W - (GX * 2) - (em * 2);
-        const hH = H - GY - 5 - em;
+        // Medidas Hoja (Exterior)
+        const hojaW = W - (GX * 2) - (EM * 2);
+        const hojaH = H - GY - 5 - EM; // 5mm margen superior
 
-        document.getElementById('dr-listado-corte').innerHTML = `
-            <div class="item-corte">
-                <label>🛠️ MARCO EN U (${em}mm)</label>
-                • 2 x <span class="val-destaque">${H} mm</span> <span class="badge">90° / 45°</span><br>
-                • 1 x <span class="val-destaque">${W} mm</span> <span class="badge">45° / 45°</span>
+        // Despiece Hoja
+        let h_horiz = (ENC === "45") ? hojaW : (hojaW - (EH * 2));
+
+        document.getElementById('dr-taller').innerHTML = `
+            <div class="corte-card">
+                <h4>📐 MARCO EN U (3 Piezas)</h4>
+                • 2 uds x <span class="val">${H}</span> mm <span class="badge">90° / 45°</span><br>
+                • 1 ud x <span class="val">${W}</span> mm <span class="badge">45° / 45°</span>
             </div>
-            <div class="item-corte">
-                <label>🛠️ HOJA (${eh}mm)</label>
-                • 2 x <span class="val-destaque">${hH.toFixed(0)} mm</span> <span class="badge">45° / 45°</span><br>
-                • 2 x <span class="val-destaque">${(hW).toFixed(0)} mm</span> <span class="badge">45° / 45°</span><br>
-                <small>* Si es corte recto, horizontales a: ${(hW - (eh*2)).toFixed(0)}mm</small>
+            <div class="corte-card">
+                <h4>🚪 HOJA (4 Piezas)</h4>
+                • 2 uds x <span class="val">${hojaH.toFixed(0)}</span> mm <span class="badge">45° / 45°</span><br>
+                • 2 uds x <span class="val">${h_horiz.toFixed(0)}</span> mm <span class="badge">${ENC === "45" ? '45° / 45°' : '90° / 90°'}</span>
             </div>
         `;
-        document.getElementById('dr-res-final').innerHTML = `MEDIDA HOJA TERMINADA: ${hW.toFixed(0)} x ${hH.toFixed(0)} mm`;
+
+        document.getElementById('dr-final').innerHTML = `
+            <strong>HOJA TERMINADA:</strong> ${hojaW.toFixed(0)} x ${hojaH.toFixed(0)} mm | 
+            <strong>HUECO LIBRE PASO:</strong> ${(hojaW - (EH*2)).toFixed(0)} mm
+        `;
     }
 
-    // --- LOGICA BARANDILLAS (FULL) ---
-    function calcBarFull() {
-        const L = parseFloat(document.getElementById('b-l').value);
-        const H = parseFloat(document.getElementById('b-h').value);
-        const GP = parseFloat(document.getElementById('b-gp').value);
-        const GB = parseFloat(document.getElementById('b-gb').value);
-        const GS = parseFloat(document.getElementById('b-gs').value);
-        const ORI = document.getElementById('b-ori').value;
+    // --- LÓGICA BARANDILLA (FULL) ---
+    function calcBar() {
+        const L = parseFloat(document.getElementById('br-l').value);
+        const H = parseFloat(document.getElementById('br-h').value);
+        const Z = parseFloat(document.getElementById('br-z').value);
+        const EP = parseFloat(document.getElementById('br-ep').value);
+        const EB = parseFloat(document.getElementById('br-eb').value);
+        const ORI = document.getElementById('br-ori').value;
 
-        let res = "";
-        const c = document.getElementById('c-bar'); const ctx = c.getContext('2d');
-        ctx.clearRect(0,0,500,300); const esc = 400/L;
+        let despiece_barrotes = "";
         
-        // Dibujar Pilares
-        ctx.fillStyle = "#3b82f6";
-        ctx.fillRect(50, 50, GP*esc, (H-GS)*esc);
-        ctx.fillRect(50 + (L-GP)*esc, 50, GP*esc, (H-GS)*esc);
-        
-        // Pasamanos
-        ctx.fillRect(50, 50, L*esc, 10);
-
         if(ORI === "V") {
-            const n = Math.ceil((L - (GP*2) - 120) / (GB + 120));
-            const e = (L - (GP*2) - (n*GB)) / (n+1);
-            res = `VERTICALES: ${n} uds de ${(H-GS-20).toFixed(0)}mm<br>HUECO: ${e.toFixed(1)}mm | EJE: ${(e+GB).toFixed(1)}mm`;
-            ctx.fillStyle = "white";
-            let x = 50 + (GP + e)*esc;
-            for(let i=0; i<n; i++) { ctx.fillRect(x, 60, GB*esc, (H-GS-20)*esc); x+=(GB+e)*esc; }
+            const n = Math.ceil((L - (EP*2) - 120) / (EB + 120));
+            const e = (L - (EP*2) - (n*EB)) / (n+1);
+            despiece_barrotes = `• ${n} barrotes x <span class="val">${H - Z - 40}</span> mm (Verticales)<br>• Hueco: ${e.toFixed(1)} mm | Eje: ${(e+EB).toFixed(1)} mm`;
         } else {
-            const n = Math.ceil((H-GS-120) / (GB+120));
-            const e = (H-GS - (n*GB)) / (n+1);
-            res = `HORIZONTALES: ${n} uds de ${(L - (GP*2)).toFixed(0)}mm<br>HUECO: ${e.toFixed(1)}mm`;
-            ctx.fillStyle = "white";
-            let y = 50 + (e + 10)*esc;
-            for(let i=0; i<n; i++) { ctx.fillRect(50 + GP*esc, y, (L-GP*2)*esc, GB*esc); y+=(GB+e)*esc; }
+            const n = Math.ceil((H - Z - 120) / (EB + 120));
+            const e = (H - Z - (n*EB)) / (n+1);
+            despiece_barrotes = `• ${n} barrotes x <span class="val">${L - (EP*2)}</span> mm (Horizontales)<br>• Hueco: ${e.toFixed(1)} mm`;
         }
-        document.getElementById('b-res-corte').innerHTML = `🛠️ DESPIECE:<br>• 2 Pilares: ${H-GS}mm<br>• Pasamanos: ${L}mm<br>${res}`;
+
+        document.getElementById('br-taller').innerHTML = `
+            <div class="corte-card">
+                <h4>🏛️ ESTRUCTURA</h4>
+                • 2 Pilares x <span class="val">${H - Z}</span> mm<br>
+                • 1 Pasamanos x <span class="val">${L}</span> mm
+            </div>
+            <div class="corte-card">
+                <h4>⛓️ RELLENO</h4>
+                ${despiece_barrotes}
+            </div>
+        `;
     }
 
-    // --- CHAPA & PINTURA ---
-    function addChapaItem() {
-        const d = document.createElement('div'); d.className="flex"; d.style.marginTop="5px";
-        d.innerHTML = `<input type="number" class="ch-pw" placeholder="W"> <input type="number" class="ch-ph" placeholder="H"> <input type="number" class="ch-pn" placeholder="N">`;
-        document.getElementById('ch-items').appendChild(d);
+    function addPro() {
+        const nom = document.getElementById('p-nom').value;
+        const pre = document.getElementById('p-pre').value;
+        if(nom && pre) { db_pro.push({nom, pre}); localStorage.setItem('db_pro', JSON.stringify(db_pro)); renderPro(); }
     }
-    function calcChapaPro() {
-        const areaChapa = document.getElementById('ch-w').value * document.getElementById('ch-h').value;
-        let total = 0;
-        document.querySelectorAll('.ch-pw').forEach((el, i) => {
-            total += (el.value * document.querySelectorAll('.ch-ph')[i].value * document.querySelectorAll('.ch-pn')[i].value);
-        });
-        document.getElementById('ch-res').innerHTML = `CHAPAS NECESARIAS: ${Math.ceil(total/(areaChapa*0.85))}`;
-    }
-
-    function addPaint() {
-        const c = document.getElementById('p-col').value;
-        const l = parseFloat(document.getElementById('p-lit').value);
-        paint.push({color:c, litros:l}); sync(); renderPaint();
-    }
-    function renderPaint() {
-        document.getElementById('b-paint').innerHTML = paint.map(p => `<tr><td>${p.color}</td><td>${p.litros}L</td></tr>`).join('');
-    }
-
-    // --- UTILIDADES ---
-    function sync() {
-        localStorage.setItem('m_pro', JSON.stringify(prontuario));
-        localStorage.setItem('m_stock', JSON.stringify(stock));
-        localStorage.setItem('m_paint', JSON.stringify(paint));
-    }
-    function renderPresu() {
-        const mano = parseFloat(document.getElementById('m-obra').value);
-        const marg = (parseFloat(document.getElementById('m-margen').value)/100)+1;
-        document.getElementById('total-f').innerText = (mano * marg).toFixed(2) + " €";
+    function renderPro() {
+        document.getElementById('b-pro').innerHTML = db_pro.map(p => `<tr><td>${p.nom}</td><td>${p.pre} €/m</td></tr>`).join('');
     }
 
     renderPro();
-    showView('v-prontuario');
+    showView('v-puerta');
 </script>
 </body>
 </html>
