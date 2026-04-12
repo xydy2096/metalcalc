@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V19 - PANEL ADMINISTRADOR</title>
+    <title>MSTCALC V20 - ERP INTEGRAL GIGANTE</title>
     <style>
         :root { 
             --p: #0f172a; --s: #3b82f6; --bg: #f8fafc; --success: #10b981; 
@@ -12,264 +12,233 @@
         
         /* Sidebar */
         .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; }
-        .sidebar h2 { color: var(--s); font-size: 1.5rem; font-weight: 800; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 25px; }
-        .nav-group-title { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin: 20px 0 10px 0; font-weight: 900; }
-        .nav-item { padding: 12px 15px; margin-bottom: 5px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; color: #cbd5e1; }
+        .sidebar h2 { color: var(--s); font-size: 1.5rem; font-weight: 800; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px; }
+        .nav-group-title { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin: 15px 0 5px 0; font-weight: 900; }
+        .nav-item { padding: 10px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; color: #cbd5e1; font-size: 0.9rem; }
         .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
         .nav-item.active { background: var(--s); color: white; font-weight: 600; }
 
-        /* Contenido */
+        /* Main Content */
         .main-content { margin-left: var(--sidebar-w); padding: 40px; width: calc(100% - var(--sidebar-w)); }
         .view { display: none; }
-        .view.active { display: block; }
+        .view.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Tarjetas y Formularios */
+        /* UI Components */
         .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-bottom: 25px; border: 1px solid var(--border); }
         .flex { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
         .flex > div { flex: 1; min-width: 150px; }
         
-        label { display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
-        input, select { padding: 12px; border: 2px solid #f1f5f9; border-radius: 10px; width: 100%; box-sizing: border-box; background: #f8fafc; }
-        
-        /* Tablas */
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-        th { text-align: left; padding: 12px; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #f1f5f9; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+        label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
+        input, select { padding: 12px; border: 2px solid #f1f5f9; border-radius: 10px; width: 100%; box-sizing: border-box; background: #f8fafc; font-size: 0.9rem; }
+        input:focus { border-color: var(--s); outline: none; background: white; }
 
-        /* Botones */
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 12px; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #f1f5f9; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+
         .btn { padding: 12px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.2s; }
         .btn-main { background: var(--s); color: white; }
-        .btn-danger { background: var(--danger); color: white; font-size: 0.8rem; }
+        .btn-add { background: var(--p); color: white; }
         
-        .badge-loc { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; }
+        .badge-loc { background: #e0f2fe; color: #0369a1; padding: 4px 8px; border-radius: 6px; font-weight: 800; }
+        .canvas-container { background: #0f172a; padding: 20px; border-radius: 15px; display: flex; justify-content: center; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V19</h2>
+        <h2>MSTCALC V20</h2>
         
-        <div class="nav-group-title">Oficina y Precios</div>
-        <div class="nav-item active" onclick="showView('v-prontuario')">📖 Prontuario Maestro</div>
+        <div class="nav-group-title">Logística y Almacén</div>
+        <div class="nav-item active" onclick="showView('v-prontuario')">📖 Prontuario (Precios)</div>
+        <div class="nav-item" onclick="showView('v-stock')">🏗️ Stock Cantilevers</div>
         
-        <div class="nav-group-title">Logística Taller</div>
-        <div class="nav-item" onclick="showView('v-stock')">🏗️ Gestión de Cantilevers</div>
-        <div class="nav-item" onclick="showView('v-chatarra')">🗑️ Registro de Chatarra</div>
+        <div class="nav-group-title">Ingeniería de Obra</div>
+        <div class="nav-item" onclick="showView('v-puerta')">🚪 Puertas Metálicas</div>
+        <div class="nav-item" onclick="showView('v-barandilla')">🪜 Barandillas y Rejas</div>
+        <div class="nav-item" onclick="showView('v-chapa')">✂️ Optimizador Chapa</div>
+        <div class="nav-item" onclick="showView('v-pintura')">🎨 Cálculo Pintura</div>
 
-        <div class="nav-group-title">Producción</div>
-        <div class="nav-item" onclick="showView('v-barandilla')">🪜 Ingeniería Barandillas</div>
+        <div class="nav-group-title">Administración</div>
         <div class="nav-item" onclick="showView('v-presupuesto')">🧾 Presupuesto Final</div>
+        <div class="nav-item" onclick="showView('v-chatarra')">🗑️ Cubeta Chatarra</div>
     </div>
 
     <div class="main-content">
 
         <div id="v-prontuario" class="view active">
             <h1>📖 Prontuario Maestro</h1>
-            <p>Define aquí los materiales que compras y su precio por metro. Esto sirve de catálogo para todo lo demás.</p>
             <div class="card">
                 <div class="flex">
-                    <div><label>Nombre Perfil</label><input type="text" id="p-nom" placeholder="Tubo 40x40x2"></div>
+                    <div><label>Nombre Perfil</label><input type="text" id="p-nom" placeholder="IPN 120"></div>
                     <div><label>Precio Compra (€/m)</label><input type="number" id="p-pre" step="0.01"></div>
-                    <button class="btn btn-main" onclick="saveProntuario()">Añadir al Catálogo</button>
+                    <button class="btn btn-main" onclick="savePro()">Añadir Perfil</button>
                 </div>
             </div>
-            <div class="card">
-                <table id="t-pro">
-                    <thead><tr><th>Perfil</th><th>Precio Base</th><th>Acción</th></tr></thead>
-                    <tbody id="b-pro"></tbody>
-                </table>
-            </div>
+            <div class="card"><table id="t-pro"><thead><tr><th>Perfil</th><th>Precio Base</th><th>Acción</th></tr></thead><tbody id="b-pro"></tbody></table></div>
         </div>
 
         <div id="v-stock" class="view">
-            <h1>🏗️ Gestión de Cantilevers y Ubicación</h1>
-            <div class="card" style="background: #eff6ff; border: 1px solid #dbeafe;">
-                <h3>Dar de alta material en taller</h3>
+            <h1>🏗️ Material en Cantilevers</h1>
+            <div class="card" style="background: #eff6ff;">
                 <div class="flex">
-                    <div><label>Material (del Prontuario)</label><select id="s-sel-pro"></select></div>
-                    <div><label>Metros totales</label><input type="number" id="s-mts"></div>
-                    <div><label>Ubicación Física</label>
+                    <div><label>Material</label><select id="s-sel-pro"></select></div>
+                    <div><label>Metros</label><input type="number" id="s-mts"></div>
+                    <div><label>Ubicación</label>
                         <select id="s-loc">
                             <option value="Cantilever A">Cantilever A</option>
                             <option value="Cantilever B">Cantilever B</option>
-                            <option value="Estantería Retales">Estantería Retales</option>
+                            <option value="Retales">Retales</option>
                         </select>
                     </div>
-                    <button class="btn btn-main" onclick="addStockReal()">Registrar Entrada</button>
+                    <button class="btn btn-main" onclick="addStock()">Registrar Entrada</button>
                 </div>
             </div>
+            <div class="card"><table id="t-stock"><thead><tr><th>Material</th><th>Metros</th><th>Ubicación</th><th>Acción</th></tr></thead><tbody id="b-stock"></tbody></table></div>
+        </div>
+
+        <div id="v-puerta" class="view">
+            <h1>🚪 Ingeniería de Puertas</h1>
             <div class="card">
-                <table id="t-stock">
-                    <thead><tr><th>Material</th><th>Metros</th><th>Ubicación</th><th>Acción</th></tr></thead>
-                    <tbody id="b-stock"></tbody>
-                </table>
+                <div class="flex">
+                    <div><label>Ancho Hueco (mm)</label><input type="number" id="door-w" value="1000"></div>
+                    <div><label>Alto Hueco (mm)</label><input type="number" id="door-h" value="2100"></div>
+                    <div><label>Holgura Lateral (mm)</label><input type="number" id="door-gap" value="10"></div>
+                </div>
+                <button class="btn btn-main" style="margin-top:20px;" onclick="addDoorToPresu()">Añadir al Presupuesto</button>
             </div>
         </div>
 
         <div id="v-barandilla" class="view">
-            <h1>🪜 Ingeniería de Reparto</h1>
+            <h1>🪜 Barandillas (Reparto de Barrotes)</h1>
             <div class="flex">
                 <div class="card" style="flex:1">
                     <div class="flex">
                         <div><label>Largo (mm)</label><input type="number" id="b-l" value="2000" oninput="calcBar()"></div>
                         <div><label>Alto (mm)</label><input type="number" id="b-h" value="1000" oninput="calcBar()"></div>
                     </div>
-                    <div><label>Material a usar</label><select id="b-sel-mat" onchange="calcBar()"></select></div>
-                    <div id="b-resultado" style="margin-top:20px; padding:15px; background:#f1f5f9; border-radius:10px; font-weight:bold; color:var(--s);"></div>
-                    <button class="btn btn-main" style="width:100%; margin-top:15px;" onclick="vincularObra()">Vincular a Presupuesto</button>
+                    <div><label>Material Barrote</label><select id="b-sel-mat" onchange="calcBar()"></select></div>
+                    <div id="b-res" style="margin-top:15px; font-weight:bold; color:var(--s);"></div>
+                    <button class="btn btn-main" style="width:100%; margin-top:10px;" onclick="vincularBar()">Añadir a Obra</button>
                 </div>
-                <div class="card" style="flex:1.2; background:#0f172a; display:flex; justify-content:center; align-items:center;">
-                    <canvas id="c-bar" width="400" height="250"></canvas>
+                <div class="card" style="flex:1.2">
+                    <div class="canvas-container"><canvas id="c-bar" width="400" height="250"></canvas></div>
                 </div>
+            </div>
+        </div>
+
+        <div id="v-chapa" class="view">
+            <h1>✂️ Optimizador de Chapa</h1>
+            <div class="card">
+                <div class="flex">
+                    <div><label>Ancho Chapa (mm)</label><input type="number" id="ch-w" value="2000"></div>
+                    <div><label>Alto Chapa (mm)</label><input type="number" id="ch-h" value="1000"></div>
+                </div>
+                <div class="flex" style="margin-top:15px;">
+                    <div><label>Pieza Ancho</label><input type="number" id="pz-w" value="300"></div>
+                    <div><label>Pieza Alto</label><input type="number" id="pz-h" value="200"></div>
+                    <button class="btn btn-main" onclick="calcChapa()">Calcular Piezas</button>
+                </div>
+                <div id="ch-res" style="margin-top:20px; font-weight:bold;"></div>
+            </div>
+        </div>
+
+        <div id="v-pintura" class="view">
+            <h1>🎨 Cálculo de Pintura</h1>
+            <div class="card">
+                <div class="flex">
+                    <div><label>Superficie a Pintar ($m^2$)</label><input type="number" id="paint-m2"></div>
+                    <div><label>Rendimiento ($m^2$/Litro)</label><input type="number" id="paint-rend" value="10"></div>
+                    <div><label>Capas</label><input type="number" id="paint-layers" value="2"></div>
+                </div>
+                <h3 id="paint-res" style="margin-top:20px; color:var(--s);">Litros necesarios: 0</h3>
             </div>
         </div>
 
         <div id="v-presupuesto" class="view">
-            <h1>🧾 Presupuesto Final de Obra</h1>
+            <h1>🧾 Presupuesto Final</h1>
             <div class="card" id="presu-detalle"></div>
-            <div class="card">
+            <div class="card" style="background:var(--p); color:white">
                 <div class="flex">
-                    <div><label>Mano de Obra (€)</label><input type="number" id="m-obra" value="0" oninput="renderPresu()"></div>
-                    <div><label>Margen Beneficio (%)</label><input type="number" id="m-porcent" value="30" oninput="renderPresu()"></div>
+                    <h2 style="margin:0">TOTAL: <span id="total-final" style="color:var(--success)">0.00 €</span></h2>
+                    <button class="btn btn-main" style="background:var(--success)" onclick="alert('Guardado')">CERRAR OBRA</button>
                 </div>
-                <h2 style="font-size:2.5rem; color:var(--success); margin-top:20px;">Total: <span id="total-final">0.00 €</span></h2>
-            </div>
-        </div>
-
-        <div id="v-chatarra" class="view">
-            <h1>🗑️ Registro de Desperdicio</h1>
-            <div class="card">
-                <table id="t-chat">
-                    <thead><tr><th>Fecha</th><th>Material</th><th>Metros</th><th>Motivo</th></tr></thead>
-                    <tbody id="b-chat"></tbody>
-                </table>
             </div>
         </div>
 
     </div>
 
 <script>
-    // Memoria del Navegador
     let prontuario = JSON.parse(localStorage.getItem('m_pro')) || [];
     let stock = JSON.parse(localStorage.getItem('m_stock')) || [];
-    let obra = []; 
-    let chatarra = JSON.parse(localStorage.getItem('m_chat')) || [];
+    let obra = [];
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if(id === 'v-stock') refreshStockUI();
         if(id === 'v-barandilla') { refreshBarUI(); calcBar(); }
-        if(id === 'v-presupuesto') renderPresu();
     }
 
     // --- LÓGICA PRONTUARIO ---
-    function saveProntuario() {
+    function savePro() {
         const nom = document.getElementById('p-nom').value.toUpperCase();
         const pre = parseFloat(document.getElementById('p-pre').value);
-        if(nom && pre) {
-            prontuario.push({nom, pre});
-            sync(); renderPro();
-        }
+        if(nom && pre) { prontuario.push({nom, pre}); sync(); renderPro(); }
     }
-
     function renderPro() {
-        document.getElementById('b-pro').innerHTML = prontuario.map((p,i) => `
-            <tr><td><b>${p.nom}</b></td><td>${p.pre.toFixed(2)} €/m</td><td><button class="btn-danger" onclick="delPro(${i})">❌</button></td></tr>
-        `).join('');
+        document.getElementById('b-pro').innerHTML = prontuario.map((p,i) => `<tr><td>${p.nom}</td><td>${p.pre}€/m</td><td><button onclick="delPro(${i})">❌</button></td></tr>`).join('');
     }
 
-    // --- LÓGICA STOCK REAL ---
+    // --- LÓGICA STOCK ---
     function refreshStockUI() {
         document.getElementById('s-sel-pro').innerHTML = prontuario.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('');
         renderStock();
     }
-
-    function addStockReal() {
-        const mat = document.getElementById('s-sel-pro').value;
-        const mts = parseFloat(document.getElementById('s-mts').value);
-        const loc = document.getElementById('s-loc').value;
-        if(mat && mts) {
-            stock.push({id: Date.now(), mat, mts, loc});
-            sync(); renderStock();
-        }
-    }
-
     function renderStock() {
-        document.getElementById('b-stock').innerHTML = stock.map((s,i) => `
-            <tr><td><b>${s.mat}</b></td><td>${s.mts} m</td><td><span class="badge-loc">${s.loc}</span></td><td><button class="btn-danger" onclick="delStock(${i})">Eliminar</button></td></tr>
-        `).join('');
+        document.getElementById('b-stock').innerHTML = stock.map((s,i) => `<tr><td>${s.mat}</td><td>${s.mts}m</td><td><span class="badge-loc">${s.loc}</span></td><td><button onclick="delStock(${i})">❌</button></td></tr>`).join('');
+    }
+    function addStock() {
+        const mat = document.getElementById('s-sel-pro').value;
+        const mts = document.getElementById('s-mts').value;
+        const loc = document.getElementById('s-loc').value;
+        if(mat && mts) { stock.push({mat, mts, loc}); sync(); renderStock(); }
     }
 
     // --- LÓGICA BARANDILLA ---
-    function refreshBarUI() {
-        document.getElementById('b-sel-mat').innerHTML = prontuario.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('');
-    }
-
+    function refreshBarUI() { document.getElementById('b-sel-mat').innerHTML = prontuario.map(p => `<option value="${p.nom}">${p.nom}</option>`).join(''); }
     function calcBar() {
         const L = parseFloat(document.getElementById('b-l').value);
         const H = parseFloat(document.getElementById('b-h').value);
         const mat = document.getElementById('b-sel-mat').value;
-        const G = 20; // Grosor barrote aprox.
-        const E = 120; // Espacio máx.
-        
-        const n = Math.ceil((L - E) / (G + E));
-        const eReal = (L - (n * G)) / (n + 1);
-        const mTotales = ((L*2 + H*2) + (n * H)) / 1000;
-
-        document.getElementById('b-resultado').innerHTML = `
-            REPARTO: ${n} barrotes a ${eReal.toFixed(1)}mm<br>
-            HIERRO TOTAL: ${mTotales.toFixed(2)} metros
-        `;
-
-        drawBar(L, H, n, G, eReal);
-        return { desc: `Barandilla ${L}x${H}`, mat, mts: mTotales };
+        const n = Math.ceil((L - 120) / (20 + 120));
+        const e = (L - (n * 20)) / (n + 1);
+        const tot = ((L*2 + H*2) + (n * H)) / 1000;
+        document.getElementById('b-res').innerHTML = `${n} barrotes | Separación: ${e.toFixed(1)}mm | Total: ${tot.toFixed(2)}m`;
+        drawBar(L, H, n, 20, e);
     }
-
     function drawBar(L, H, n, G, e) {
-        const c = document.getElementById('c-bar'); const ctx = c.getContext('2d');
-        ctx.clearRect(0,0,400,250);
-        const esc = 300 / L;
-        ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 2;
-        ctx.strokeRect(50, 50, L*esc, H*esc);
-        ctx.fillStyle = "#64748b";
-        let x = 50 + (e * esc);
-        for(let i=0; i<n; i++) { ctx.fillRect(x, 50, G*esc, H*esc); x += (G+e)*esc; }
+        const ctx = document.getElementById('c-bar').getContext('2d');
+        ctx.clearRect(0,0,400,250); const esc = 300/L;
+        ctx.strokeStyle="white"; ctx.strokeRect(50,50,L*esc, H*esc);
+        ctx.fillStyle="#3b82f6"; let x=50+(e*esc);
+        for(let i=0; i<n; i++) { ctx.fillRect(x,50,G*esc,H*esc); x+=(G+e)*esc; }
     }
 
-    function vincularObra() {
-        obra.push(calcBar());
-        alert("Añadido al presupuesto.");
-    }
-
-    // --- PRESUPUESTO ---
-    function renderPresu() {
-        let h = "<table><tr><th>Descripción</th><th>Material</th><th>Metros</th><th>Precio/m</th><th>Subtotal</th></tr>";
-        let costMat = 0;
-        obra.forEach(item => {
-            const pBase = prontuario.find(p => p.nom === item.mat)?.pre || 0;
-            const sub = item.mts * pBase;
-            costMat += sub;
-            h += `<tr><td>${item.desc}</td><td>${item.mat}</td><td>${item.mts.toFixed(2)}m</td><td>${pBase}€</td><td>${sub.toFixed(2)}€</td></tr>`;
-        });
-        document.getElementById('presu-detalle').innerHTML = h + "</table>";
-        
-        const mano = parseFloat(document.getElementById('m-obra').value) || 0;
-        const margen = (parseFloat(document.getElementById('m-porcent').value) / 100) + 1;
-        document.getElementById('total-final').innerText = ((costMat + mano) * margen).toFixed(2) + " €";
+    // --- LÓGICA CHAPA ---
+    function calcChapa() {
+        const w = document.getElementById('ch-w').value; const h = document.getElementById('ch-h').value;
+        const pw = document.getElementById('pz-w').value; const ph = document.getElementById('pz-h').value;
+        const num = Math.floor(w/pw) * Math.floor(h/ph);
+        document.getElementById('ch-res').innerHTML = `Caben un máximo de ${num} piezas.`;
     }
 
     function sync() {
         localStorage.setItem('m_pro', JSON.stringify(prontuario));
         localStorage.setItem('m_stock', JSON.stringify(stock));
-        localStorage.setItem('m_chat', JSON.stringify(chatarra));
     }
 
-    function delPro(i) { prontuario.splice(i,1); sync(); renderPro(); }
-    function delStock(i) { stock.splice(i,1); sync(); renderStock(); }
-
-    // Init
     renderPro();
 </script>
 </body>
