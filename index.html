@@ -3,33 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERARIO - MSTCALC V6</title>
+    <title>TALLER - MSTCALC</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 10px; }
+        body { font-family: sans-serif; background: #0f172a; color: white; padding: 15px; margin:0; }
+        .obra-btn { background: #3b82f6; border: none; padding: 25px; color: white; width: 100%; border-radius: 12px; margin-bottom: 12px; font-size: 1.3rem; font-weight: bold; }
+        .corte-card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 8px solid #475569; display: flex; justify-content: space-between; align-items: center; }
+        .corte-card.hecho { opacity: 0.2; border-left-color: #10b981; }
+        .img-scroll { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; background: white; padding: 10px; border-radius: 12px; }
+        .img-scroll img { height: 280px; border: 1px solid #ccc; }
+        .btn-ok { background: #10b981; color: white; border: none; padding: 15px 25px; border-radius: 10px; font-size: 1.2rem; }
+        .btn-err { background: #ef4444; color: white; border: none; padding: 8px; border-radius: 5px; margin-top: 10px; width: 100%; }
         .view { display: none; }
         .view.active { display: block; }
-        .btn-obra { background: #3b82f6; border: none; padding: 25px; color: white; width: 100%; border-radius: 12px; margin-bottom: 12px; font-size: 1.3rem; font-weight: bold; }
-        .card-corte { background: #1e293b; padding: 15px; border-radius: 10px; margin-bottom: 8px; border-left: 6px solid #475569; display: flex; justify-content: space-between; align-items: center; }
-        .card-corte.hecho { opacity: 0.2; border-left-color: #10b981; }
-        .img-grid { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; background: white; padding: 10px; border-radius: 10px; }
-        .img-grid img { height: 260px; border: 1px solid #333; }
-        .angulo { background: #f59e0b; color: black; padding: 3px 6px; border-radius: 4px; font-weight: bold; font-size: 0.8rem; }
-        .btn-error { background: #ef4444; border: none; padding: 10px; border-radius: 5px; color: white; margin-top: 10px; width: 100%; }
     </style>
 </head>
 <body>
 
     <div id="v-menu" class="view active">
-        <h1 style="text-align:center">🛠️ LISTA DE TRABAJOS</h1>
-        <div id="lista-obras">Cargando...</div>
+        <h1 style="text-align:center">TRABAJOS PENDIENTES</h1>
+        <div id="lista-obras"></div>
     </div>
 
     <div id="v-detalle" class="view">
-        <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px; border-radius:5px;">⬅ VOLVER</button>
-        <h2 id="nom-obra" style="color: #3b82f6;"></h2>
-        <div id="hoja-trabajo"></div>
+        <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px; border-radius:8px;">⬅ VOLVER</button>
+        <h2 id="nom-obra" style="color:#3b82f6"></h2>
+        <div id="hoja-corte"></div>
     </div>
 
 <script>
@@ -43,7 +43,7 @@
         snap.forEach(doc => { if(doc.data().trabajo) obras.add(doc.data().trabajo) });
         menu.innerHTML = "";
         obras.forEach(o => {
-            menu.innerHTML += `<button class="btn-obra" onclick="verObra('${o}')">📁 ${o}</button>`;
+            menu.innerHTML += `<button class="obra-btn" onclick="verObra('${o}')">📂 ${o}</button>`;
         });
     });
 
@@ -52,39 +52,34 @@
         document.getElementById('v-detalle').classList.add('active');
         document.getElementById('nom-obra').innerText = id;
 
-        db.collection("materiales").where("trabajo", "==", id).orderBy("fecha", "asc").onSnapshot(snap => {
-            const cont = document.getElementById('hoja-trabajo');
-            let imgsHTML = '<div class="img-grid">';
-            let piezasHTML = '';
+        db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
+            const h = document.getElementById('hoja-corte');
+            let imgs = '<div class="img-scroll">';
+            let cortes = '';
             
             snap.forEach(doc => {
                 const d = doc.data();
-                if(d.estado === 'info') imgsHTML += `<img src="${d.imagen}">`;
+                if(d.estado === 'info') imgs += `<img src="${d.imagen}">`;
                 else if(d.estado !== 'cortado') {
-                    piezasHTML += `
-                        <div class="card-corte">
+                    cortes += `
+                        <div class="corte-card">
                             <div>
-                                <b style="font-size:1.2rem; color:#60a5fa;">${d.cantidad}x ${d.medida}</b><br>
-                                <small>${d.nombre}</small><br>
-                                <span class="angulo">📐 ${d.angulo}</span><br>
-                                <button class="btn-error" onclick="reportarError('${doc.id}', '${d.nombre}')">REPORTAR FALLO</button>
+                                <b style="font-size:1.4rem; color:#60a5fa;">${d.cantidad}x ${d.medida}</b><br>
+                                <span>${d.nombre}</span><br>
+                                <button class="btn-err" onclick="error('${d.nombre}')">⚠️ ERROR</button>
                             </div>
-                            <button onclick="completar('${doc.id}')" style="background:#10b981; color:white; border:none; padding:15px; border-radius:10px; font-size:1.2rem;">✅</button>
+                            <button class="btn-ok" onclick="listo('${doc.id}')">✅</button>
                         </div>`;
                 }
             });
-            cont.innerHTML = imgsHTML + '</div>' + piezasHTML;
+            h.innerHTML = imgs + '</div>' + cortes;
         });
     }
 
-    function completar(id) { db.collection("materiales").doc(id).update({estado: "cortado"}); }
-    
-    function reportarError(id, nombre) {
-        const msg = prompt("¿Qué ha pasado con " + nombre + "?");
-        if(msg) {
-            db.collection("alertas").add({ piezaId: id, error: msg, fecha: new Date() });
-            alert("Error enviado a administración.");
-        }
+    function listo(id) { db.collection("materiales").doc(id).update({estado: "cortado"}); }
+    function error(nom) {
+        const m = prompt("Explica el error en " + nom);
+        if(m) db.collection("alertas").add({ error: m, fecha: new Date() });
     }
 </script>
 </body>
