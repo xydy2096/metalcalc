@@ -2,343 +2,207 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V13 - Control de Producción y Chapa</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <title>MSTCALC V17 - Logística de Taller</title>
     <style>
         :root { 
-            --p: #0f172a; --s: #3b82f6; --bg: #f8fafc; --success: #10b981; 
-            --accent: #f59e0b; --danger: #ef4444; --border: #e2e8f0; 
+            --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
+            --danger: #ef4444; --border: #cbd5e1; --sidebar-w: 260px;
         }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; }
         
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
-        
-        /* Sidebar Gigante y Robusta */
-        .sidebar { width: 300px; background: var(--p); height: 100vh; color: white; padding: 30px; position: fixed; overflow-y: auto; box-shadow: 4px 0 10px rgba(0,0,0,0.1); }
-        .sidebar h2 { color: var(--s); font-size: 1.8rem; font-weight: 800; margin-bottom: 30px; letter-spacing: -1px; border-bottom: 2px solid #1e293b; padding-bottom: 15px; }
-        .nav-group { margin-bottom: 35px; }
-        .nav-group-title { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin-bottom: 15px; font-weight: 900; letter-spacing: 1.5px; }
-        .nav-item { padding: 15px 20px; margin-bottom: 8px; border-radius: 12px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; font-size: 1rem; color: #94a3b8; }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: white; }
-        .nav-item.active { background: var(--s); color: white; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4); font-weight: 600; }
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; }
+        .sidebar h2 { color: var(--s); border-bottom: 2px solid #334155; padding-bottom: 15px; }
+        .nav-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; color: #cbd5e1; }
+        .nav-item.active { background: var(--s); color: white; }
 
-        /* Contenido */
-        .main-content { margin-left: 300px; padding: 50px; width: calc(100% - 300px); }
+        .main-content { margin-left: var(--sidebar-w); padding: 40px; width: 100%; }
         .view { display: none; }
-        .view.active { display: block; animation: slideIn 0.3s ease-out; }
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .view.active { display: block; }
 
-        /* Componentes de Diseño */
-        .card { background: white; padding: 35px; border-radius: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); margin-bottom: 30px; border: 1px solid var(--border); }
-        .card h3 { margin-top: 0; font-size: 1.3rem; font-weight: 700; color: var(--p); border-bottom: 1px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 25px; }
+        /* Estructura de Tablas y Cards */
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; background: #f8fafc; padding: 12px; font-size: 0.8rem; color: #64748b; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+
+        /* Badges de Ubicación */
+        .loc-tag { background: #dbeafe; color: #1e40af; padding: 4px 8px; border-radius: 6px; font-weight: bold; font-size: 0.8rem; }
+        .chatarra-tag { background: #fee2e2; color: #991b1b; }
         
-        .flex { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
-        .input-group { flex: 1; min-width: 220px; }
-        
-        label { display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 10px; text-transform: uppercase; }
-        input, select, textarea { padding: 15px; border: 2px solid #f1f5f9; border-radius: 12px; width: 100%; box-sizing: border-box; font-size: 1rem; background: #f8fafc; transition: 0.2s; }
-        input:focus { border-color: var(--s); outline: none; background: white; }
-
-        /* Tablas de Stock Industrial */
-        table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 15px; }
-        th { background: #f8fafc; color: #64748b; padding: 18px; text-align: left; font-size: 0.8rem; font-weight: 800; border-bottom: 2px solid var(--border); text-transform: uppercase; }
-        td { padding: 18px; border-bottom: 1px solid #f1f5f9; font-size: 1rem; }
-        .stock-row-danger { background: #fff1f2; color: var(--danger); font-weight: 600; }
-        
-        /* Optimizador Visual */
-        .sheet-container { background: #1e293b; padding: 40px; border-radius: 30px; display: flex; flex-direction: column; gap: 20px; align-items: center; }
-        .canvas-chapa { background: #ffffff; border: 4px solid #475569; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-
-        /* Botones */
-        button { padding: 16px 28px; border: none; border-radius: 14px; cursor: pointer; font-weight: 700; transition: 0.3s; display: inline-flex; align-items: center; justify-content: center; gap: 12px; font-size: 1rem; }
-        .btn-primary { background: var(--p); color: white; }
-        .btn-success { background: var(--success); color: white; }
-        .btn-ghost { background: #f1f5f9; color: #475569; }
-        button:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-
-        /* Resumen de Costes */
-        .total-card { background: var(--p); color: white; padding: 45px; border-radius: 35px; display: flex; justify-content: space-between; align-items: center; margin-top: 40px; }
-        .price-tag { font-size: 3.5rem; font-weight: 900; color: var(--success); letter-spacing: -2px; }
+        .btn { padding: 10px 15px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; }
+        .btn-main { background: var(--s); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC PRO</h2>
-        <div class="nav-group">
-            <div class="nav-group-title">Oficina Taller</div>
-            <div class="nav-item active" onclick="showView('v-obra')">📋 Proyectos Actuales</div>
-            <div class="nav-item" onclick="showView('v-diseno')">📐 Diseño de Puertas</div>
-            <div class="nav-item" onclick="showView('v-chapa')">✂️ Optimizador de Chapa</div>
-        </div>
-        <div class="nav-group">
-            <div class="nav-group-title">Control de Almacén</div>
-            <div class="nav-item" onclick="showView('v-stock-hierro')">🏗️ Stock de Metales</div>
-            <div class="nav-item" onclick="showView('v-stock-pintura')">🥫 Stock de Pinturas</div>
-        </div>
-        <div class="nav-group">
-            <div class="nav-group-title">Cierre</div>
-            <div class="nav-item" onclick="showView('v-presupuesto')">🧾 Presupuesto Final</div>
-        </div>
+        <h2>MSTCALC V17</h2>
+        <div class="nav-item" onclick="showView('v-prontuario')">📖 Prontuario (Precios)</div>
+        <div class="nav-item active" onclick="showView('v-stock')">🏭 Stock en Taller</div>
+        <div class="nav-item" onclick="showView('v-chatarra')">🗑️ Cubeta Chatarra</div>
     </div>
 
     <div class="main-content">
 
-        <div id="v-obra" class="view active">
-            <h1>Gestión de Proyectos</h1>
+        <div id="v-prontuario" class="view">
+            <h1>📖 Prontuario de Metales</h1>
             <div class="card">
-                <h3>Identificación de la Obra</h3>
-                <div class="flex">
-                    <div class="input-group"><label>Cliente / Referencia</label><input type="text" id="obra-nom" placeholder="Ej: Cerrajería Industrial Nave 4"></div>
-                    <div class="input-group">
-                        <label>Acabado General</label>
-                        <select id="obra-acabado">
-                            <option value="bruto">Hierro Negro (Sin acabado)</option>
-                            <option value="imp">Imprimación Taller</option>
-                            <option value="lacado">Lacado RAL Especial</option>
-                        </select>
-                    </div>
-                </div>
-                <textarea id="obra-obs" placeholder="Notas adicionales para el taller o recordatorios de herrajes..." rows="4"></textarea>
-            </div>
-        </div>
-
-        <div id="v-chapa" class="view">
-            <h1>Corte de Chapa Inteligente</h1>
-            <div class="flex">
-                <div class="card" style="flex: 1;">
-                    <h3>Medidas de la Chapa Madre</h3>
-                    <div class="flex">
-                        <div class="input-group"><label>Ancho (mm)</label><input type="number" id="ch-w" value="2000"></div>
-                        <div class="input-group"><label>Alto (mm)</label><input type="number" id="ch-h" value="1000"></div>
-                    </div>
-                    <h3>Piezas a Cortar</h3>
-                    <div id="piezas-input-area">
-                        <div class="flex">
-                            <input type="number" class="p-w" placeholder="Ancho">
-                            <input type="number" class="p-h" placeholder="Alto">
-                            <input type="number" class="p-c" placeholder="Cant">
-                        </div>
-                    </div>
-                    <button class="btn-ghost" onclick="nuevaFilaChapa()" style="width:100%; margin-bottom:15px;">+ Añadir Otra Medida</button>
-                    <button class="btn-primary" onclick="ejecutarOptimizacion()" style="width:100%;">CALCULAR APROVECHAMIENTO</button>
-                </div>
-                <div class="card" style="flex: 1.4;">
-                    <h3>Esquema de Corte</h3>
-                    <div id="chapa-visual" class="sheet-container">
-                        </div>
-                    <div id="reporte-chapa" style="margin-top:20px; font-weight:bold;"></div>
-                </div>
-            </div>
-        </div>
-
-        <div id="v-stock-hierro" class="view">
-            <h1>Inventario de Metales y Perfiles</h1>
-            <div class="card">
-                <h3>Registrar Material</h3>
-                <div class="flex">
-                    <div class="input-group"><label>Nombre del Perfil</label><input type="text" id="st-nom" placeholder="Tubo 40x40x2"></div>
-                    <div class="input-group"><label>Precio (€/m)</label><input type="number" id="st-pre" step="0.01"></div>
-                    <div class="input-group"><label>Stock (m)</label><input type="number" id="st-cant"></div>
-                    <div class="input-group"><label>Mínimo (m)</label><input type="number" id="st-min"></div>
-                    <button class="btn-success" onclick="guardarPerfilAlmacen()">Actualizar</button>
+                <h3>Añadir Perfil al Catálogo</h3>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="pro-nom" placeholder="Nombre Perfil (Ej: IPN 120)">
+                    <input type="number" id="pro-pre" placeholder="Precio €/m">
+                    <button class="btn btn-main" onclick="addProntuario()">Añadir al Catálogo</button>
                 </div>
             </div>
             <div class="card">
-                <table id="tabla-hierro">
-                    <thead>
-                        <tr><th>Estado</th><th>Perfil</th><th>Precio/m</th><th>Stock Actual</th><th>Aviso</th><th>Acción</th></tr>
-                    </thead>
-                    <tbody id="body-hierro"></tbody>
+                <table id="tabla-pro">
+                    <thead><tr><th>Perfil</th><th>Precio Base</th><th>Acción</th></tr></thead>
+                    <tbody id="body-pro"></tbody>
                 </table>
             </div>
         </div>
 
-        <div id="v-presupuesto" class="view">
-            <h1>🧾 Resumen Económico de la Obra</h1>
-            <div class="card" id="lista-desglose">
-                </div>
-            
-            <div class="flex">
-                <div class="card" style="flex:1">
-                    <h3>Gastos y Beneficios</h3>
-                    <div class="flex">
-                        <div class="input-group"><label>Mano de Obra Total (€)</label><input type="number" id="coste-mano" value="0" oninput="calcularTotalFinal()"></div>
-                        <div class="input-group"><label>Margen de Beneficio (%)</label><input type="number" id="margen-porcentaje" value="30" oninput="calcularTotalFinal()"></div>
-                    </div>
-                    <p style="color: #64748b; font-size: 0.9rem;">* El porcentaje de beneficio debe cubrir consumibles (discos, gas, electrodos) e imprevistos de taller.</p>
+        <div id="v-stock" class="view active">
+            <h1>🏭 Material Disponible en Taller</h1>
+            <div class="card" style="background: #e0f2fe;">
+                <h3>Entrada de Material a Ubicación</h3>
+                <div style="display:flex; gap:10px; flex-wrap: wrap;">
+                    <select id="stock-perfil-sel" style="flex:1; padding:10px; border-radius:8px;"></select>
+                    <input type="number" id="stock-cant" placeholder="Metros" style="width:100px; padding:10px; border-radius:8px;">
+                    <select id="stock-loc" style="flex:1; padding:10px; border-radius:8px;">
+                        <option value="Cantilever 1">Cantilever 1 (Pesado)</option>
+                        <option value="Cantilever 2">Cantilever 2 (Tubería)</option>
+                        <option value="Cantilever 3">Cantilever 3 (Inox)</option>
+                        <option value="Estantería Retales">Estantería Retales</option>
+                    </select>
+                    <button class="btn btn-main" onclick="addStockReal()">Registrar en Taller</button>
                 </div>
             </div>
 
-            <div class="total-card">
-                <div>
-                    <span style="text-transform: uppercase; font-weight: 900; opacity: 0.7;">Total Presupuesto (S/ IVA)</span>
-                    <div id="precio-final" class="price-tag">0.00 €</div>
-                </div>
-                <button class="btn-success" style="padding: 25px 40px; font-size: 1.2rem;" onclick="finalizarOrden()">🚀 LANZAR ORDEN Y DESCONTAR STOCK</button>
+            <div class="card">
+                <table id="tabla-stock">
+                    <thead><tr><th>Material</th><th>Metros</th><th>Ubicación</th><th>Estado / Acción</th></tr></thead>
+                    <tbody id="body-stock"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="v-chatarra" class="view">
+            <h1>🗑️ Registro de Chatarra y Desperdicio</h1>
+            <div class="card">
+                <table id="tabla-chatarra">
+                    <thead><tr><th>Fecha</th><th>Material</th><th>Metros</th><th>Motivo</th></tr></thead>
+                    <tbody id="body-chatarra"></tbody>
+                </table>
             </div>
         </div>
 
     </div>
 
 <script>
-    // FIREBASE
-    const firebaseConfig = { apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0", authDomain: "mstcalc.firebaseapp.com", projectId: "mstcalc", storageBucket: "mstcalc.firebasestorage.app", messagingSenderId: "68220801288", appId: "1:68220801288:web:cf0a033e03658c3f579cbd" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    // MEMORIA DE LA APLICACIÓN
-    let dbHierro = JSON.parse(localStorage.getItem('mst_hierro_v13')) || {};
-    let obraActual = { piezas: [], chapas: 0, costeMaterial: 0 };
+    let prontuario = JSON.parse(localStorage.getItem('mst_pro')) || [];
+    let stockReal = JSON.parse(localStorage.getItem('mst_stock_fisico')) || [];
+    let chatarra = JSON.parse(localStorage.getItem('mst_chatarra')) || [];
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        if(id === 'v-stock-hierro') renderTablaHierro();
-        if(id === 'v-presupuesto') renderResumenPresupuesto();
+        if(id === 'v-stock') refreshStockUI();
     }
 
-    // --- LÓGICA DE STOCK ---
-    function guardarPerfilAlmacen() {
-        const nom = document.getElementById('st-nom').value.toUpperCase();
-        dbHierro[nom] = {
-            pre: parseFloat(document.getElementById('st-pre').value) || 0,
-            stock: parseFloat(document.getElementById('st-cant').value) || 0,
-            min: parseFloat(document.getElementById('st-min').value) || 0
-        };
-        localStorage.setItem('mst_hierro_v13', JSON.stringify(dbHierro));
-        renderTablaHierro();
+    // --- LÓGICA PRONTUARIO ---
+    function addProntuario() {
+        const nom = document.getElementById('pro-nom').value.toUpperCase();
+        const pre = parseFloat(document.getElementById('pro-pre').value);
+        if(nom && pre) {
+            prontuario.push({nom, pre});
+            save();
+            renderProntuario();
+            refreshStockUI();
+        }
     }
 
-    function renderTablaHierro() {
+    function renderProntuario() {
         let h = "";
-        for (let k in dbHierro) {
-            const it = dbHierro[k];
-            const esBajo = it.stock <= it.min;
-            h += `<tr class="${esBajo ? 'stock-row-danger' : ''}">
-                <td>${esBajo ? '⚠️' : '✅'}</td>
-                <td><b>${k}</b></td>
-                <td>${it.pre.toFixed(2)} €</td>
-                <td>${it.stock} m</td>
-                <td>${esBajo ? 'PEDIR MATERIAL' : 'STOCK OK'}</td>
-                <td><button onclick="borrarPerfil('${k}')">❌</button></td>
+        prontuario.forEach((p, i) => {
+            h += `<tr><td><b>${p.nom}</b></td><td>${p.pre} €/m</td><td><button onclick="delPro(${i})">❌</button></td></tr>`;
+        });
+        document.getElementById('body-pro').innerHTML = h;
+    }
+
+    // --- LÓGICA STOCK REAL ---
+    function refreshStockUI() {
+        const sel = document.getElementById('stock-perfil-sel');
+        sel.innerHTML = prontuario.map(p => `<option value="${p.nom}">${p.nom}</option>`).join('');
+        renderStock();
+    }
+
+    function addStockReal() {
+        const mat = document.getElementById('stock-perfil-sel').value;
+        const mts = parseFloat(document.getElementById('stock-cant').value);
+        const loc = document.getElementById('stock-loc').value;
+        if(mat && mts) {
+            stockReal.push({id: Date.now(), mat, mts, loc});
+            save();
+            renderStock();
+        }
+    }
+
+    function moverA(index, nuevaLoc) {
+        if(nuevaLoc === "CHATARRA") {
+            const item = stockReal[index];
+            chatarra.push({fecha: new Date().toLocaleDateString(), mat: item.mat, mts: item.mts, motivo: "Error / Desperdicio"});
+            stockReal.splice(index, 1);
+        } else {
+            stockReal[index].loc = nuevaLoc;
+        }
+        save();
+        renderStock();
+        renderChatarra();
+    }
+
+    function renderStock() {
+        let h = "";
+        stockReal.forEach((s, i) => {
+            h += `<tr>
+                <td><b>${s.mat}</b></td>
+                <td>${s.mts} m</td>
+                <td><span class="loc-tag">${s.loc}</span></td>
+                <td>
+                    <select onchange="moverA(${i}, this.value)" style="padding:5px; border-radius:5px;">
+                        <option value="">Cambiar ubicación...</option>
+                        <option value="Cantilever 1">Cantilever 1</option>
+                        <option value="Cantilever 2">Cantilever 2</option>
+                        <option value="Cantilever 3">Cantilever 3</option>
+                        <option value="Estantería Retales">Estantería Retales</option>
+                        <option value="CHATARRA">🗑️ TIRAR A CHATARRA</option>
+                    </select>
+                </td>
             </tr>`;
-        }
-        document.getElementById('body-hierro').innerHTML = h;
-    }
-
-    // --- OPTIMIZADOR DE CHAPA GIGANTE ---
-    function nuevaFilaChapa() {
-        const div = document.createElement('div');
-        div.className = 'flex';
-        div.innerHTML = `<input type="number" class="p-w" placeholder="Ancho"><input type="number" class="p-h" placeholder="Alto"><input type="number" class="p-c" placeholder="Cant">`;
-        document.getElementById('piezas-input-area').appendChild(div);
-    }
-
-    function ejecutarOptimizacion() {
-        const CW = parseInt(document.getElementById('ch-w').value);
-        const CH = parseInt(document.getElementById('ch-h').value);
-        let piezas = [];
-        
-        document.querySelectorAll('#piezas-input-area .flex').forEach(f => {
-            const w = parseInt(f.querySelector('.p-w').value);
-            const h = parseInt(f.querySelector('.p-h').value);
-            const c = parseInt(f.querySelector('.p-c').value);
-            if(w && h && c) { for(let i=0; i<c; i++) piezas.push({w, h}); }
         });
+        document.getElementById('body-stock').innerHTML = h;
+    }
 
-        // Algoritmo de empaquetado por estanterías
-        piezas.sort((a,b) => b.h - a.h); // Ordenar por altura
-
-        const visual = document.getElementById('chapa-visual');
-        visual.innerHTML = "";
-        let chapasNecesarias = [];
-        
-        function crearNuevaChapa() { return { w: CW, h: CH, usadas: [], x: 0, y: 0, maxH: 0 }; }
-        
-        let chapaActual = crearNuevaChapa();
-        chapasNecesarias.push(chapaActual);
-
-        piezas.forEach(p => {
-            if (chapaActual.x + p.w > CW) { // Salto de línea
-                chapaActual.x = 0;
-                chapaActual.y += chapaActual.maxH;
-                chapaActual.maxH = 0;
-            }
-            
-            if (chapaActual.y + p.h > CH) { // Nueva chapa
-                chapaActual = crearNuevaChapa();
-                chapasNecesarias.push(chapaActual);
-            }
-
-            chapaActual.usadas.push({ x: chapaActual.x, y: chapaActual.y, w: p.w, h: p.h });
-            chapaActual.x += p.w;
-            if (p.h > chapaActual.maxH) chapaActual.maxH = p.h;
+    function renderChatarra() {
+        let h = "";
+        chatarra.forEach(c => {
+            h += `<tr><td>${c.fecha}</td><td>${c.mat}</td><td>${c.mts}m</td><td>${c.motivo}</td></tr>`;
         });
-
-        // Dibujar
-        const escala = 500 / CW;
-        chapasNecesarias.forEach((ch, i) => {
-            const canvas = document.createElement('canvas');
-            canvas.className = "canvas-chapa";
-            canvas.width = CW * escala;
-            canvas.height = CH * escala;
-            const ctx = canvas.getContext('2d');
-            
-            ch.usadas.forEach(pz => {
-                ctx.fillStyle = "#3b82f6";
-                ctx.fillRect(pz.x*escala, pz.y*escala, pz.w*escala - 1, pz.h*escala - 1);
-                ctx.strokeStyle = "white";
-                ctx.strokeRect(pz.x*escala, pz.y*escala, pz.w*escala - 1, pz.h*escala - 1);
-            });
-            visual.appendChild(canvas);
-        });
-
-        obraActual.chapas = chapasNecesarias.length;
-        document.getElementById('reporte-chapa').innerText = `RESULTADO: ${chapasNecesarias.length} Chapas utilizadas.`;
+        document.getElementById('body-chatarra').innerHTML = h;
     }
 
-    // --- CIERRE Y PRESUPUESTO ---
-    function renderResumenPresupuesto() {
-        let h = "<table><thead><tr><th>Concepto</th><th>Cálculo</th><th>Coste Base</th></tr></thead>";
-        let subtotalMat = 0;
-
-        if(obraActual.chapas > 0) {
-            let coste = obraActual.chapas * 95; // Precio estimado por chapa
-            subtotalMat += coste;
-            h += `<tr><td>Corte de Chapa Industrial</td><td>${obraActual.chapas} unidades</td><td>${coste.toFixed(2)} €</td></tr>`;
-        }
-        
-        obraActual.piezas.forEach(p => {
-            let pMetros = p.l / 1000;
-            let coste = pMetros * p.c * (dbHierro[p.m]?.pre || 0);
-            subtotalMat += coste;
-            h += `<tr><td>${p.m}</td><td>${p.c} barras de ${p.l}mm</td><td>${coste.toFixed(2)} €</td></tr>`;
-        });
-
-        obraActual.costeMaterial = subtotalMat;
-        document.getElementById('lista-desglose').innerHTML = h + "</table>";
-        calcularTotalFinal();
+    function save() {
+        localStorage.setItem('mst_pro', JSON.stringify(prontuario));
+        localStorage.setItem('mst_stock_fisico', JSON.stringify(stockReal));
+        localStorage.setItem('mst_chatarra', JSON.stringify(chatarra));
     }
 
-    function calcularTotalFinal() {
-        const mano = parseFloat(document.getElementById('coste-mano').value) || 0;
-        const margen = (parseFloat(document.getElementById('margen-porcentaje').value) / 100) + 1;
-        const total = (obraActual.costeMaterial + mano) * margen;
-        document.getElementById('precio-final').innerText = total.toFixed(2) + " €";
-    }
-
-    function borrarPerfil(k) { delete dbHierro[k]; localStorage.setItem('mst_hierro_v13', JSON.stringify(dbHierro)); renderTablaHierro(); }
-
-    async function finalizarOrden() {
-        const c = confirm("¿Confirmas la orden? Se procederá a descontar el material del stock.");
-        if(c) {
-            // Lógica de descuento
-            alert("Orden guardada. Stock actualizado (Simulado).");
-            location.reload();
-        }
-    }
+    // Init
+    renderProntuario();
+    refreshStockUI();
+    renderChatarra();
 </script>
 </body>
 </html>
