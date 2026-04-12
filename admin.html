@@ -2,32 +2,114 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TALLER - MSTCALC V5</title>
+    <title>MSTCALC ELITE V5 - Planos de Taller</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 10px; margin:0; }
-        .obra-btn { background: #3b82f6; border: none; padding: 20px; color: white; width: 100%; border-radius: 10px; margin-bottom: 10px; font-size: 1.2rem; }
-        .card-corte { background: #1e293b; padding: 15px; border-radius: 10px; margin-bottom: 8px; border-left: 6px solid #475569; display: flex; justify-content: space-between; }
-        .card-corte.hecho { opacity: 0.3; border-left-color: #10b981; }
-        .img-container { background: white; border-radius: 10px; padding: 5px; margin-bottom: 15px; display: flex; overflow-x: auto; gap: 10px; }
-        .img-container img { height: 250px; border: 1px solid #ddd; }
-        .view { display: none; }
-        .view.active { display: block; }
+        :root { --p: #1e293b; --s: #3b82f6; --bg: #f8fafc; --accent: #f59e0b; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; }
+        .sidebar { width: 280px; background: #0f172a; height: 100vh; color: white; padding: 20px; position: fixed; }
+        .nav-item { padding: 12px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .nav-item.active { background: var(--s); color: white; }
+        .main-content { margin-left: 300px; padding: 30px; width: calc(100% - 340px); }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .flex { display: flex; gap: 15px; margin-bottom: 15px; align-items: flex-end; }
+        canvas { background: #0f172a; border-radius: 8px; margin-bottom: 10px; width: 100%; max-width: 350px; }
+        input, select { padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px; width: 100%; }
+        label { font-size: 0.8rem; font-weight: bold; color: #64748b; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; background: var(--s); color: white; }
+        .btn-send { background: #10b981; width: 100%; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
-    <div id="v-menu" class="view active">
-        <h2 style="text-align:center">TRABAJOS ACTIVOS</h2>
-        <div id="lista-obras"></div>
+    <div class="sidebar">
+        <h2>MSTCALC V5</h2>
+        <div class="nav-item active" onclick="showView('v-inicio')">🏠 Nueva Obra</div>
+        <div class="nav-item" onclick="showView('v-puerta')">🚪 Puerta / Marco</div>
+        <div class="nav-item" onclick="showView('v-stock')">📦 Stock Perfiles</div>
+        <div class="nav-item" onclick="showView('v-resumen')">🧾 Enviar a Taller</div>
     </div>
 
-    <div id="v-detalle" class="view">
-        <button onclick="location.reload()">⬅ VOLVER</button>
-        <h2 id="nom-obra">---</h2>
-        <div id="hoja"></div>
+    <div class="main-content">
+        <div id="v-inicio" class="view active">
+            <h1>Registro de Obra</h1>
+            <div class="card"><input type="text" id="id_obra" placeholder="Nombre del Cliente..." style="font-size: 1.5rem;"></div>
+        </div>
+
+        <div id="v-puerta" class="view">
+            <h1>Configuración Técnica</h1>
+            <div class="flex">
+                <div style="flex: 2;">
+                    <div class="card">
+                        <h3>📏 Dimensiones de Hueco</h3>
+                        <div class="flex">
+                            <div><label>Ancho</label><input type="number" id="p-w" value="1000" oninput="actualizarPlanos()"></div>
+                            <div><label>Alto</label><input type="number" id="p-h" value="2000" oninput="actualizarPlanos()"></div>
+                            <div><label>Tipo Marco</label>
+                                <select id="p-marco-tipo" onchange="actualizarPlanos()">
+                                    <option value="completo">Cerrado (4 barras)</option>
+                                    <option value="u">En U (3 barras)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <h3>🛠️ Perfiles y Posición</h3>
+                        <div class="flex">
+                            <div style="flex:1;"><label>Material Marco</label><input type="text" id="m-marco" placeholder="Busca en stock..." onkeyup="buscarMat(this)"></div>
+                            <div style="width:120px;"><label>Orientación</label>
+                                <select id="p-ori-m" onchange="actualizarPlanos()">
+                                    <option value="A">Cara A</option>
+                                    <option value="B">Cara B</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex">
+                            <div style="flex:1;"><label>Material Hoja</label><input type="text" id="m-hoja" placeholder="Busca en stock..." onkeyup="buscarMat(this)"></div>
+                            <div style="width:120px;"><label>Orientación</label>
+                                <select id="p-ori-h" onchange="actualizarPlanos()">
+                                    <option value="A">Cara A</option>
+                                    <option value="B">Cara B</option>
+                                </select>
+                            </div>
+                        </div>
+                        <h3>💠 Holguras (mm)</h3>
+                        <div class="flex">
+                            <div><label>Sup</label><input type="number" id="f-sup" value="10" oninput="actualizarPlanos()"></div>
+                            <div><label>Inf</label><input type="number" id="f-inf" value="15" oninput="actualizarPlanos()"></div>
+                            <div><label>Izq</label><input type="number" id="f-izq" value="10" oninput="actualizarPlanos()"></div>
+                            <div><label>Der</label><input type="number" id="f-der" value="10" oninput="actualizarPlanos()"></div>
+                        </div>
+                        <button onclick="añadirObra()" style="width:100%; background:#0f172a;">AÑADIR A LISTA</button>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <label>PLANO MARCO</label>
+                    <canvas id="canvas-marco" width="300" height="350"></canvas>
+                    <label>PLANO HOJA</label>
+                    <canvas id="canvas-hoja" width="300" height="350"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="v-stock" class="view">
+            <h1>Stock de Perfiles</h1>
+            <div class="card">
+                <div class="flex">
+                    <input type="text" id="st-n" placeholder="Nombre (Tubo 60x40)">
+                    <input type="number" id="st-a" placeholder="Cara A (mm)">
+                    <input type="number" id="st-b" placeholder="Cara B (mm)">
+                    <input type="number" id="st-p" placeholder="€/m">
+                    <button onclick="guardarStock()">Añadir</button>
+                </div>
+                <div id="lista-stock"></div>
+            </div>
+        </div>
+
+        <div id="v-resumen" class="view">
+            <h1>Resumen para Taller</h1>
+            <div id="resumen-final"></div>
+            <button class="btn-send" onclick="enviarTaller()">🚀 ENVIAR ORDEN</button>
+        </div>
     </div>
 
 <script>
@@ -35,43 +117,114 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    db.collection("materiales").onSnapshot(snap => {
-        const menu = document.getElementById('lista-obras');
-        const obras = new Set();
-        snap.forEach(doc => obras.add(doc.data().trabajo));
-        menu.innerHTML = "";
-        obras.forEach(o => {
-            if(o) menu.innerHTML += `<button class="obra-btn" onclick="verObra('${o}')">📂 ${o}</button>`;
-        });
-    });
+    let obraItems = [];
+    let stock = JSON.parse(localStorage.getItem('mats_v5')) || {};
 
-    function verObra(id) {
-        document.getElementById('v-menu').classList.remove('active');
-        document.getElementById('v-detalle').classList.add('active');
-        document.getElementById('nom-obra').innerText = id;
-
-        db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
-            const h = document.getElementById('hoja');
-            let imgsHTML = '<div class="img-container">';
-            let piezasHTML = '';
-            
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(d.estado === 'info') imgsHTML += `<img src="${d.imagen}">`;
-                else if(d.estado !== 'cortado') {
-                    piezasHTML += `
-                        <div class="card-corte">
-                            <div><b>${d.cantidad}x ${d.medida}</b><br><small>${d.nombre}</small><br>📐 ${d.angulo}</div>
-                            <button onclick="cortar('${doc.id}')" style="background:#10b981; color:white; border:none; padding:10px; border-radius:5px;">✅</button>
-                        </div>`;
-                }
-            });
-            h.innerHTML = imgsHTML + '</div>' + piezasHTML;
-        });
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'v-stock') renderStock();
     }
 
-    function cortar(id) {
-        db.collection("materiales").doc(id).update({estado: "cortado"});
+    function buscarMat(input) {
+        let val = input.value.toLowerCase();
+        if(!val) return;
+        // Lógica simplificada: si coincide, actualiza planos
+        actualizarPlanos();
+    }
+
+    function actualizarPlanos() {
+        const W = parseFloat(document.getElementById('p-w').value);
+        const H = parseFloat(document.getElementById('p-h').value);
+        const tipoM = document.getElementById('p-marco-tipo').value;
+        
+        dibujarEsquema('canvas-marco', W, H, tipoM, "#64748b", "MARCO", true);
+        
+        const wH = W - parseFloat(document.getElementById('f-izq').value) - parseFloat(document.getElementById('f-der').value);
+        const hH = H - parseFloat(document.getElementById('f-sup').value) - parseFloat(document.getElementById('f-inf').value);
+        dibujarEsquema('canvas-hoja', wH, hH, "completo", "#3b82f6", "HOJA", false);
+    }
+
+    function dibujarEsquema(id, W, H, tipo, color, titulo, esMarco) {
+        const c = document.getElementById(id);
+        const ctx = c.getContext('2d');
+        ctx.clearRect(0,0,300,350);
+        
+        const esc = Math.min(240/W, 280/H);
+        const ox = (300 - W*esc)/2, oy = (350 - H*esc)/2;
+
+        ctx.strokeStyle = color; ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy + H*esc); // Inicio abajo izq
+        ctx.lineTo(ox, oy); // Sube
+        ctx.lineTo(ox + W*esc, oy); // Derecha
+        ctx.lineTo(ox + W*esc, oy + H*esc); // Baja
+        if(tipo === 'completo') ctx.closePath();
+        ctx.stroke();
+
+        ctx.fillStyle = "white"; ctx.font = "bold 14px sans-serif";
+        ctx.fillText(`${titulo}: ${W}x${H}`, 10, 20);
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText(`${W} mm`, ox + (W*esc)/3, oy - 10);
+    }
+
+    function añadirObra() {
+        const idObra = document.getElementById('id_obra').value;
+        if(!idObra) return alert("Nombre de obra vacío");
+
+        const W = parseFloat(document.getElementById('p-w').value);
+        const H = parseFloat(document.getElementById('p-h').value);
+        const tipoM = document.getElementById('p-marco-tipo').value;
+        const matM = document.getElementById('m-marco').value;
+        const matH = document.getElementById('m-hoja').value;
+
+        let piezas = [];
+        // LÓGICA DE CORTE REAL MARCO
+        piezas.push({m: matM, l: W, c: (tipoM==='u'?1:2), a: "45°", t:"MARCO"});
+        piezas.push({m: matM, l: H, c: 2, a: "45°", t:"MARCO"});
+
+        // LÓGICA DE CORTE REAL HOJA
+        const wH = W - parseFloat(document.getElementById('f-izq').value) - parseFloat(document.getElementById('f-der').value);
+        const hH = H - parseFloat(document.getElementById('f-sup').value) - parseFloat(document.getElementById('f-inf').value);
+        piezas.push({m: matH, l: wH, c: 2, a: "45°", t:"HOJA"});
+        piezas.push({m: matH, l: hH, c: 2, a: "45°", t:"HOJA"});
+
+        obraItems.push({
+            obra: idObra,
+            piezas: piezas,
+            imgs: [document.getElementById('canvas-marco').toDataURL(), document.getElementById('canvas-hoja').toDataURL()]
+        });
+        alert("Añadido correctamente");
+    }
+
+    async function enviarTaller() {
+        for(let item of obraItems) {
+            // Enviar imágenes primero
+            item.imgs.forEach((img, i) => {
+                db.collection("materiales").add({ trabajo: item.obra, nombre: "PLANO "+(i==0?"MARCO":"HOJA"), imagen: img, estado: "info", fecha: new Date() });
+            });
+            // Enviar piezas
+            for(let p of item.piezas) {
+                await db.collection("materiales").add({
+                    trabajo: item.obra, nombre: p.m + " ("+p.t+")", medida: p.l + " mm", cantidad: p.c, angulo: p.a, estado: "pendiente", fecha: new Date()
+                });
+            }
+        }
+        alert("¡Enviado!");
+        location.reload();
+    }
+
+    function guardarStock() {
+        const n = document.getElementById('st-n').value;
+        stock[n] = { a: document.getElementById('st-a').value, b: document.getElementById('st-b').value, p: document.getElementById('st-p').value };
+        localStorage.setItem('mats_v5', JSON.stringify(stock));
+        renderStock();
+    }
+
+    function renderStock() {
+        let h = "<table>";
+        for(let k in stock) h += `<tr><td>${k}</td><td>${stock[k].a}x${stock[k].b}</td><td>${stock[k].p}€</td></tr>`;
+        document.getElementById('lista-stock').innerHTML = h + "</table>";
     }
 </script>
 </body>
