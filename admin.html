@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V52 - INGENIERÍA Y MATERIALES</title>
+    <title>MSTCALC V53 - CÁLCULO DE REPARTO Y BARROTES</title>
     <style>
         :root { 
             --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
@@ -10,7 +10,7 @@
         }
         body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
         
-        /* SIDEBAR */
+        /* SIDEBAR COMPLETO RESTAURADO */
         .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; border-right: 4px solid var(--s); z-index: 100; }
         .sidebar h2 { color: var(--s); font-size: 1.4rem; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px; text-align: center; }
         .nav-group-title { font-size: 0.7rem; color: #64748b; text-transform: uppercase; margin: 25px 0 10px 0; font-weight: 900; letter-spacing: 1px; }
@@ -18,14 +18,13 @@
         .nav-item:hover { background: rgba(59, 130, 246, 0.1); color: white; }
         .nav-item.active { background: var(--s); color: white; font-weight: 600; }
 
-        /* CONTENIDO */
         .main-content { margin-left: var(--sidebar-w); padding: 40px; width: calc(100% - var(--sidebar-w)); }
         .view { display: none; max-width: 1200px; margin: 0 auto; }
         .view.active { display: block; animation: fadeIn 0.3s ease; }
 
         .card { background: white; padding: 20px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 20px; }
         .flex { display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end; }
-        .flex > div { flex: 1; min-width: 150px; }
+        .flex > div { flex: 1; min-width: 140px; }
         
         label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
         input, select { padding: 8px; border: 2px solid #f1f5f9; border-radius: 6px; width: 100%; background: #f8fafc; font-size: 0.85rem; }
@@ -35,54 +34,73 @@
         
         canvas { background: #1e293b; border-radius: 8px; width: 100%; height: auto; border: 2px solid #334155; }
         .badge { padding: 3px 6px; border-radius: 4px; font-size: 0.6rem; font-weight: bold; }
+        .badge-perfil { background: #e0f2fe; color: #0369a1; }
         .badge-chapa { background: #fef3c7; color: #92400e; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V52</h2>
-        <div class="nav-item active" onclick="showView('v-puertas', this)">🚪 Ingeniería Puertas</div>
+        <h2>MSTCALC V53</h2>
+        <div class="nav-item active" onclick="showView('v-puertas', this)">🚪 Puertas</div>
+        <div class="nav-item" onclick="showView('v-barandillas', this)">🪜 Barandillas</div>
         <div class="nav-item" onclick="showView('v-prontuario', this)">📖 Prontuario Maestro</div>
+        <div class="nav-item" onclick="showView('v-stock', this)">🏗️ Stock</div>
+        <div class="nav-group-title">Proyecto</div>
+        <div class="nav-item" onclick="showView('v-datos', this)">📝 Datos Generales</div>
     </div>
 
     <div class="main-content">
         <div id="v-puertas" class="view active">
-            <h1>🚪 Configuración Estructural</h1>
+            <h1>🚪 Configuración Técnica de Puerta</h1>
             
             <div class="card">
                 <div class="flex">
-                    <div><label>Hueco W (mm)</label><input type="number" id="dr-w" value="1800" oninput="calcPuerta()"></div>
-                    <div><label>Hueco H (mm)</label><input type="number" id="dr-h" value="2100" oninput="calcPuerta()"></div>
-                    <div><label>Tipo</label><select id="dr-tipo" onchange="calcPuerta()"><option value="1">1 Hoja</option><option value="2" selected>2 Hojas</option></select></div>
+                    <div><label>Ancho W</label><input type="number" id="dr-w" value="2000" oninput="calcPuerta()"></div>
+                    <div><label>Alto H</label><input type="number" id="dr-h" value="2100" oninput="calcPuerta()"></div>
+                    <div><label>Hojas</label><select id="dr-tipo" onchange="calcPuerta()"><option value="1">1 Hoja</option><option value="2" selected>2 Hojas</option></select></div>
                 </div>
             </div>
 
             <div class="flex">
-                <div class="card" style="flex: 1.8;">
-                    <label style="color:var(--s); border-bottom:1px solid #eee; padding-bottom:5px; margin-bottom:15px;">1. Bastidor y Perfilería</label>
+                <div class="card" style="flex: 2;">
+                    <label style="color:var(--s);">1. Materiales Base</label>
                     <div class="flex">
                         <div><label>Perfil Marco</label><select id="dr-mat-marco" onchange="calcPuerta()"></select></div>
                         <div><label>Perfil Hoja</label><select id="dr-mat-hoja" onchange="calcPuerta()"></select></div>
                         <div><label>Frente Marco</label><select id="dr-ori-m" onchange="calcPuerta()"><option value="a">Cara A</option><option value="b">Cara B</option></select></div>
                     </div>
                     
-                    <label style="margin-top:20px; color:var(--s);">2. Relleno de la Hoja</label>
+                    <label style="margin-top:20px; color:var(--s);">2. Configuración de Relleno</label>
                     <div class="flex">
-                        <div><label>Relleno</label><select id="dr-relleno" onchange="toggleChapa(); calcPuerta();"><option value="nada">Bastidor Vacío</option><option value="chapa">Forrado con Chapa</option><option value="barrotes">Barrotes</option></select></div>
-                        <div id="box-sel-chapa" style="display:none;"><label>Seleccionar Chapa</label><select id="dr-sel-chapa" onchange="calcPuerta()"></select></div>
-                        <div id="box-solape-chapa" style="display:none;"><label>Solape Chapa (mm)</label><input type="number" id="dr-sol-chapa" value="0" oninput="calcPuerta()"></div>
+                        <div><label>Relleno</label><select id="dr-relleno" onchange="toggleInputsRelleno(); calcPuerta();">
+                            <option value="nada">Vacío</option>
+                            <option value="chapa">Chapa</option>
+                            <option value="barrotes">Barrotes</option>
+                            <option value="mixto">Chapa + Barrotes</option>
+                        </select></div>
+                        
+                        <div id="box-barrotes" style="display:none; flex: 2; border-left: 2px solid var(--s); padding-left: 15px;">
+                            <div class="flex">
+                                <div><label>Perfil Barrote</label><select id="dr-mat-barrote" onchange="calcPuerta()"></select></div>
+                                <div><label>Hueco Máx (mm)</label><input type="number" id="dr-dist-max" value="110" oninput="calcPuerta()"></div>
+                            </div>
+                        </div>
+
+                        <div id="box-chapa" style="display:none;">
+                            <label>Chapa</label><select id="dr-sel-chapa" onchange="calcPuerta()"></select>
+                        </div>
                     </div>
 
-                    <label style="margin-top:20px; color:var(--s);">3. Refuerzos y Estructura</label>
+                    <label style="margin-top:20px; color:var(--s);">3. Refuerzos Estructurales</label>
                     <div class="flex">
-                        <div><label>Ref. Horizontales</label><input type="number" id="dr-ref-h" value="1" oninput="calcPuerta()"></div>
-                        <div><label>Ref. Verticales</label><input type="number" id="dr-ref-v" value="0" oninput="calcPuerta()"></div>
+                        <div><label>Horizontales</label><input type="number" id="dr-ref-h" value="1" oninput="calcPuerta()"></div>
+                        <div><label>Verticales</label><input type="number" id="dr-ref-v" value="0" oninput="calcPuerta()"></div>
                     </div>
                 </div>
 
-                <div class="card" style="flex: 1.2; background:#0f172a; text-align: center;">
-                    <canvas id="dr-canvas" width="450" height="400"></canvas>
+                <div class="card" style="flex: 1; background:#0f172a; min-height: 300px; display: flex; align-items: center; justify-content: center;">
+                    <canvas id="dr-canvas" width="400" height="350"></canvas>
                 </div>
             </div>
 
@@ -91,123 +109,124 @@
         </div>
 
         <div id="v-prontuario" class="view">
-            <h1>📖 Gestión de Materiales</h1>
+            <h1>📖 Prontuario Maestro</h1>
             <div class="card">
-                <label>Añadir Nuevo Material</label>
                 <div class="flex">
-                    <div style="flex:0.5;"><label>Tipo</label><select id="new-tipo"><option value="perfil">Perfil</option><option value="chapa">Chapa Comercial</option></select></div>
-                    <div><label>Nombre</label><input type="text" id="new-nom" placeholder="Ej: Chapa Lisa 2mm"></div>
+                    <div><label>Tipo</label><select id="new-tipo"><option value="perfil">Perfil</option><option value="chapa">Chapa</option></select></div>
+                    <div><label>Nombre</label><input type="text" id="new-nom"></div>
                     <div><label>A / Ancho</label><input type="number" id="new-a"></div>
                     <div><label>B / Largo</label><input type="number" id="new-b"></div>
                     <div><label>e</label><input type="number" id="new-e"></div>
                     <div><button onclick="addMaterial()" style="background:var(--success); color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; width:100%;">Guardar</button></div>
                 </div>
             </div>
-            <div class="card"><table style="width:100%"><thead><tr><th>Tipo</th><th>Ref</th><th>Medidas</th><th>e</th></tr></thead><tbody id="lista-mat-body"></tbody></table></div>
+            <div class="card"><table><thead><tr><th>Cat.</th><th>Ref</th><th>Medidas</th><th>Acción</th></tr></thead><tbody id="lista-mat-body"></tbody></table></div>
         </div>
     </div>
 
     <script>
         let materiales = [
             { tipo: 'perfil', nom: "Rect 80x40", a: 80, b: 40, e: 2 },
-            { tipo: 'perfil', nom: "Rect 100x40", a: 100, b: 40, e: 3 },
             { tipo: 'perfil', nom: "Cuad 40x40", a: 40, b: 40, e: 1.5 },
-            { tipo: 'chapa', nom: "Chapa Negra 2mm", a: 1000, b: 2000, e: 2 },
-            { tipo: 'chapa', nom: "Chapa Galvanizada 1.5mm", a: 1250, b: 2500, e: 1.5 }
+            { tipo: 'perfil', nom: "Macizo 20x20", a: 20, b: 20, e: 0 },
+            { tipo: 'chapa', nom: "Chapa 2mm", a: 1000, b: 2000, e: 2 }
         ];
 
-        function toggleChapa() {
-            const rel = document.getElementById('dr-relleno').value;
-            document.getElementById('box-sel-chapa').style.display = (rel === 'chapa') ? 'block' : 'none';
-            document.getElementById('box-solape-chapa').style.display = (rel === 'chapa') ? 'block' : 'none';
+        function toggleInputsRelleno() {
+            const r = document.getElementById('dr-relleno').value;
+            document.getElementById('box-barrotes').style.display = (r === 'barrotes' || r === 'mixto') ? 'block' : 'none';
+            document.getElementById('box-chapa').style.display = (r === 'chapa' || r === 'mixto') ? 'block' : 'none';
         }
 
         function addMaterial() {
-            const tipo = document.getElementById('new-tipo').value;
-            const nom = document.getElementById('new-nom').value;
+            const t = document.getElementById('new-tipo').value;
+            const n = document.getElementById('new-nom').value;
             const a = parseFloat(document.getElementById('new-a').value);
             const b = parseFloat(document.getElementById('new-b').value);
             const e = parseFloat(document.getElementById('new-e').value) || 0;
-            if(nom && a && b) {
-                materiales.push({ tipo, nom, a, b, e });
-                actualizarInterfaz();
-            }
+            if(n && a && b) { materiales.push({ tipo: t, nom: n, a: a, b: b, e: e }); actualizarInterfaz(); }
         }
 
         function actualizarInterfaz() {
             const perfiles = materiales.filter(m => m.tipo === 'perfil');
             const chapas = materiales.filter(m => m.tipo === 'chapa');
-
+            
             document.getElementById('dr-mat-marco').innerHTML = perfiles.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
             document.getElementById('dr-mat-hoja').innerHTML = perfiles.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
-            document.getElementById('dr-sel-chapa').innerHTML = chapas.map((m, i) => `<option value="${i}">${m.nom} (${m.a}x${m.b})</option>`).join('');
+            document.getElementById('dr-mat-barrote').innerHTML = perfiles.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
+            document.getElementById('dr-sel-chapa').innerHTML = chapas.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
             
-            document.getElementById('lista-mat-body').innerHTML = materiales.map(m => `<tr><td><span class="badge badge-${m.tipo}">${m.tipo}</span></td><td>${m.nom}</td><td>${m.a}x${m.b}</td><td>${m.e}</td></tr>`).join('');
+            document.getElementById('lista-mat-body').innerHTML = materiales.map((m, i) => `<tr><td>${m.tipo}</td><td>${m.nom}</td><td>${m.a}x${m.b}</td><td><button onclick="materiales.splice(${i},1); actualizarInterfaz()">❌</button></td></tr>`).join('');
             calcPuerta();
         }
 
         function calcPuerta() {
             const perfiles = materiales.filter(m => m.tipo === 'perfil');
-            const chapas = materiales.filter(m => m.tipo === 'chapa');
-            
             const pM = perfiles[document.getElementById('dr-mat-marco').value];
             const pH = perfiles[document.getElementById('dr-mat-hoja').value];
-            if(!pM || !pH) return;
-
+            const pB = perfiles[document.getElementById('dr-mat-barrote').value];
+            
             const W = parseFloat(document.getElementById('dr-w').value) || 0;
             const H = parseFloat(document.getElementById('dr-h').value) || 0;
             const ori = document.getElementById('dr-ori-m').value;
             const eM = (ori === 'a') ? pM.a : pM.b;
             const eH = (ori === 'a') ? pH.a : pH.b;
+            const eB = pB ? pB.a : 20; // Ancho del barrote
 
             const nH = parseInt(document.getElementById('dr-tipo').value);
             const relleno = document.getElementById('dr-relleno').value;
-            const solChapa = parseFloat(document.getElementById('dr-sol-chapa').value) || 0;
+            const distMax = parseFloat(document.getElementById('dr-dist-max').value) || 110;
 
-            // Cálculos
-            const hH = (H - eM - 15) + 20; // 20 de solape sup por defecto
-            const hW = ((W - (eM * 2) - 15) / nH) + (40 / nH); // 40 de solapes lat por defecto
+            const hH = (H - eM - 15) + 20; // Solape estándar
+            const hW = ((W - (eM * 2) - 15) / nH) + (40 / nH);
+            
+            // CÁLCULO REPARTO BARROTES
+            const luzInterna = hW - (eH * 2);
+            const numHuecos = Math.ceil(luzInterna / (distMax + eB));
+            const numBarrotes = numHuecos - 1;
+            const distExacta = (luzInterna - (numBarrotes * eB)) / numHuecos;
 
-            dibujarCanvas(W, H, eM, hW, hH, nH, eH, relleno);
-
-            let resHtml = `
-                <div class="corte-item"><strong>BASTIDORES (${nH} uds):</strong> ${nH*2} uds x ${hH.toFixed(0)}mm | ${nH*2} uds x ${hW.toFixed(0)}mm</div>
+            let htmlDespiece = `
+                <div class="corte-item"><strong>MARCO:</strong> 2x ${H}mm | 1x ${W}mm</div>
+                <div class="corte-item"><strong>HOJAS (${nH}):</strong> ${nH*2}x ${hH.toFixed(0)}mm | ${nH*2}x ${hW.toFixed(0)}mm</div>
             `;
 
-            if(relleno === 'chapa') {
-                const cNom = chapas[document.getElementById('dr-sel-chapa').value].nom;
-                const cW = hW + (solChapa * 2);
-                const cH = hH + (solChapa * 2);
-                resHtml += `<div class="corte-item" style="border-color:var(--success)"><strong>FORRADO (${cNom}):</strong> ${nH} uds de ${cW.toFixed(0)} x ${cH.toFixed(0)} mm</div>`;
+            if(relleno === 'barrotes' || relleno === 'mixto') {
+                htmlDespiece += `
+                    <div class="corte-item" style="border-left-color:var(--success)">
+                        <strong>BARROTES (${pB.nom}):</strong> ${numBarrotes * nH} piezas de ${(hH - (eH*2)).toFixed(0)}mm<br>
+                        <small>Separación luz: ${distExacta.toFixed(1)}mm | Ejes: ${(distExacta + eB).toFixed(1)}mm</small>
+                    </div>
+                `;
             }
 
-            document.getElementById('dr-despiece').innerHTML = resHtml;
-            document.getElementById('dr-final').innerHTML = `ESTRUCTURA: ${nH} hoja(s) de ${hW.toFixed(0)}x${hH.toFixed(0)} mm.`;
+            document.getElementById('dr-despiece').innerHTML = htmlDespiece;
+            document.getElementById('dr-final').innerHTML = `TALLER: ${nH} hojas de ${hW.toFixed(0)}x${hH.toFixed(0)}mm. Reparto: ${numBarrotes} barrotes por hoja.`;
+            
+            dibujarPuerta(W, H, eM, hW, hH, nH, eH, eB, numBarrotes, distExacta, relleno);
         }
 
-        function dibujarCanvas(W, H, eM, hW, hH, nH, eH, relleno) {
+        function dibujarPuerta(W, H, eM, hW, hH, nH, eH, eB, nB, dist, relleno) {
             const ctx = document.getElementById('dr-canvas').getContext('2d');
-            ctx.clearRect(0,0,450,400);
-            const s = Math.min(350/W, 300/H);
-            const ox = (450 - W*s)/2; const oy = (400 - H*s)/2;
+            ctx.clearRect(0,0,400,350);
+            const s = Math.min(300/W, 250/H);
+            const ox = (400 - W*s)/2; const oy = (350 - H*s)/2;
 
-            // Marco
             ctx.strokeStyle = "#475569"; ctx.lineWidth = eM*s;
             ctx.strokeRect(ox + (eM*s/2), oy + (eM*s/2), (W-eM)*s, (H-eM/2)*s);
 
-            // Cotas
-            ctx.fillStyle = "white"; ctx.font = "10px Arial";
-            ctx.fillText(`W: ${W}mm`, ox + (W*s)/2 - 20, oy - 10);
-            ctx.fillText(`H: ${H}mm`, ox - 40, oy + (H*s)/2);
-
-            // Hojas
-            ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 2;
+            ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 1;
             for(let i=0; i<nH; i++){
                 const hx = ox + (eM*s) + (i*hW*s) - (i*10*s);
                 ctx.strokeRect(hx, oy, hW*s, hH*s);
-                if(relleno === 'chapa'){
-                    ctx.fillStyle = "rgba(59, 130, 246, 0.3)";
-                    ctx.fillRect(hx, oy, hW*s, hH*s);
+                
+                // Dibujar Barrotes
+                if(relleno === 'barrotes' || relleno === 'mixto') {
+                    ctx.fillStyle = "#64748b";
+                    for(let b=1; b<=nB; b++){
+                        const bx = hx + (eH*s) + (b * (dist + eB) * s) - (eB * s);
+                        ctx.fillRect(bx, oy + (eH*s), eB*s, (hH - eH*2)*s);
+                    }
                 }
             }
         }
