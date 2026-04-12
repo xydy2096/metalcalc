@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TALLER - MSTCALC</title>
+    <title>OPERARIO V8</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; padding: 15px; margin:0; }
-        .obra-btn { background: #3b82f6; border: none; padding: 25px; color: white; width: 100%; border-radius: 12px; margin-bottom: 12px; font-size: 1.3rem; font-weight: bold; }
-        .corte-card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 8px solid #475569; display: flex; justify-content: space-between; align-items: center; }
-        .corte-card.hecho { opacity: 0.2; border-left-color: #10b981; }
-        .img-scroll { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; background: white; padding: 10px; border-radius: 12px; }
-        .img-scroll img { height: 280px; border: 1px solid #ccc; }
-        .btn-ok { background: #10b981; color: white; border: none; padding: 15px 25px; border-radius: 10px; font-size: 1.2rem; }
-        .btn-err { background: #ef4444; color: white; border: none; padding: 8px; border-radius: 5px; margin-top: 10px; width: 100%; }
+        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 10px; }
+        .obra-btn { background: #3b82f6; border: none; padding: 20px; color: white; width: 100%; border-radius: 12px; margin-bottom: 10px; font-size: 1.2rem; }
+        .corte-card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 8px; border-left: 8px solid #475569; display: flex; justify-content: space-between; align-items: center; }
+        .corte-card.hecho { opacity: 0.2; }
+        .img-box { background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 15px; color: #000; text-align: center; }
+        .img-box img { max-width: 100%; height: auto; border: 1px solid #ccc; }
+        .btn-ok { background: #10b981; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; }
         .view { display: none; }
         .view.active { display: block; }
     </style>
@@ -22,13 +21,13 @@
 <body>
 
     <div id="v-menu" class="view active">
-        <h1 style="text-align:center">TRABAJOS PENDIENTES</h1>
+        <h1 style="text-align:center">TAREAS DE TALLER</h1>
         <div id="lista-obras"></div>
     </div>
 
     <div id="v-detalle" class="view">
         <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px; border-radius:8px;">⬅ VOLVER</button>
-        <h2 id="nom-obra" style="color:#3b82f6"></h2>
+        <h2 id="nom-obra"></h2>
         <div id="hoja-corte"></div>
     </div>
 
@@ -42,9 +41,7 @@
         const obras = new Set();
         snap.forEach(doc => { if(doc.data().trabajo) obras.add(doc.data().trabajo) });
         menu.innerHTML = "";
-        obras.forEach(o => {
-            menu.innerHTML += `<button class="obra-btn" onclick="verObra('${o}')">📂 ${o}</button>`;
-        });
+        obras.forEach(o => { menu.innerHTML += `<button class="obra-btn" onclick="verObra('${o}')">📁 ${o}</button>`; });
     });
 
     function verObra(id) {
@@ -54,33 +51,24 @@
 
         db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
             const h = document.getElementById('hoja-corte');
-            let imgs = '<div class="img-scroll">';
-            let cortes = '';
-            
+            let content = '';
             snap.forEach(doc => {
                 const d = doc.data();
-                if(d.estado === 'info') imgs += `<img src="${d.imagen}">`;
-                else if(d.estado !== 'cortado') {
-                    cortes += `
+                if(d.estado === 'info') {
+                    content += `<div class="img-box"><h3>${d.nombre}</h3><img src="${d.imagen}"></div>`;
+                } else if(d.estado !== 'cortado') {
+                    content += `
                         <div class="corte-card">
-                            <div>
-                                <b style="font-size:1.4rem; color:#60a5fa;">${d.cantidad}x ${d.medida}</b><br>
-                                <span>${d.nombre}</span><br>
-                                <button class="btn-err" onclick="error('${d.nombre}')">⚠️ ERROR</button>
-                            </div>
-                            <button class="btn-ok" onclick="listo('${doc.id}')">✅</button>
+                            <div><b style="font-size:1.4rem; color:#60a5fa;">${d.cantidad}x ${d.medida}</b><br><span>${d.nombre}</span></div>
+                            <button class="btn-ok" onclick="listo('${doc.id}')">CORTADO</button>
                         </div>`;
                 }
             });
-            h.innerHTML = imgs + '</div>' + cortes;
+            h.innerHTML = content;
         });
     }
 
     function listo(id) { db.collection("materiales").doc(id).update({estado: "cortado"}); }
-    function error(nom) {
-        const m = prompt("Explica el error en " + nom);
-        if(m) db.collection("alertas").add({ error: m, fecha: new Date() });
-    }
 </script>
 </body>
 </html>
