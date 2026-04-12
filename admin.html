@@ -2,235 +2,251 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC ELITE V3 - Precisión de Taller</title>
+    <title>MSTCALC ELITE - Gestión Total</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --accent: #f59e0b; }
+        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; --accent: #f59e0b; }
         body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: #334155; }
+        
+        /* Sidebar */
         .sidebar { width: 260px; background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; }
-        .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; transition: 0.2s; }
-        .nav-item.active { background: #1e293b; color: var(--s); }
+        .sidebar h2 { color: var(--s); margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .nav-item:hover, .nav-item.active { background: #1e293b; color: var(--s); }
+
+        /* Contenido */
         .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
-        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .view { display: none; }
+        .view.active { display: block; }
+        .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        
         .flex { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        input, select { padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; flex: 1; }
-        canvas { background: #1e293b; border-radius: 12px; border: 4px solid #334155; }
+        input, select { padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; flex: 1; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-add { background: var(--p); color: white; width: 100%; }
+        .btn-send { background: var(--success); color: white; width: 100%; font-size: 1.2rem; padding: 20px; }
+
+        /* Buscador */
         .mat-container { position: relative; flex: 1; }
-        .sug-list { position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid #ddd; z-index: 100; display: none; border-radius: 8px; }
-        .sug-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 0.8rem; }
-        button { padding: 12px 20px; background: var(--s); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .sug-list { position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid #ddd; z-index: 100; border-radius: 8px; display: none; }
+        .sug-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        canvas { background: #1e293b; border-radius: 8px; max-width: 100%; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V3</h2>
+        <h2>MSTCALC PRO</h2>
         <div class="nav-item active" onclick="showView('v-inicio')">🏠 Nueva Obra</div>
-        <div class="nav-item" onclick="showView('v-puerta')">🚪 Puerta Técnica</div>
-        <div class="nav-item" onclick="showView('v-resumen')">🧾 Presupuesto</div>
+        <div class="nav-item" onclick="showView('v-puerta')">🚪 Puertas</div>
+        <div class="nav-item" onclick="showView('v-barandilla')">🪜 Barandillas</div>
+        <div class="nav-item" onclick="showView('v-resumen')">🧾 Presupuesto/Corte</div>
     </div>
 
     <div class="main-content">
         <div id="v-inicio" class="view active">
-            <h1>Registro de Obra</h1>
-            <div class="card"><input type="text" id="id_obra" placeholder="Nombre Obra / Cliente..." style="font-size: 1.5rem; width: 95%;"></div>
+            <h1>Registro de Trabajo</h1>
+            <div class="card">
+                <input type="text" id="id_obra" placeholder="Nombre del Cliente o Nº Pedido..." style="font-size: 1.5rem; width: 95%;">
+                <p>Introduce el nombre para comenzar a añadir elementos.</p>
+            </div>
         </div>
 
         <div id="v-puerta" class="view">
-            <h1>Configuración de Puerta y Marco</h1>
-            <div style="display: flex; gap: 20px;">
-                <div style="flex: 1.2;">
+            <h1>Configurador de Puertas</h1>
+            <div class="flex">
+                <div style="flex: 1.5;">
                     <div class="card">
-                        <h3>📐 Dimensiones de Hueco (Luz)</h3>
+                        <h3>Estructura y Holguras</h3>
                         <div class="flex">
-                            <input type="number" id="p-w" placeholder="Ancho Total" oninput="dibujar()">
-                            <input type="number" id="p-h" placeholder="Alto Total" oninput="dibujar()">
-                            <input type="number" id="p-faldon" placeholder="Holgura (mm)" value="10" oninput="dibujar()">
+                            <input type="number" id="p-w" placeholder="Ancho Hueco" oninput="dibujarPuerta()">
+                            <input type="number" id="p-h" placeholder="Alto Hueco" oninput="dibujarPuerta()">
+                            <input type="number" id="p-faldon" value="10" placeholder="Holgura" oninput="dibujarPuerta()">
                         </div>
                         <div class="flex">
                             <div class="mat-container">
-                                <input type="text" id="m-cerco" placeholder="Perfil Marco (U o Tubo)..." onkeyup="buscarMat(this)">
+                                <input type="text" id="m-marco" placeholder="Perfil Marco..." onkeyup="buscarMat(this)">
                                 <div class="sug-list"></div>
                             </div>
                             <div class="mat-container">
-                                <input type="text" id="m-hoja" placeholder="Perfil Hoja Puerta..." onkeyup="buscarMat(this)">
+                                <input type="text" id="m-hoja" placeholder="Perfil Hoja..." onkeyup="buscarMat(this)">
                                 <div class="sug-list"></div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="card" style="border-left: 5px solid var(--accent);">
-                        <h3>🎨 Relleno y Diseño</h3>
+                    <div class="card">
+                        <h3>Relleno</h3>
                         <div class="flex">
-                            <select id="p-orientacion" onchange="dibujar()">
-                                <option value="vertical">Barros Verticales</option>
-                                <option value="horizontal">Barros Horizontales</option>
+                            <select id="p-ori" onchange="dibujarPuerta()">
+                                <option value="vertical">Vertical</option>
+                                <option value="horizontal">Horizontal</option>
                             </select>
-                            <input type="number" id="p-sep" value="100" placeholder="Separación" oninput="dibujar()">
-                        </div>
-                        <div class="flex">
+                            <input type="number" id="p-sep" value="100" oninput="dibujarPuerta()">
                             <div class="mat-container">
-                                <input type="text" id="m-barrote" placeholder="Material Relleno..." onkeyup="buscarMat(this)">
+                                <input type="text" id="m-barrote" placeholder="Material Barrote..." onkeyup="buscarMat(this)">
                                 <div class="sug-list"></div>
                             </div>
-                            <select id="p-inglete">
-                                <option value="45">Corte Inglete (45°)</option>
-                                <option value="90">Corte Recto (90°)</option>
-                            </select>
                         </div>
-                        <button onclick="añadirElemento()" style="width:100%; margin-top:10px; background:var(--p);">AÑADIR A LISTA DE CORTE</button>
+                        <button class="btn-add" onclick="añadirElemento('puerta')">AÑADIR PUERTA</button>
                     </div>
                 </div>
-
-                <div style="flex: 1; text-align: center;">
-                    <div class="card" style="background: #1e293b;">
-                        <canvas id="p-canvas" width="380" height="450"></canvas>
-                        <div id="p-info" style="color: #94a3b8; margin-top:10px; font-family: monospace; font-size: 0.8rem;"></div>
-                    </div>
+                <div style="flex: 1;">
+                    <canvas id="p-canvas" width="350" height="400"></canvas>
                 </div>
             </div>
         </div>
 
+        <div id="v-barandilla" class="view">
+            <h1>Configurador de Barandillas</h1>
+            <div class="card">
+                <div class="flex">
+                    <input type="number" id="b-l" placeholder="Longitud Tramo (mm)">
+                    <input type="number" id="b-h" placeholder="Altura (mm)" value="1000">
+                </div>
+                <div class="flex">
+                    <div class="mat-container">
+                        <input type="text" id="m-pasamanos" placeholder="Material Pasamanos..." onkeyup="buscarMat(this)">
+                        <div class="sug-list"></div>
+                    </div>
+                    <div class="mat-container">
+                        <input type="text" id="m-poste" placeholder="Material Postes..." onkeyup="buscarMat(this)">
+                        <div class="sug-list"></div>
+                    </div>
+                </div>
+                <div class="flex">
+                    <input type="number" id="b-num-postes" placeholder="Nº de Postes">
+                    <input type="number" id="b-barrotes" placeholder="Barrotes por tramo">
+                </div>
+                <button class="btn-add" onclick="añadirElemento('barandilla')">AÑADIR BARANDILLA</button>
+            </div>
+        </div>
+
         <div id="v-resumen" class="view">
-            <h1>Resumen de Cortes</h1>
-            <div id="render-desglose"></div>
-            <button onclick="enviarTaller()" style="width:100%; background: var(--success); padding: 20px; font-size: 1.2rem; margin-top:20px;">🚀 ENVIAR AL TALLER</button>
+            <h1>Presupuesto y Lista de Corte</h1>
+            <div id="lista-previa" class="card">
+                <p>No hay elementos añadidos.</p>
+            </div>
+            <div class="card" style="background: var(--p); color: white;">
+                <div class="flex">
+                    <div>Beneficio % <br><input type="number" id="margen" value="30" oninput="renderResumen()"></div>
+                    <div>Varios (€) <br><input type="number" id="varios" value="50" oninput="renderResumen()"></div>
+                </div>
+                <h2 id="txt-total">TOTAL: 0.00 €</h2>
+                <button class="btn-send" onclick="enviarTaller()">🚀 ENVIAR ORDEN AL TALLER</button>
+            </div>
         </div>
     </div>
 
 <script>
+    // FIREBASE
     const firebaseConfig = { apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0", authDomain: "mstcalc.firebaseapp.com", projectId: "mstcalc", storageBucket: "mstcalc.firebasestorage.app", messagingSenderId: "68220801288", appId: "1:68220801288:web:cf0a033e03658c3f579cbd" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    let obra = { id: "", elementos: [] };
-    let materiales = JSON.parse(localStorage.getItem('mats_v3')) || { "Tubo 40x40x1.5": 5.5, "Pletina 40x5": 3.2, "Barrote 14": 2.9 };
+    let obraActual = { id: "", items: [] };
+    let materiales = JSON.parse(localStorage.getItem('mats_v3')) || { "Tubo 40x40x1.5": 6.50, "Pletina 40x5": 3.80, "Barrote 14": 2.50 };
 
     function showView(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        if(id === 'v-resumen') renderResumen();
     }
 
-    document.getElementById('id_obra').addEventListener('keypress', (e) => {
-        if(e.key === 'Enter') { obra.id = e.target.value; showView('v-puerta'); }
-    });
+    document.getElementById('id_obra').addEventListener('input', (e) => { obraActual.id = e.target.value; });
 
     function buscarMat(input) {
         let val = input.value.toLowerCase();
         let list = input.nextElementSibling;
         list.innerHTML = "";
-        if(!val) { list.style.display = "none"; return; }
+        if(!val) { list.style.display="none"; return; }
         Object.keys(materiales).filter(m => m.toLowerCase().includes(val)).forEach(m => {
-            let d = document.createElement('div'); d.className = "sug-item"; d.innerText = m;
-            d.onclick = () => { input.value = m; list.style.display = "none"; dibujar(); };
+            let d = document.createElement('div'); d.className="sug-item"; d.innerText = m;
+            d.onclick = () => { input.value = m; list.style.display="none"; dibujarPuerta(); };
             list.appendChild(d);
         });
-        list.style.display = "block";
+        list.style.display="block";
     }
 
-    function dibujar() {
+    function dibujarPuerta() {
         const c = document.getElementById('p-canvas');
         const ctx = c.getContext('2d');
-        const W = parseFloat(document.getElementById('p-w').value) || 0;
-        const H = parseFloat(document.getElementById('p-h').value) || 0;
+        const w = parseFloat(document.getElementById('p-w').value) || 0;
+        const h = parseFloat(document.getElementById('p-h').value) || 0;
         const f = parseFloat(document.getElementById('p-faldon').value) || 0;
-        const sep = parseFloat(document.getElementById('p-sep').value) || 100;
-        const ori = document.getElementById('p-orientacion').value;
+        ctx.clearRect(0,0,350,400);
+        if(!w || !h) return;
+        const esc = Math.min(300/w, 350/h);
+        const ox = (350 - w*esc)/2, oy = (400 - h*esc)/2;
+        ctx.strokeStyle="#3b82f6"; ctx.strokeRect(ox, oy, w*esc, h*esc); // Marco
+        ctx.strokeStyle="#f59e0b"; ctx.strokeRect(ox+f*esc, oy+f*esc, (w-f*2)*esc, (h-f*2)*esc); // Hoja
+    }
 
-        ctx.clearRect(0,0,400,450);
-        if(!W || !H) return;
+    function añadirElemento(tipo) {
+        if(!obraActual.id) return alert("Pon nombre a la obra primero");
+        let item = { tipo: tipo, piezas: [] };
 
-        const esc = Math.min(300/W, 300/H);
-        const w = W * esc, h = H * esc, f_esc = f * esc;
-        const ox = (380-w)/2, oy = (450-h)/2;
-
-        // Marco Exterior (Cerco)
-        ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
-        ctx.strokeRect(ox, oy, w, h);
-
-        // Hoja (Puerta) con faldamiento
-        ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 3;
-        ctx.strokeRect(ox + f_esc, oy + f_esc, w - (f_esc*2), h - (f_esc*2));
-
-        // Relleno
-        ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1;
-        if(ori === 'vertical') {
-            for(let x = ox+f_esc+sep*esc; x < ox+w-f_esc; x += sep*esc) {
-                ctx.beginPath(); ctx.moveTo(x, oy+f_esc); ctx.lineTo(x, oy+h-f_esc); ctx.stroke();
-            }
+        if(tipo === 'puerta') {
+            const W = parseFloat(document.getElementById('p-w').value);
+            const H = parseFloat(document.getElementById('p-h').value);
+            const F = parseFloat(document.getElementById('p-faldon').value);
+            const mC = document.getElementById('m-marco').value;
+            const mH = document.getElementById('m-hoja').value;
+            item.img = document.getElementById('p-canvas').toDataURL();
+            item.piezas.push({m: mC, l: W, c: 2, a: "90°"}, {m: mC, l: H, c: 2, a: "90°"});
+            item.piezas.push({m: mH, l: W-F*2, c: 2, a: "45°"}, {m: mH, l: H-F*2, c: 2, a: "45°"});
         } else {
-            for(let y = oy+f_esc+sep*esc; y < oy+h-f_esc; y += sep*esc) {
-                ctx.beginPath(); ctx.moveTo(ox+f_esc, y); ctx.lineTo(ox+w-f_esc, y); ctx.stroke();
-            }
+            const L = parseFloat(document.getElementById('b-l').value);
+            const H = parseFloat(document.getElementById('b-h').value);
+            const mP = document.getElementById('m-pasamanos').value;
+            const mPoste = document.getElementById('m-poste').value;
+            const nP = parseInt(document.getElementById('b-num-postes').value);
+            item.piezas.push({m: mP, l: L, c: 1, a: "90°"}, {m: mPoste, l: H, c: nP, a: "90°"});
         }
-        document.getElementById('p-info').innerText = `Hueco: ${W}x${H} | Hoja: ${W-(f*2)}x${H-(f*2)}`;
+        obraActual.items.push(item);
+        alert("Añadido.");
     }
 
-    function añadirElemento() {
-        const canvas = document.getElementById('p-canvas');
-        const W = parseFloat(document.getElementById('p-w').value);
-        const H = parseFloat(document.getElementById('p-h').value);
-        const f = parseFloat(document.getElementById('p-faldon').value);
-        const matC = document.getElementById('m-cerco').value;
-        const matH = document.getElementById('m-hoja').value;
-        const matB = document.getElementById('m-barrote').value;
-        const inglete = document.getElementById('p-inglete').value;
-        const ori = document.getElementById('p-orientacion').value;
+    function renderResumen() {
+        const cont = document.getElementById('lista-previa');
+        let html = "<table><tr><th>Material</th><th>Largo</th><th>Cant.</th><th>Ángulo</th><th>Coste</th></tr>";
+        let subtotal = 0;
+        const margen = (parseFloat(document.getElementById('margen').value)/100) + 1;
 
-        const wHoja = W - (f * 2);
-        const hHoja = H - (f * 2);
-
-        let piezas = [
-            { m: matC, l: W, c: 2, ang: "90°", tipo: "Marco" },
-            { m: matC, l: H, c: 2, ang: "90°", tipo: "Marco" },
-            { m: matH, l: wHoja, c: 2, ang: inglete+"°", tipo: "Hoja" },
-            { m: matH, l: hHoja, c: 2, ang: inglete+"°", tipo: "Hoja" }
-        ];
-
-        if(matB) {
-            const sep = parseFloat(document.getElementById('p-sep').value);
-            if(ori === 'vertical') {
-                const n = Math.floor(wHoja / sep);
-                piezas.push({ m: matB, l: hHoja - 80, c: n, ang: "90°", tipo: "Relleno" });
-            } else {
-                const n = Math.floor(hHoja / sep);
-                piezas.push({ m: matB, l: wHoja - 80, c: n, ang: "90°", tipo: "Relleno" });
-            }
-        }
-
-        obra.elementos.push({ 
-            nombre: `Puerta ${W}x${H}`, 
-            piezas: piezas, 
-            esquema: canvas.toDataURL() 
-        });
-        alert("Añadido con éxito.");
-    }
-
-    function enviarTaller() {
-        obra.elementos.forEach(el => {
-            // Mandar esquema UNA SOLA VEZ por elemento
-            db.collection("materiales").add({
-                trabajo: obra.id,
-                nombre: "ESQUEMA " + el.nombre,
-                imagen: el.esquema,
-                estado: "info",
-                fecha: new Date()
+        obraActual.items.forEach(it => {
+            it.piezas.forEach(p => {
+                let precio = (materiales[p.m] || 0) * (p.l/1000) * p.c;
+                subtotal += precio;
+                html += `<tr><td>${p.m}</td><td>${p.l}mm</td><td>${p.c}</td><td>${p.a}</td><td>${(precio*margen).toFixed(2)}€</td></tr>`;
             });
+        });
+        document.getElementById('txt-total').innerText = "TOTAL PVP: " + (subtotal*margen + parseFloat(document.getElementById('varios').value)).toFixed(2) + " €";
+        cont.innerHTML = html + "</table>";
+    }
 
-            el.piezas.forEach(p => {
-                db.collection("materiales").add({
-                    trabajo: obra.id,
-                    nombre: `${p.m} (${p.tipo})`,
-                    medida: `${p.l}mm`,
+    async function enviarTaller() {
+        for(let item of obraActual.items) {
+            // Guardamos el dibujo si existe
+            if(item.img) {
+                await db.collection("materiales").add({ trabajo: obraActual.id, nombre: "ESQUEMA", imagen: item.img, estado: "info", fecha: new Date() });
+            }
+            // Guardamos cada pieza
+            for(let p of item.piezas) {
+                await db.collection("materiales").add({
+                    trabajo: obraActual.id,
+                    nombre: p.m,
+                    medida: p.l + " mm",
                     cantidad: p.c,
-                    angulo: p.ang, // <-- AHORA SE ENVÍA EL ÁNGULO
+                    angulo: p.a,
                     estado: "pendiente",
                     fecha: new Date()
                 });
-            });
-        });
-        alert("Enviado al taller.");
+            }
+        }
+        alert("Enviado al taller correctamente.");
         location.reload();
     }
 </script>
