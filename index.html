@@ -3,103 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TALLER - MSTCALC V3</title>
+    <title>OPERARIO - MSTCALC</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 15px; background: #0f172a; color: white; margin: 0; }
-        .obra-seccion { background: #1e293b; border-radius: 15px; padding: 15px; margin-bottom: 25px; border-top: 4px solid #3b82f6; }
-        .titulo-obra { font-size: 1.4rem; color: #f1f5f9; margin-bottom: 15px; display: flex; justify-content: space-between; }
-        
-        /* Contenedor del Esquema */
-        .esquema-box { background: #000; border-radius: 10px; margin-bottom: 20px; text-align: center; border: 1px solid #334155; overflow: hidden; }
-        .esquema-img { max-width: 100%; height: auto; display: block; margin: 0 auto; }
-        .esquema-tag { background: #334155; font-size: 0.7rem; padding: 5px; color: #94a3b8; text-transform: uppercase; }
-
-        /* Piezas de Corte */
-        .item-corte { background: #334155; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; align-items: center; gap: 15px; border-left: 5px solid #475569; position: relative; }
-        .item-corte.cortando { border-left-color: #f59e0b; background: #3d4b5f; }
-        .item-corte.hecho { opacity: 0.3; text-decoration: line-through; border-left-color: #10b981; }
-
-        .cant-badge { background: #3b82f6; color: white; padding: 8px 12px; border-radius: 8px; font-weight: bold; min-width: 30px; text-align: center; }
-        .detalle { flex: 1; }
-        .medida-txt { font-size: 1.3rem; font-weight: bold; color: #60a5fa; display: block; }
-        
-        /* Etiqueta de Ángulo */
-        .angulo-badge { position: absolute; right: 15px; top: 15px; background: #1e293b; color: #f59e0b; padding: 4px 8px; border-radius: 5px; font-size: 0.8rem; font-weight: bold; border: 1px solid #f59e0b; }
-        
-        .btn-check { background: #10b981; border: none; color: white; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 15px; }
+        .btn-obra { background: #3b82f6; color: white; padding: 20px; width: 100%; border-radius: 12px; margin-bottom: 10px; font-size: 1.2rem; border: none; }
+        .view { display: none; }
+        .view.active { display: block; }
+        .item-corte { background: #1e293b; padding: 15px; margin-bottom: 10px; border-radius: 8px; border-left: 6px solid #475569; display: flex; justify-content: space-between; align-items: center; }
+        .item-corte.hecho { border-left-color: #10b981; opacity: 0.5; }
+        .btn-check { background: #10b981; color: white; padding: 10px; border: none; border-radius: 5px; }
+        .btn-error { background: #ef4444; color: white; padding: 10px; border: none; border-radius: 5px; margin-top: 5px; }
+        .esquema { background: white; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        .esquema img { max-width: 100%; border-radius: 8px; }
     </style>
 </head>
 <body>
 
-    <h2 style="text-align: center; color: #3b82f6;">🛠️ ÓRDENES DE PRODUCCIÓN</h2>
-    <div id="lista-tareas">Cargando datos de taller...</div>
+    <div id="v-menu" class="view active">
+        <h1>🏗️ TRABAJOS ACTIVOS</h1>
+        <div id="lista-obras">Cargando...</div>
+    </div>
+
+    <div id="v-detalle" class="view">
+        <button onclick="showView('v-menu')" style="background: none; color: #3b82f6; border: none; font-size: 1.1rem;">⬅ Volver</button>
+        <h2 id="titulo-obra">Obra</h2>
+        <div id="contenido-obra"></div>
+    </div>
 
 <script>
-    const firebaseConfig = { 
-        apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0", 
-        authDomain: "mstcalc.firebaseapp.com", 
-        projectId: "mstcalc", 
-        storageBucket: "mstcalc.firebasestorage.app", 
-        messagingSenderId: "68220801288", 
-        appId: "1:68220801288:web:cf0a033e03658c3f579cbd" 
-    };
+    const firebaseConfig = { apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0", authDomain: "mstcalc.firebaseapp.com", projectId: "mstcalc", storageBucket: "mstcalc.firebasestorage.app", messagingSenderId: "68220801288", appId: "1:68220801288:web:cf0a033e03658c3f579cbd" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    db.collection("materiales").orderBy("fecha", "asc").onSnapshot(snap => {
-        const contenedor = document.getElementById('lista-tareas');
-        contenedor.innerHTML = "";
-        
-        let trabajos = {};
-        snap.docs.forEach(doc => {
-            const d = doc.data();
-            if (!trabajos[d.trabajo]) trabajos[d.trabajo] = [];
-            trabajos[d.trabajo].push({ id: doc.id, ...d });
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // LISTAR OBRAS
+    db.collection("materiales").onSnapshot(snap => {
+        const container = document.getElementById('lista-obras');
+        const obras = new Set();
+        snap.forEach(doc => obras.add(doc.data().trabajo));
+        container.innerHTML = "";
+        obras.forEach(o => {
+            const b = document.createElement('button');
+            b.className = "btn-obra";
+            b.innerText = "OBRA: " + o;
+            b.onclick = () => verDetalle(o);
+            container.appendChild(b);
         });
-
-        for (let obraId in trabajos) {
-            let html = `<div class="obra-seccion"><div class="titulo-obra"><span>🏗️ OBRA: ${obraId}</span></div>`;
-            
-            // Primero mostramos el esquema si existe
-            trabajos[obraId].forEach(item => {
-                if (item.estado === "info" && item.imagen) {
-                    html += `
-                        <div class="esquema-box">
-                            <div class="esquema-tag">${item.nombre}</div>
-                            <img src="${item.imagen}" class="esquema-img">
-                        </div>`;
-                }
-            });
-
-            // Luego las piezas de corte
-            trabajos[obraId].forEach(item => {
-                if (item.estado !== "info" && item.estado !== "cortado") {
-                    const statusClass = item.estado === "cortando" ? "cortando" : "";
-                    html += `
-                        <div class="item-corte ${statusClass}">
-                            <div class="cant-badge">${item.cantidad}x</div>
-                            <div class="detalle">
-                                <span style="font-size: 0.85rem; color: #94a3b8;">${item.nombre}</span>
-                                <span class="medida-txt">${item.medida}</span>
-                            </div>
-                            <div class="angulo-badge">📐 ${item.angulo || '90°'}</div>
-                            <button class="btn-check" onclick="cambiarEstado('${item.id}', '${item.estado}')">
-                                ${item.estado === 'pendiente' ? '▶️' : '✅'}
-                            </button>
-                        </div>`;
-                }
-            });
-
-            html += `</div>`;
-            contenedor.innerHTML += html;
-        }
     });
 
-    function cambiarEstado(id, actual) {
-        const proximo = actual === 'pendiente' ? 'cortando' : 'cortado';
-        db.collection("materiales").doc(id).update({ estado: proximo });
+    function verDetalle(obraId) {
+        showView('v-detalle');
+        document.getElementById('titulo-obra').innerText = obraId;
+        
+        db.collection("materiales").where("trabajo", "==", obraId).onSnapshot(snap => {
+            const cont = document.getElementById('contenido-obra');
+            cont.innerHTML = "";
+            snap.forEach(doc => {
+                const d = doc.data();
+                if(d.estado === 'info') {
+                    cont.innerHTML += `<div class="esquema"><img src="${d.imagen}"></div>`;
+                } else {
+                    const hecho = d.estado === 'cortado' ? 'hecho' : '';
+                    cont.innerHTML += `
+                        <div class="item-corte ${hecho}">
+                            <div>
+                                <b>${d.cantidad}x ${d.nombre}</b><br>
+                                <span style="color:#3b82f6; font-size:1.2rem;">${d.medida}</span> | 📐 ${d.angulo || '90°'}
+                                <br><button class="btn-error" onclick="errorCorte('${doc.id}')">⚠️ Error Corte</button>
+                            </div>
+                            <button class="btn-check" onclick="marcar('${doc.id}','${d.estado}')">✅</button>
+                        </div>`;
+                }
+            });
+        });
+    }
+
+    function marcar(id, est) {
+        const nest = est === 'pendiente' ? 'cortado' : 'pendiente';
+        db.collection("materiales").doc(id).update({ estado: nest });
+    }
+
+    function errorCorte(id) {
+        const msg = prompt("¿Cuál es el error? (ej: Medida corta, Rayado...)");
+        if(msg) {
+            db.collection("alertas").add({ piezaId: id, error: msg, fecha: new Date() });
+            alert("Error enviado a administración.");
+        }
     }
 </script>
 </body>
