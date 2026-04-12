@@ -2,33 +2,132 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERARIO V8</title>
+    <title>MSTCALC V8 - Control Total de Producción</title>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 10px; }
-        .obra-btn { background: #3b82f6; border: none; padding: 20px; color: white; width: 100%; border-radius: 12px; margin-bottom: 10px; font-size: 1.2rem; }
-        .corte-card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 8px; border-left: 8px solid #475569; display: flex; justify-content: space-between; align-items: center; }
-        .corte-card.hecho { opacity: 0.2; }
-        .img-box { background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 15px; color: #000; text-align: center; }
-        .img-box img { max-width: 100%; height: auto; border: 1px solid #ccc; }
-        .btn-ok { background: #10b981; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; }
+        :root { --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; }
+        .sidebar { width: 260px; background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; }
+        .sidebar h2 { color: var(--s); border-bottom: 1px solid #334155; padding-bottom: 10px; }
+        .nav-item { padding: 12px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .nav-item:hover, .nav-item.active { background: #1e293b; color: var(--s); }
+        .main-content { margin-left: 260px; padding: 40px; width: calc(100% - 260px); }
         .view { display: none; }
         .view.active { display: block; }
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .flex { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: flex-end; }
+        label { display: block; font-size: 0.7rem; font-weight: bold; color: #64748b; margin-bottom: 5px; text-transform: uppercase; }
+        input, select { padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; width: 100%; box-sizing: border-box; }
+        .canvas-container { display: flex; gap: 20px; background: #1e293b; padding: 20px; border-radius: 12px; justify-content: center; }
+        canvas { background: #0f172a; border-radius: 8px; }
+        .search-box { position: relative; flex: 2; }
+        .results-list { position: absolute; top: 100%; left: 0; width: 100%; background: white; border: 1px solid #ddd; z-index: 1000; display: none; border-radius: 8px; }
+        .result-item { padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .result-item:hover { background: #f1f5f9; }
+        button { padding: 12px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-add { background: var(--p); color: white; width: 100%; }
+        .btn-send { background: var(--success); color: white; width: 100%; font-size: 1.2rem; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px; border-bottom: 1px solid #eee; text-align: left; }
+        .total-box { background: var(--p); color: white; padding: 20px; border-radius: 12px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="v-menu" class="view active">
-        <h1 style="text-align:center">TAREAS DE TALLER</h1>
-        <div id="lista-obras"></div>
+    <div class="sidebar">
+        <h2>MSTCALC V8</h2>
+        <div class="nav-item active" onclick="showView('v-inicio')">🏠 Nueva Obra</div>
+        <div class="nav-item" onclick="showView('v-puerta')">📐 Puerta y Planos</div>
+        <div class="nav-item" onclick="showView('v-stock')">📕 Prontuario</div>
+        <div class="nav-item" onclick="showView('v-resumen')">🧾 Presupuesto</div>
     </div>
 
-    <div id="v-detalle" class="view">
-        <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px; border-radius:8px;">⬅ VOLVER</button>
-        <h2 id="nom-obra"></h2>
-        <div id="hoja-corte"></div>
+    <div class="main-content">
+        <div id="v-inicio" class="view active">
+            <h1>Registro de Obra</h1>
+            <div class="card"><input type="text" id="id_obra" placeholder="Cliente / Proyecto" style="font-size: 1.5rem;"></div>
+        </div>
+
+        <div id="v-puerta" class="view">
+            <h1>Configurador Técnico</h1>
+            <div class="flex">
+                <div style="flex: 1.5;">
+                    <div class="card">
+                        <h3>Hueco y Marco</h3>
+                        <div class="flex">
+                            <div><label>Ancho</label><input type="number" id="p-w" value="1000" oninput="calcular()"></div>
+                            <div><label>Alto</label><input type="number" id="p-h" value="2000" oninput="calcular()"></div>
+                            <div><label>Tipo</label><select id="p-marco-tipo" onchange="calcular()"><option value="completo">Cerrado</option><option value="u">En U</option></select></div>
+                        </div>
+                        <div class="flex">
+                            <div class="search-box">
+                                <label>Perfil Marco</label>
+                                <input type="text" id="m-marco-search" onkeyup="buscador(this, 'marco')">
+                                <div id="res-marco" class="results-list"></div>
+                            </div>
+                            <div><label>Cara</label><select id="p-cara-m" onchange="calcular()"><option value="a">Cara A</option><option value="b">Cara B</option></select></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Hoja y Holguras</h3>
+                        <div class="flex">
+                            <div class="search-box">
+                                <label>Perfil Hoja</label>
+                                <input type="text" id="m-hoja-search" onkeyup="buscador(this, 'hoja')">
+                                <div id="res-hoja" class="results-list"></div>
+                            </div>
+                            <div><label>Cara</label><select id="p-cara-h" onchange="calcular()"><option value="a">Cara A</option><option value="b">Cara B</option></select></div>
+                        </div>
+                        <div class="flex">
+                            <div><label>Sup</label><input type="number" id="f-sup" value="5" oninput="calcular()"></div>
+                            <div><label>Inf</label><input type="number" id="f-inf" value="10" oninput="calcular()"></div>
+                            <div><label>Izq</label><input type="number" id="f-izq" value="5" oninput="calcular()"></div>
+                            <div><label>Der</label><input type="number" id="f-der" value="5" oninput="calcular()"></div>
+                        </div>
+                        <button class="btn-add" onclick="añadirElemento()">AÑADIR A PRESUPUESTO</button>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div class="canvas-container" style="flex-direction:column">
+                        <canvas id="c-marco" width="280" height="280"></canvas>
+                        <canvas id="c-hoja" width="280" height="280"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="v-stock" class="view">
+            <h1>📕 Prontuario de Perfiles</h1>
+            <div class="card">
+                <div class="flex">
+                    <input type="text" id="st-n" placeholder="Nombre">
+                    <input type="number" id="st-a" placeholder="Cara A">
+                    <input type="number" id="st-b" placeholder="Cara B">
+                    <input type="number" id="st-p" placeholder="€/Metro">
+                    <button onclick="guardarP()" style="background:var(--s); color:white;">Guardar</button>
+                </div>
+                <table id="lista-p"></table>
+            </div>
+        </div>
+
+        <div id="v-resumen" class="view">
+            <h1>🧾 Presupuesto y Lista de Corte</h1>
+            <div id="resumen-lista" class="card"></div>
+            <div class="card">
+                <h3>Costes Adicionales y Beneficio</h3>
+                <div class="flex">
+                    <div><label>Mano Obra (€)</label><input type="number" id="mano-obra" value="150" oninput="renderResumen()"></div>
+                    <div><label>Mult. Material (ej: 1.2)</label><input type="number" id="mult-mat" value="1.0" step="0.1" oninput="renderResumen()"></div>
+                    <div><label>Varios (€)</label><input type="number" id="varios" value="50" oninput="renderResumen()"></div>
+                    <div><label>% Beneficio</label><input type="number" id="margen" value="30" oninput="renderResumen()"></div>
+                </div>
+                <div class="total-box">
+                    <h2 id="total-txt">TOTAL: 0.00 €</h2>
+                </div>
+                <button class="btn-send" onclick="enviarTaller()">🚀 ENVIAR TODO AL TALLER</button>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -36,39 +135,133 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    db.collection("materiales").onSnapshot(snap => {
-        const menu = document.getElementById('lista-obras');
-        const obras = new Set();
-        snap.forEach(doc => { if(doc.data().trabajo) obras.add(doc.data().trabajo) });
-        menu.innerHTML = "";
-        obras.forEach(o => { menu.innerHTML += `<button class="obra-btn" onclick="verObra('${o}')">📁 ${o}</button>`; });
-    });
+    let obraItems = [];
+    let prontuario = JSON.parse(localStorage.getItem('prontuario_v8')) || {};
 
-    function verObra(id) {
-        document.getElementById('v-menu').classList.remove('active');
-        document.getElementById('v-detalle').classList.add('active');
-        document.getElementById('nom-obra').innerText = id;
-
-        db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
-            const h = document.getElementById('hoja-corte');
-            let content = '';
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(d.estado === 'info') {
-                    content += `<div class="img-box"><h3>${d.nombre}</h3><img src="${d.imagen}"></div>`;
-                } else if(d.estado !== 'cortado') {
-                    content += `
-                        <div class="corte-card">
-                            <div><b style="font-size:1.4rem; color:#60a5fa;">${d.cantidad}x ${d.medida}</b><br><span>${d.nombre}</span></div>
-                            <button class="btn-ok" onclick="listo('${doc.id}')">CORTADO</button>
-                        </div>`;
-                }
-            });
-            h.innerHTML = content;
-        });
+    function showView(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        if(id === 'v-resumen') renderResumen();
+        if(id === 'v-stock') renderProntuario();
     }
 
-    function listo(id) { db.collection("materiales").doc(id).update({estado: "cortado"}); }
+    function buscador(input, tipo) {
+        const val = input.value.toLowerCase();
+        const resDiv = document.getElementById('res-' + tipo);
+        resDiv.innerHTML = "";
+        if(!val) { resDiv.style.display="none"; return; }
+        for(let key in prontuario) {
+            if(key.toLowerCase().includes(val)) {
+                let d = document.createElement('div');
+                d.className="result-item";
+                d.innerText=key;
+                d.onclick=()=>{ input.value=key; resDiv.style.display="none"; calcular(); };
+                resDiv.appendChild(d);
+            }
+        }
+        resDiv.style.display="block";
+    }
+
+    function calcular() {
+        const W = parseFloat(document.getElementById('p-w').value) || 0;
+        const H = parseFloat(document.getElementById('p-h').value) || 0;
+        const matM = document.getElementById('m-marco-search').value;
+        const caraM = document.getElementById('p-cara-m').value;
+        const gM = prontuario[matM] ? parseFloat(prontuario[matM][caraM]) : 0;
+        
+        const tipoM = document.getElementById('p-marco-tipo').value;
+        const wH = W - (gM*2) - parseFloat(document.getElementById('f-izq').value) - parseFloat(document.getElementById('f-der').value);
+        const hH = H - (gM*(tipoM==='completo'?2:1)) - parseFloat(document.getElementById('f-sup').value) - parseFloat(document.getElementById('f-inf').value);
+
+        dibujar('c-marco', W, H, gM, tipoM, "#64748b", "MARCO");
+        dibujar('c-hoja', wH, hH, 40, "completo", "#3b82f6", "HOJA");
+    }
+
+    function dibujar(id, W, H, gR, tipo, color, titulo) {
+        const c = document.getElementById(id); const ctx = c.getContext('2d');
+        ctx.clearRect(0,0,280,280);
+        const esc = Math.min(200/W, 200/H);
+        const ox = (280-W*esc)/2, oy = (280-H*esc)/2;
+        const g = gR * esc;
+        ctx.strokeStyle=color; ctx.lineWidth=g || 2;
+        ctx.strokeRect(ox+g/2, oy+g/2, W*esc-g, H*esc-g);
+        ctx.fillStyle="white"; ctx.fillText(`${titulo}: ${Math.round(W)}x${Math.round(H)}`, 10, 20);
+        // Pintar cotas
+        ctx.fillStyle=color; ctx.fillText(Math.round(W)+"mm", ox+W*esc/2, oy-5);
+    }
+
+    function añadirElemento() {
+        const W = parseFloat(document.getElementById('p-w').value);
+        const H = parseFloat(document.getElementById('p-h').value);
+        const matM = document.getElementById('m-marco-search').value;
+        const matH = document.getElementById('m-hoja-search').value;
+        const gM = prontuario[matM] ? parseFloat(prontuario[matM][document.getElementById('p-cara-m').value]) : 0;
+        const tipoM = document.getElementById('p-marco-tipo').value;
+        
+        const wH = W - (gM*2) - parseFloat(document.getElementById('f-izq').value) - parseFloat(document.getElementById('f-der').value);
+        const hH = H - (gM*(tipoM==='completo'?2:1)) - parseFloat(document.getElementById('f-sup').value) - parseFloat(document.getElementById('f-inf').value);
+
+        let item = {
+            obra: document.getElementById('id_obra').value,
+            piezas: [
+                {m: matM, l: W, c: (tipoM==='u'?1:2), t: "Marco Ancho"},
+                {m: matM, l: H, c: 2, t: "Marco Alto"},
+                {m: matH, l: wH, c: 2, t: "Hoja Ancho"},
+                {m: matH, l: hH, c: 2, t: "Hoja Alto"}
+            ],
+            imgs: [document.getElementById('c-marco').toDataURL(), document.getElementById('c-hoja').toDataURL()]
+        };
+        obraItems.push(item);
+        alert("Añadido al presupuesto.");
+    }
+
+    function renderResumen() {
+        let matTotal = 0;
+        let html = "<table><tr><th>Material</th><th>Medida</th><th>Cant</th><th>Subtotal Base</th></tr>";
+        const multi = parseFloat(document.getElementById('mult-mat').value) || 1;
+
+        obraItems.forEach(el => {
+            el.piezas.forEach(p => {
+                let precioM = prontuario[p.m] ? parseFloat(prontuario[p.m].p) : 0;
+                let coste = (p.l/1000) * p.c * precioM;
+                matTotal += (coste * multi);
+                html += `<tr><td>${p.m}</td><td>${p.l}mm</td><td>${p.c}</td><td>${(coste*multi).toFixed(2)}€</td></tr>`;
+            });
+        });
+
+        const mano = parseFloat(document.getElementById('mano-obra').value) || 0;
+        const varios = parseFloat(document.getElementById('varios').value) || 0;
+        const margen = (parseFloat(document.getElementById('margen').value)/100) + 1;
+
+        const granTotal = (matTotal + mano + varios) * margen;
+        document.getElementById('total-txt').innerText = "TOTAL PRESUPUESTO: " + granTotal.toFixed(2) + " €";
+        document.getElementById('resumen-lista').innerHTML = html + "</table>";
+    }
+
+    async function enviarTaller() {
+        for(let item of obraItems) {
+            item.imgs.forEach((img, i) => {
+                db.collection("materiales").add({ trabajo: item.obra, nombre: "PLANO "+(i==0?"MARCO":"HOJA"), imagen: img, estado: "info", fecha: new Date() });
+            });
+            for(let p of item.piezas) {
+                await db.collection("materiales").add({ trabajo: item.obra, nombre: p.m + " ("+p.t+")", medida: p.l + " mm", cantidad: p.c, estado: "pendiente", fecha: new Date() });
+            }
+        }
+        alert("Orden enviada!"); location.reload();
+    }
+
+    function guardarP() {
+        const n = document.getElementById('st-n').value;
+        prontuario[n] = { a: document.getElementById('st-a').value, b: document.getElementById('st-b').value, p: document.getElementById('st-p').value };
+        localStorage.setItem('prontuario_v8', JSON.stringify(prontuario)); renderProntuario();
+    }
+
+    function renderProntuario() {
+        let h = "";
+        for(let k in prontuario) h += `<tr><td>${k}</td><td>${prontuario[k].a}x${prontuario[k].b}</td><td>${prontuario[k].p}€</td><td><button onclick="borrarP('${k}')">❌</button></td></tr>`;
+        document.getElementById('lista-p').innerHTML = h;
+    }
+    function borrarP(k) { delete prontuario[k]; localStorage.setItem('prontuario_v8', JSON.stringify(prontuario)); renderProntuario(); }
 </script>
 </body>
 </html>
