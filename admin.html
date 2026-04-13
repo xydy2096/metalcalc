@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSTCALC V59 - SISTEMA CON MEMORIA Y GESTIÓN</title>
+    <title>MSTCALC V60 - SISTEMA PROFESIONAL COMPLETO</title>
     <style>
         :root { 
             --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
             --border: #cbd5e1; --sidebar-w: 300px; --accent: #f59e0b;
-            --card-bg: #ffffff; --text: #1e293b; --danger: #ef4444; --pending: #64748b;
+            --card-bg: #ffffff; --text: #1e293b; --danger: #ef4444;
         }
 
-        * { box-sizing: border-box; transition: all 0.2s ease; }
-        body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: var(--bg); display: flex; color: var(--text); min-height: 100vh; overflow-x: hidden; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); display: flex; color: var(--text); min-height: 100vh; }
 
-        /* --- SIDEBAR --- */
+        /* --- SIDEBAR CON SUBMENÚS --- */
         .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 20px; position: fixed; overflow-y: auto; border-right: 5px solid var(--s); z-index: 1000; }
         .sidebar h2 { color: var(--s); font-size: 1.6rem; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 25px; text-align: center; font-weight: 900; }
 
@@ -25,7 +25,7 @@
             font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8;
         }
         .category-title:hover { background: rgba(59, 130, 246, 0.1); color: white; }
-        .category-title::after { content: '▼'; font-size: 0.6rem; }
+        .category-title::after { content: '▼'; font-size: 0.6rem; transition: 0.3s; }
         .category-title.open::after { transform: rotate(180deg); }
 
         .submenu { display: none; padding-left: 10px; margin-top: 5px; }
@@ -40,55 +40,58 @@
 
         /* --- CONTENIDO --- */
         .main-content { margin-left: var(--sidebar-w); padding: 40px; width: calc(100% - var(--sidebar-w)); }
-        .view { display: none; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.4s ease; }
+        .view { display: none; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s ease; }
         .view.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- CARDS Y FORMS --- */
+        /* --- CARDS Y GRIDS --- */
         .grid-main { display: grid; grid-template-columns: 1fr 480px; gap: 30px; align-items: start; }
         .card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .card h3 { margin-top: 0; font-size: 1.1rem; color: var(--p); border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px; font-weight: 800; display: flex; justify-content: space-between; align-items: center;}
+        .card h3 { margin-top: 0; font-size: 1.1rem; color: var(--p); border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 20px; font-weight: 800; }
 
         .f-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .f-group { flex: 1; min-width: 140px; }
         label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
         input, select, textarea { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; width: 100%; background: #f8fafc; font-size: 0.9rem; }
 
-        /* --- HISTORIAL Y TABLAS --- */
-        .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        /* --- HISTORIAL Y ESTADOS --- */
+        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .filter-btn { padding: 8px 15px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+        .filter-btn.active { background: var(--s); color: white; }
+        
+        .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
         .st-pendiente { background: #e2e8f0; color: #475569; }
         .st-aceptado { background: #dcfce7; color: #15803d; }
         .st-rechazado { background: #fee2e2; color: #b91c1c; }
 
-        table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid #e2e8f0; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; }
-
-        .btn-action { padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; font-weight: 700; font-size: 0.8rem; }
-        .btn-save { background: var(--success); color: white; width: 100%; margin-top: 10px; }
-        .btn-danger { background: var(--danger); color: white; }
-        
-        .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
-        .filter-btn { padding: 8px 15px; border-radius: 6px; border: 1px solid var(--border); cursor: pointer; background: white; font-size: 0.8rem; font-weight: 600; }
-        .filter-btn.active { background: var(--s); color: white; border-color: var(--s); }
-
-        /* --- VISUAL --- */
+        /* --- CANVAS Y RESULTADOS --- */
         .canvas-box { background: #0f172a; border-radius: 20px; padding: 20px; position: sticky; top: 20px; }
+        canvas { width: 100%; height: auto; border-radius: 8px; background: #1e293b; }
         .res-panel { background: #1e293b; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; border-left: 6px solid var(--accent); font-family: 'Consolas', monospace; font-size: 0.85rem; }
+        .corte-line { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .corte-line strong { color: var(--s); display: block; text-transform: uppercase; font-size: 0.7rem; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
+
+        .btn-primary { background: var(--s); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; margin-top: 10px; }
+        .btn-danger-sm { background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V59</h2>
+        <h2>MSTCALC V60</h2>
         <div class="nav-item active" onclick="showView('v-datos', this)">📝 Datos del Proyecto</div>
-        <div class="nav-item" onclick="showView('v-historial', this)">📂 Historial de Trabajos</div>
+        <div class="nav-item" onclick="showView('v-historial', this)">📂 Historial y Filtros</div>
 
         <div class="menu-category">
             <div class="category-title open" onclick="toggleSubmenu('sub-puertas', this)">Puertas Industriales</div>
             <div class="submenu open" id="sub-puertas">
                 <div class="nav-item" onclick="showView('v-abatibles', this)">🚪 Abatibles</div>
                 <div class="nav-item" onclick="showView('v-correderas', this)">↔️ Correderas</div>
+                <div class="nav-item" onclick="showView('v-autoportantes', this)">🏗️ Autoportantes</div>
             </div>
         </div>
 
@@ -96,12 +99,13 @@
             <div class="category-title open" onclick="toggleSubmenu('sub-estructuras', this)">Estructuras</div>
             <div class="submenu open" id="sub-estructuras">
                 <div class="nav-item" onclick="showView('v-barandillas', this)">🪜 Barandillas</div>
+                <div class="nav-item" onclick="showView('v-vallas', this)">🏁 Vallas / Rejas</div>
             </div>
         </div>
 
         <div class="menu-category">
-            <div class="category-title" onclick="toggleSubmenu('sub-gestion', this)">Configuración</div>
-            <div class="submenu" id="sub-gestion">
+            <div class="category-title" onclick="toggleSubmenu('sub-taller', this)">Taller y Memoria</div>
+            <div class="submenu" id="sub-taller">
                 <div class="nav-item" onclick="showView('v-prontuario', this)">📖 Prontuario Maestro</div>
             </div>
         </div>
@@ -110,88 +114,123 @@
     <div class="main-content">
 
         <div id="v-datos" class="view active">
-            <h1>📝 Nuevo Proyecto</h1>
+            <h1>📝 Registro de Proyecto</h1>
             <div class="card">
-                <h3>Información de Cabecera</h3>
+                <h3>Información de Obra</h3>
                 <div class="f-row">
-                    <div class="f-group"><label>Nombre del Trabajo</label><input type="text" id="p-nombre" placeholder="Ej: Puerta Seccional Nave A"></div>
+                    <div class="f-group"><label>Proyecto</label><input type="text" id="p-nombre" placeholder="Nombre de la obra"></div>
                     <div class="f-group"><label>Cliente</label><input type="text" id="p-cliente"></div>
                 </div>
                 <div class="f-row">
-                    <div class="f-group"><label>Estado Inicial</label>
+                    <div class="f-group"><label>Estado</label>
                         <select id="p-estado">
                             <option value="pendiente">Pendiente</option>
                             <option value="aceptado">Aceptado</option>
                             <option value="rechazado">Rechazado</option>
                         </select>
                     </div>
-                    <div class="f-group"><label>Presupuesto Estimado (€)</label><input type="number" id="p-coste" value="0"></div>
+                    <div class="f-group"><label>Presupuesto €</label><input type="number" id="p-coste" value="0"></div>
                 </div>
-                <button class="btn-action btn-save" onclick="guardarTrabajo()">GUARDAR EN HISTORIAL</button>
+                <button class="btn-primary" onclick="guardarTrabajo()">💾 GUARDAR TRABAJO EN MEMORIA</button>
             </div>
         </div>
 
         <div id="v-historial" class="view">
-            <h1>📂 Historial de Trabajos</h1>
+            <h1>📂 Historial de Proyectos</h1>
             <div class="filter-bar">
                 <button class="filter-btn active" onclick="filtrarHistorial('todos', this)">Todos</button>
                 <button class="filter-btn" onclick="filtrarHistorial('pendiente', this)">Pendientes</button>
                 <button class="filter-btn" onclick="filtrarHistorial('aceptado', this)">Aceptados</button>
                 <button class="filter-btn" onclick="filtrarHistorial('rechazado', this)">Rechazados</button>
-                <button class="btn-action btn-danger" style="margin-left: auto;" onclick="borrarTodoHistorial()">🗑️ BORRAR TODO</button>
+                <button class="btn-danger-sm" style="margin-left:auto" onclick="borrarTodoHistorial()">🗑️ ELIMINAR TODO</button>
             </div>
             <div class="card">
                 <table id="tabla-historial">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Proyecto</th>
-                            <th>Cliente</th>
-                            <th>Coste</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
+                    <thead><tr><th>Fecha</th><th>Proyecto</th><th>Cliente</th><th>Estado</th><th>€</th><th>Acción</th></tr></thead>
                     <tbody id="historial-body"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="v-abatibles" class="view">
-            <h1>🚪 Puertas Abatibles</h1>
+            <h1>Puertas Abatibles</h1>
             <div class="grid-main">
                 <div class="config">
                     <div class="card">
-                        <h3>📏 Dimensiones</h3>
+                        <h3>📏 Bastidor</h3>
                         <div class="f-row">
                             <div class="f-group"><label>Ancho W</label><input type="number" id="ab-w" value="3000" oninput="runAbatible()"></div>
-                            <div class="f-group"><label>Alto H</label><input type="number" id="ab-h" value="2000" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Alto H</label><input type="number" id="ab-h" value="2100" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Nº Hojas</label><select id="ab-nh" onchange="runAbatible()"><option value="1">1 Hoja</option><option value="2" selected>2 Hojas</option></select></div>
                         </div>
                         <div class="f-row">
-                            <div class="f-group"><label>Perfil Bastidor</label><select id="ab-ph" onchange="runAbatible()"></select></div>
-                            <div class="f-group"><label>Barrote</label><select id="ab-pb" onchange="runAbatible()"></select></div>
+                            <div class="f-group"><label>Perfil Hoja</label><select id="ab-ph" onchange="runAbatible()"></select></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🎨 Relleno</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Tipo</label><select id="ab-rt" onchange="runAbatible()"><option value="barrotes">Barrotes</option><option value="chapa">Chapa Total</option></select></div>
+                            <div class="f-group"><label>Orientación</label><select id="ab-ro" onchange="runAbatible()"><option value="V">Vertical</option><option value="H">Horizontal</option></select></div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Barrote</label><select id="ab-pb" onchange="runAbatible()"></select></div>
+                            <div class="f-group"><label>Hueco Máx</label><input type="number" id="ab-dist" value="110" oninput="runAbatible()"></div>
                         </div>
                     </div>
                 </div>
                 <div class="canvas-box">
-                    <canvas id="ab-can" width="500" height="350"></canvas>
+                    <canvas id="ab-can" width="500" height="400"></canvas>
                     <div id="ab-res" class="res-panel"></div>
                 </div>
             </div>
         </div>
 
-        <div id="v-barandillas" class="view">
-            <h1>🪜 Barandillas</h1>
+        <div id="v-correderas" class="view">
+            <h1>Puertas Correderas</h1>
             <div class="grid-main">
                 <div class="config">
                     <div class="card">
-                        <h3>📏 Medidas Barandilla</h3>
+                        <h3>📏 Medidas y Cola</h3>
                         <div class="f-row">
-                            <div class="f-group"><label>Longitud L</label><input type="number" id="ba-l" value="5000" oninput="runBarandilla()"></div>
-                            <div class="f-group"><label>Altura H</label><input type="number" id="ba-h" value="1000" oninput="runBarandilla()"></div>
+                            <div class="f-group"><label>Ancho Luz</label><input type="number" id="co-w" value="4000" oninput="runCorredera()"></div>
+                            <div class="f-group"><label>Alto Hoja</label><input type="number" id="co-h" value="2000" oninput="runCorredera()"></div>
                         </div>
                         <div class="f-row">
+                            <div class="f-group"><label>Cola Pato</label><input type="number" id="co-cola" value="400" oninput="runCorredera()"></div>
+                            <div class="f-group"><label>Perfil Hoja</label><select id="co-ph" onchange="runCorredera()"></select></div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Pilares Refuerzo</label><input type="number" id="co-pi" value="3" oninput="runCorredera()"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="canvas-box">
+                    <canvas id="co-can" width="500" height="300"></canvas>
+                    <div id="co-res" class="res-panel"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="v-barandillas" class="view">
+            <h1>Barandillas Técnicas</h1>
+            <div class="grid-main">
+                <div class="config">
+                    <div class="card">
+                        <h3>📏 Dimensiones</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Longitud L</label><input type="number" id="ba-l" value="6000" oninput="runBarandilla()"></div>
+                            <div class="f-group"><label>Altura H</label><input type="number" id="ba-h" value="1000" oninput="runBarandilla()"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🔩 Descuentos de Perfil</h3>
+                        <div class="f-row">
                             <div class="f-group"><label>Pasamanos</label><select id="ba-pp" onchange="runBarandilla()"></select></div>
+                            <div class="f-group"><label>Pilares</label><select id="ba-pil" onchange="runBarandilla()"></select></div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Zócalo Inf.</label><select id="ba-pz" onchange="runBarandilla()"><option value="none">Ninguno</option></select></div>
                             <div class="f-group"><label>Barrote</label><select id="ba-pb" onchange="runBarandilla()"></select></div>
                         </div>
                     </div>
@@ -206,34 +245,32 @@
         <div id="v-prontuario" class="view">
             <h1>📖 Prontuario Maestro</h1>
             <div class="card">
-                <h3>Añadir Perfil</h3>
+                <h3>Añadir Material</h3>
                 <div class="f-row">
                     <div class="f-group"><label>Nombre</label><input type="text" id="n-n"></div>
                     <div class="f-group"><label>A (mm)</label><input type="number" id="n-a"></div>
                     <div class="f-group"><label>B (mm)</label><input type="number" id="n-b"></div>
-                    <div class="f-group"><button class="btn-action btn-save" style="margin-top:25px" onclick="addMaterial()">AÑADIR</button></div>
+                    <div class="f-group"><button class="btn-primary" onclick="addMaterial()">GUARDAR</button></div>
                 </div>
             </div>
-            <div class="card">
-                <table id="lista-mat"></table>
-            </div>
+            <div class="card"><table id="lista-mat"></table></div>
         </div>
 
     </div>
 
     <script>
-        // --- MEMORIA DE DATOS (LOCALSTORAGE) ---
-        let materiales = JSON.parse(localStorage.getItem('mst_materiales')) || [
+        // --- MEMORIA LOCAL (NO SE PIERDE AL CERRAR) ---
+        let materiales = JSON.parse(localStorage.getItem('mst_mats')) || [
             { nom: "Rect 80x40", a: 80, b: 40 },
             { nom: "Cuad 40x40", a: 40, b: 40 },
-            { nom: "Mcc 20x20", a: 20, b: 20 }
+            { nom: "Mcc 20x20", a: 20, b: 20 },
+            { nom: "Pasamanos 50x20", a: 50, b: 20 }
         ];
+        let historial = JSON.parse(localStorage.getItem('mst_hist')) || [];
 
-        let historial = JSON.parse(localStorage.getItem('mst_historial')) || [];
-
-        function saveToDisk() {
-            localStorage.setItem('mst_materiales', JSON.stringify(materiales));
-            localStorage.setItem('mst_historial', JSON.stringify(historial));
+        function save() {
+            localStorage.setItem('mst_mats', JSON.stringify(materiales));
+            localStorage.setItem('mst_hist', JSON.stringify(historial));
         }
 
         // --- NAVEGACIÓN ---
@@ -251,61 +288,57 @@
             updateCalculations();
         }
 
-        // --- GESTIÓN DE MATERIALES ---
+        // --- PRONTUARIO ---
         function addMaterial() {
             const n = document.getElementById('n-n').value;
             const a = parseFloat(document.getElementById('n-a').value);
             const b = parseFloat(document.getElementById('n-b').value);
-            if(n && a) {
-                materiales.push({nom:n, a, b});
-                saveToDisk();
-                renderProntuario();
-                syncSelects();
-            }
+            if(n && a) { materiales.push({nom:n, a, b}); save(); renderProntuario(); syncSelects(); }
         }
 
         function renderProntuario() {
-            const table = document.getElementById('lista-mat');
-            table.innerHTML = `<thead><tr><th>Ref</th><th>Dim</th><th>Acción</th></tr></thead>` + 
-            materiales.map((m, i) => `<tr><td>${m.nom}</td><td>${m.a}x${m.b}</td><td><button class="btn-danger" onclick="borrarMat(${i})">❌</button></td></tr>`).join('');
+            const t = document.getElementById('lista-mat');
+            t.innerHTML = `<thead><tr><th>Ref</th><th>Dim</th><th>Acción</th></tr></thead>` + 
+            materiales.map((m, i) => `<tr><td>${m.nom}</td><td>${m.a}x${m.b}</td><td><button class="btn-danger-sm" onclick="materiales.splice(${i},1);save();renderProntuario();syncSelects()">❌</button></td></tr>`).join('');
         }
-
-        function borrarMat(i) { materiales.splice(i, 1); saveToDisk(); renderProntuario(); syncSelects(); }
 
         function syncSelects() {
             const opts = materiales.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
-            document.querySelectorAll('select').forEach(s => { if(s.id.includes('-p')) s.innerHTML = opts; });
+            ['ab-ph', 'ab-pb', 'co-ph', 'ba-pp', 'ba-pil', 'ba-pb'].forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.innerHTML = opts;
+            });
+            const zoc = document.getElementById('ba-pz');
+            if(zoc) zoc.innerHTML = `<option value="none">Ninguno</option>` + opts;
         }
 
-        // --- GESTIÓN DE HISTORIAL ---
+        // --- HISTORIAL ---
         function guardarTrabajo() {
-            const nuevo = {
+            const trab = {
                 id: Date.now(),
                 fecha: new Date().toLocaleDateString(),
                 nombre: document.getElementById('p-nombre').value || "Sin nombre",
                 cliente: document.getElementById('p-cliente').value || "Genérico",
-                coste: document.getElementById('p-coste').value || 0,
-                estado: document.getElementById('p-estado').value
+                estado: document.getElementById('p-estado').value,
+                coste: document.getElementById('p-coste').value || 0
             };
-            historial.push(nuevo);
-            saveToDisk();
-            alert("Proyecto guardado con éxito.");
+            historial.push(trab);
+            save();
+            alert("Proyecto guardado en el historial.");
         }
 
-        function renderHistorial(filtro = 'todos') {
-            const body = document.getElementById('historial-body');
-            body.innerHTML = historial
-                .filter(t => filtro === 'todos' || t.estado === filtro)
-                .map(t => `
-                    <tr>
-                        <td>${t.fecha}</td>
-                        <td><strong>${t.nombre}</strong></td>
-                        <td>${t.cliente}</td>
-                        <td>${t.coste} €</td>
-                        <td><span class="status-badge st-${t.estado}">${t.estado}</span></td>
-                        <td><button class="btn-danger" onclick="borrarTrabajo(${t.id})">🗑️</button></td>
-                    </tr>
-                `).join('');
+        function renderHistorial(f = 'todos') {
+            const b = document.getElementById('historial-body');
+            b.innerHTML = historial.filter(h => f === 'todos' || h.estado === f).map(h => `
+                <tr>
+                    <td>${h.fecha}</td>
+                    <td><strong>${h.nombre}</strong></td>
+                    <td>${h.cliente}</td>
+                    <td><span class="status-badge st-${h.estado}">${h.estado}</span></td>
+                    <td>${h.coste}€</td>
+                    <td><button class="btn-danger-sm" onclick="borrarTrabajo(${h.id})">🗑️</button></td>
+                </tr>
+            `).join('');
         }
 
         function filtrarHistorial(f, btn) {
@@ -314,44 +347,58 @@
             renderHistorial(f);
         }
 
-        function borrarTrabajo(id) {
-            historial = historial.filter(t => t.id !== id);
-            saveToDisk();
-            renderHistorial();
-        }
+        function borrarTrabajo(id) { historial = historial.filter(h => h.id !== id); save(); renderHistorial(); }
+        function borrarTodoHistorial() { if(confirm("¿Borrar TODO el historial?")) { historial = []; save(); renderHistorial(); } }
 
-        function borrarTodoHistorial() {
-            if(confirm("¿Seguro que quieres borrar TODOS los trabajos? Esta acción no se puede deshacer.")) {
-                historial = [];
-                saveToDisk();
-                renderHistorial();
-            }
-        }
-
-        // --- CÁLCULOS (BÁSICOS PARA V59) ---
-        function updateCalculations() {
-            syncSelects();
-            runAbatible();
-            runBarandilla();
-        }
-
+        // --- CÁLCULOS TÉCNICOS ---
         function runAbatible() {
-            const W = document.getElementById('ab-w').value;
-            const H = document.getElementById('ab-h').value;
-            document.getElementById('ab-res').innerHTML = `<div class="corte-line"><strong>Corte Bastidor:</strong> 2x ${W}mm | 2x ${H}mm</div>`;
+            const W = parseFloat(document.getElementById('ab-w').value);
+            const H = parseFloat(document.getElementById('ab-h').value);
+            const nH = parseInt(document.getElementById('ab-nh').value);
+            const ph = materiales[document.getElementById('ab-ph').value] || materiales[0];
+            const pb = materiales[document.getElementById('ab-pb').value] || materiales[1];
+            const ori = document.getElementById('ab-ro').value;
+            const dMax = parseFloat(document.getElementById('ab-dist').value);
+
+            const hW = (W / nH);
+            const luz = (ori === 'V') ? (hW - ph.a*2) : (H - ph.a*2);
+            const nB = Math.ceil(luz / (dMax + pb.a)) - 1;
+            const dLuz = (luz - (nB * pb.a)) / (nB + 1);
+
+            document.getElementById('ab-res').innerHTML = `
+                <div class="corte-line"><strong>Bastidor:</strong> ${nH*2} uds x ${H}mm | ${nH*2} uds x ${hW.toFixed(0)}mm</div>
+                <div class="corte-line"><strong>Relleno (${nB*nH} uds):</strong> Corte ${(ori==='V'? H-ph.a*2 : hW-ph.a*2).toFixed(0)}mm | Luz: ${dLuz.toFixed(1)}mm</div>`;
+        }
+
+        function runCorredera() {
+            const W = parseFloat(document.getElementById('co-w').value);
+            const H = parseFloat(document.getElementById('co-h').value);
+            const cola = parseFloat(document.getElementById('co-cola').value);
+            const ph = materiales[document.getElementById('co-ph').value] || materiales[0];
+            const pInt = parseInt(document.getElementById('co-pi').value);
+            const totalW = W + cola;
+
+            document.getElementById('co-res').innerHTML = `
+                <div class="corte-line"><strong>Largueros:</strong> 2 x ${totalW}mm</div>
+                <div class="corte-line"><strong>Montantes:</strong> 2 x ${H}mm | Refuerzos: ${pInt} x ${(H-ph.a*2).toFixed(0)}mm</div>`;
         }
 
         function runBarandilla() {
-            const L = document.getElementById('ba-l').value;
-            const H = document.getElementById('ba-h').value;
-            document.getElementById('ba-res').innerHTML = `<div class="corte-line"><strong>Hoja de Corte:</strong> Pasamanos ${L}mm | Pilares a ${H}mm</div>`;
+            const L = parseFloat(document.getElementById('ba-l').value);
+            const H = parseFloat(document.getElementById('ba-h').value);
+            const pp = materiales[document.getElementById('ba-pp').value] || materiales[3];
+            const pzVal = document.getElementById('ba-pz').value;
+            const pz = pzVal === 'none' ? {a:0} : materiales[pzVal];
+            const nPil = Math.ceil(L / 1500) + 1;
+
+            document.getElementById('ba-res').innerHTML = `
+                <div class="corte-line"><strong>Pasamanos:</strong> 1 x ${L}mm</div>
+                <div class="corte-line"><strong>Pilares:</strong> ${nPil} uds a ${H}mm</div>
+                <div class="corte-line"><strong>Barrotes:</strong> Corte a ${(H - pp.a - pz.a).toFixed(0)}mm</div>`;
         }
 
-        window.onload = () => {
-            renderProntuario();
-            renderHistorial();
-            updateCalculations();
-        };
+        function updateCalculations() { syncSelects(); runAbatible(); runCorredera(); runBarandilla(); }
+        window.onload = () => { renderProntuario(); updateCalculations(); };
     </script>
 </body>
 </html>
