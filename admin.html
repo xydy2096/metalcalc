@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSTCALC V56 - SISTEMA DE GESTIÓN TÉCNICA</title>
+    <title>MSTCALC V57 - SISTEMA MAESTRO COMPLETO</title>
     <style>
         :root { 
             --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
@@ -35,7 +35,7 @@
             padding: 12px 15px; margin-bottom: 4px; border-radius: 8px; cursor: pointer; 
             transition: 0.2s; display: flex; align-items: center; gap: 10px; color: #cbd5e1; font-size: 0.9rem; 
         }
-        .nav-item:hover { background: rgba(59, 130, 246, 0.15); color: white; padding-left: 20px; }
+        .nav-item:hover { background: rgba(59, 130, 246, 0.15); color: white; }
         .nav-item.active { background: var(--s); color: white; font-weight: 700; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
         /* --- CONTENIDO --- */
@@ -45,42 +45,38 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
         /* --- TARJETAS Y GRIDS --- */
-        .grid-main { display: grid; grid-template-columns: 1fr 500px; gap: 30px; }
-        .card { background: var(--card-bg); padding: 30px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .card h3 { margin-top: 0; font-size: 1.2rem; color: var(--p); border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 25px; }
+        .grid-main { display: grid; grid-template-columns: 1fr 480px; gap: 30px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .card h3 { margin-top: 0; font-size: 1.1rem; color: var(--p); border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; }
 
         /* --- FORMULARIOS --- */
-        .f-row { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
-        .f-group { flex: 1; min-width: 180px; }
-        label { display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 10px; text-transform: uppercase; }
-        input, select, textarea { padding: 14px; border: 2px solid #e2e8f0; border-radius: 10px; width: 100%; background: #f8fafc; font-size: 0.95rem; transition: 0.3s; }
-        input:focus { border-color: var(--s); outline: none; background: white; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .f-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .f-group { flex: 1; min-width: 150px; }
+        label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
+        input, select, textarea { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; width: 100%; background: #f8fafc; font-size: 0.9rem; }
 
-        /* --- CANVAS Y RESULTADOS --- */
-        .canvas-box { background: #0f172a; border-radius: 24px; padding: 30px; border: 1px solid #334155; position: sticky; top: 40px; }
-        canvas { width: 100%; height: auto; border-radius: 12px; }
-        .res-panel { background: #1e293b; color: white; padding: 30px; border-radius: 16px; margin-top: 30px; border-left: 8px solid var(--accent); font-family: 'Fira Code', 'Consolas', monospace; }
-        .corte-line { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.1); }
-        .corte-line strong { color: var(--s); font-size: 0.85rem; text-transform: uppercase; display: block; margin-bottom: 6px; }
+        /* --- RESULTADOS --- */
+        .canvas-box { background: #0f172a; border-radius: 20px; padding: 20px; border: 1px solid #334155; position: sticky; top: 20px; }
+        canvas { width: 100%; height: auto; border-radius: 8px; }
+        .res-panel { background: #1e293b; color: white; padding: 20px; border-radius: 12px; margin-top: 20px; border-left: 6px solid var(--accent); font-family: 'Consolas', monospace; font-size: 0.85rem; }
+        .corte-line { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .corte-line strong { color: var(--s); display: block; margin-bottom: 2px; }
 
         table { width: 100%; border-collapse: collapse; }
-        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.75rem; color: #64748b; border-bottom: 2px solid #e2e8f0; }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; }
-
-        .btn-primary { background: var(--s); color: white; border: none; padding: 15px 25px; border-radius: 10px; cursor: pointer; font-weight: 700; transition: 0.3s; }
-        .btn-primary:hover { background: #2563eb; transform: translateY(-2px); }
+        th { background: #f8fafc; padding: 12px; text-align: left; font-size: 0.7rem; color: #64748b; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V56</h2>
+        <h2>MSTCALC V57</h2>
         
         <div class="nav-item active" id="nav-inicio" onclick="showView('v-datos', this)">📝 Datos del Proyecto</div>
 
         <div class="menu-category">
-            <div class="category-title" onclick="toggleSubmenu('sub-puertas', this)">Puertas Industriales</div>
-            <div class="submenu" id="sub-puertas">
+            <div class="category-title open" onclick="toggleSubmenu('sub-puertas', this)">Puertas Industriales</div>
+            <div class="submenu open" id="sub-puertas">
                 <div class="nav-item" onclick="showView('v-abatibles', this)">🚪 Abatibles</div>
                 <div class="nav-item" onclick="showView('v-correderas', this)">↔️ Correderas</div>
                 <div class="nav-item" onclick="showView('v-autoportantes', this)">🏗️ Autoportantes</div>
@@ -88,8 +84,8 @@
         </div>
 
         <div class="menu-category">
-            <div class="category-title" onclick="toggleSubmenu('sub-estructuras', this)">Estructuras</div>
-            <div class="submenu" id="sub-estructuras">
+            <div class="category-title open" onclick="toggleSubmenu('sub-estructuras', this)">Estructuras</div>
+            <div class="submenu open" id="sub-estructuras">
                 <div class="nav-item" onclick="showView('v-barandillas', this)">🪜 Barandillas</div>
                 <div class="nav-item" onclick="showView('v-vallas', this)">🏁 Vallas / Rejas</div>
             </div>
@@ -100,15 +96,6 @@
             <div class="submenu" id="sub-taller">
                 <div class="nav-item" onclick="showView('v-prontuario', this)">📖 Prontuario Maestro</div>
                 <div class="nav-item" onclick="showView('v-stock', this)">📦 Stock / Almacén</div>
-                <div class="nav-item" onclick="showView('v-chapa', this)">✂️ Corte Chapa</div>
-            </div>
-        </div>
-
-        <div class="menu-category">
-            <div class="category-title" onclick="toggleSubmenu('sub-admin', this)">Administración</div>
-            <div class="submenu" id="sub-admin">
-                <div class="nav-item" onclick="showView('v-presupuesto', this)">🧾 Presupuestos</div>
-                <div class="nav-item" onclick="showView('v-clientes', this)">👥 Clientes</div>
             </div>
         </div>
     </div>
@@ -116,49 +103,37 @@
     <div class="main-content">
 
         <div id="v-datos" class="view active">
-            <h1>📝 Registro de Nuevo Proyecto</h1>
+            <h1>📝 Nuevo Proyecto</h1>
             <div class="card">
-                <h3>Información General</h3>
+                <h3>Información de Obra</h3>
                 <div class="f-row">
-                    <div class="f-group"><label>Nombre del Proyecto / Obra</label><input type="text" id="p-nombre" placeholder="Ej: Puerta Chalet Calle Mayor"></div>
-                    <div class="f-group"><label>Referencia / Pedido</label><input type="text" id="p-ref" placeholder="#2024-001"></div>
+                    <div class="f-group"><label>Nombre Obra</label><input type="text" id="p-nombre" placeholder="Ej: Puerta Chalet"></div>
+                    <div class="f-group"><label>Cliente</label><input type="text" id="p-cliente"></div>
                 </div>
                 <div class="f-row">
-                    <div class="f-group"><label>Cliente</label><input type="text" id="p-cliente" placeholder="Nombre del cliente o empresa"></div>
-                    <div class="f-group"><label>Fecha de Instalación</label><input type="date" id="p-fecha"></div>
+                    <div class="f-group"><label>Ubicación</label><input type="text" id="p-loc"></div>
+                    <div class="f-group"><label>Fecha</label><input type="date" id="p-fecha"></div>
                 </div>
-                <div class="f-row">
-                    <div class="f-group"><label>Ubicación de la Obra</label><textarea id="p-loc" rows="2" placeholder="Dirección completa"></textarea></div>
-                </div>
-                <button class="btn-primary" onclick="alert('Datos guardados en sesión. Ahora puede proceder a los cálculos.')">CONFIRMAR Y EMPEZAR</button>
             </div>
         </div>
 
         <div id="v-abatibles" class="view">
-            <h1>Ingeniería de Puertas Abatibles</h1>
+            <h1>Puertas Abatibles</h1>
             <div class="grid-main">
                 <div class="config">
                     <div class="card">
-                        <h3>📏 Dimensiones Principales</h3>
+                        <h3>📏 Medidas</h3>
                         <div class="f-row">
-                            <div class="f-group"><label>Ancho Hueco W</label><input type="number" id="ab-w" value="3000" oninput="runAbatible()"></div>
-                            <div class="f-group"><label>Alto Hueco H</label><input type="number" id="ab-h" value="2100" oninput="runAbatible()"></div>
-                            <div class="f-group"><label>Nº Hojas</label><select id="ab-nh" onchange="runAbatible()"><option value="1">1 Hoja</option><option value="2" selected>2 Hojas</option></select></div>
-                        </div>
-                        <div class="f-row">
-                            <div class="f-group"><label>Perfil Marco</label><select id="ab-pm" onchange="runAbatible()"></select></div>
-                            <div class="f-group"><label>Perfil Hoja</label><select id="ab-ph" onchange="runAbatible()"></select></div>
+                            <div class="f-group"><label>Ancho W</label><input type="number" id="ab-w" value="3000" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Alto H</label><input type="number" id="ab-h" value="2100" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Hojas</label><select id="ab-nh" onchange="runAbatible()"><option value="1">1 Hoja</option><option value="2" selected>2 Hojas</option></select></div>
                         </div>
                     </div>
                     <div class="card">
-                        <h3>🎨 Diseño de Relleno</h3>
+                        <h3>🎨 Relleno</h3>
                         <div class="f-row">
-                            <div class="f-group"><label>Tipo de Relleno</label><select id="ab-rt" onchange="runAbatible()"><option value="barrotes">Barrotes</option><option value="chapa">Chapa Total</option></select></div>
                             <div class="f-group"><label>Orientación</label><select id="ab-ro" onchange="runAbatible()"><option value="V">Vertical</option><option value="H">Horizontal</option></select></div>
-                        </div>
-                        <div class="f-row">
-                            <div class="f-group"><label>Perfil Barrote</label><select id="ab-pb" onchange="runAbatible()"></select></div>
-                            <div class="f-group"><label>Hueco Máx (mm)</label><input type="number" id="ab-dist" value="110" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Barrote</label><select id="ab-pb" onchange="runAbatible()"></select></div>
                         </div>
                     </div>
                 </div>
@@ -169,136 +144,176 @@
             </div>
         </div>
 
-        <div id="v-correderas" class="view"><h1>↔️ Puertas Correderas</h1><div class="card">Cargando ingeniería de correderas...</div></div>
-        <div id="v-autoportantes" class="view"><h1>🏗️ Autoportantes</h1><div class="card">Cargando ingeniería de autoportantes...</div></div>
-        <div id="v-barandillas" class="view"><h1>🪜 Barandillas</h1><div class="card">Cargando ingeniería de barandillas...</div></div>
-        <div id="v-vallas" class="view"><h1>🏁 Vallas</h1><div class="card">Cargando ingeniería de vallas...</div></div>
-        
-        <div id="v-prontuario" class="view">
-            <h1>📖 Prontuario Maestro</h1>
-            <div class="card">
-                <h3>Añadir Material al Stock Base</h3>
-                <div class="f-row">
-                    <div class="f-group"><label>Tipo</label><select id="n-t"><option value="perfil">Perfil</option><option value="chapa">Chapa</option></select></div>
-                    <div class="f-group" style="flex:2"><label>Referencia</label><input type="text" id="n-n"></div>
-                    <div class="f-group"><label>Dim A</label><input type="number" id="n-a"></div>
-                    <div class="f-group"><label>Dim B</label><input type="number" id="n-b"></div>
-                    <div class="f-group"><button class="btn-primary" onclick="addMaterial()" style="margin-top:30px">GUARDAR</button></div>
+        <div id="v-correderas" class="view">
+            <h1>Puertas Correderas</h1>
+            <div class="grid-main">
+                <div class="config">
+                    <div class="card">
+                        <h3>📏 Bastidor y Cola</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Ancho Luz (W)</label><input type="number" id="co-w" value="4000" oninput="runCorredera()"></div>
+                            <div class="f-group"><label>Alto Hoja (H)</label><input type="number" id="co-h" value="2000" oninput="runCorredera()"></div>
+                            <div class="f-group"><label>Cola Pato (mm)</label><input type="number" id="co-cola" value="400" oninput="runCorredera()"></div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Hoja</label><select id="co-ph" onchange="runCorredera()"></select></div>
+                            <div class="f-group"><label>Pilares Int.</label><input type="number" id="co-pi" value="3" oninput="runCorredera()"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="canvas-box">
+                    <canvas id="co-can" width="500" height="300"></canvas>
+                    <div id="co-res" class="res-panel"></div>
                 </div>
             </div>
+        </div>
+
+        <div id="v-barandillas" class="view">
+            <h1>Barandillas Técnicas</h1>
+            <div class="grid-main">
+                <div class="config">
+                    <div class="card">
+                        <h3>📏 Dimensiones</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Longitud L</label><input type="number" id="ba-l" value="6000" oninput="runBarandilla()"></div>
+                            <div class="f-group"><label>Altura H</label><input type="number" id="ba-h" value="1000" oninput="runBarandilla()"></div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>🏗️ Perfiles</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Pasamanos</label><select id="ba-pp" onchange="runBarandilla()"></select></div>
+                            <div class="f-group"><label>Pilares Maestro</label><select id="ba-pil" onchange="runBarandilla()"></select></div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Inferior</label><select id="ba-pz" onchange="runBarandilla()"><option value="none">Sin perfil inferior</option></select></div>
+                            <div class="f-group"><label>Barrote</label><select id="ba-pb" onchange="runBarandilla()"></select></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="canvas-box">
+                    <canvas id="ba-can" width="500" height="300"></canvas>
+                    <div id="ba-res" class="res-panel"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="v-prontuario" class="view">
+            <h1>📖 Prontuario</h1>
             <div class="card">
-                <table><thead><tr><th>Tipo</th><th>Referencia</th><th>Dimensiones</th><th>Acción</th></tr></thead><tbody id="lista-mat"></tbody></table>
+                <div class="f-row">
+                    <div class="f-group"><label>Nombre</label><input type="text" id="n-n"></div>
+                    <div class="f-group"><label>A</label><input type="number" id="n-a"></div>
+                    <div class="f-group"><label>B</label><input type="number" id="n-b"></div>
+                    <div class="f-group"><button onclick="addMaterial()" style="margin-top:30px">AÑADIR</button></div>
+                </div>
+                <table id="lista-mat"></table>
             </div>
         </div>
 
     </div>
 
     <script>
-        // --- LÓGICA DE MENÚ DESPLEGABLE ---
+        let materiales = [
+            { tipo: 'perfil', nom: "Rect 80x40", a: 80, b: 40, e: 2 },
+            { tipo: 'perfil', nom: "Cuad 40x40", a: 40, b: 40, e: 1.5 },
+            { tipo: 'perfil', nom: "Pasamanos 50x20", a: 50, b: 20, e: 2 },
+            { tipo: 'perfil', nom: "Mcc 20x20", a: 20, b: 20, e: 0 }
+        ];
+
         function toggleSubmenu(id, el) {
             const sub = document.getElementById(id);
-            const isOpen = sub.classList.contains('open');
-            
-            // Cerrar otros (opcional, si quieres que solo haya uno abierto)
-            // document.querySelectorAll('.submenu').forEach(s => s.classList.remove('open'));
-            // document.querySelectorAll('.category-title').forEach(t => t.classList.remove('open'));
-
-            if (!isOpen) {
-                sub.classList.add('open');
-                el.classList.add('open');
-            } else {
-                sub.classList.remove('open');
-                el.classList.remove('open');
-            }
+            sub.classList.toggle('open');
+            el.classList.toggle('open');
         }
 
-        // --- NAVEGACIÓN ---
         function showView(id, el) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            el.classList.add('active');
-        }
-
-        // --- LÓGICA DE DATOS Y PRONTUARIO (HEREDADA V55) ---
-        let materiales = [
-            { tipo: 'perfil', nom: "Rect 80x40", a: 80, b: 40, e: 2 },
-            { tipo: 'perfil', nom: "Rect 100x40", a: 100, b: 40, e: 3 },
-            { tipo: 'perfil', nom: "Cuad 40x40", a: 40, b: 40, e: 1.5 },
-            { tipo: 'perfil', nom: "Pasamanos 50x20", a: 50, b: 20, e: 2 },
-            { tipo: 'perfil', nom: "Redondo Ø20", a: 20, b: 20, e: 1.5 }
-        ];
-
-        function addMaterial() {
-            const t = document.getElementById('n-t').value;
-            const n = document.getElementById('n-n').value;
-            const a = parseFloat(document.getElementById('n-a').value);
-            const b = parseFloat(document.getElementById('n-b').value);
-            if(n && a && b) { materiales.push({tipo:t, nom:n, a, b}); refreshMaterialLists(); }
+            if(el) el.classList.add('active');
+            updateCalculations();
         }
 
         function refreshMaterialLists() {
             const perfiles = materiales.filter(m => m.tipo === 'perfil');
             const pOpts = perfiles.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
             
-            ['ab-pm', 'ab-ph', 'ab-pb'].forEach(id => {
+            ['ab-pb', 'co-ph', 'ba-pp', 'ba-pil', 'ba-pb'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.innerHTML = pOpts;
             });
+            
+            const zoc = document.getElementById('ba-pz');
+            if(zoc) zoc.innerHTML = `<option value="none">Ninguno</option>` + pOpts;
+            
+            updateCalculations();
+        }
 
-            document.getElementById('lista-mat').innerHTML = materiales.map((m, i) => `
-                <tr><td>${m.tipo}</td><td>${m.nom}</td><td>${m.a}x${m.b}</td><td><button onclick="materiales.splice(${i},1);refreshMaterialLists()">❌</button></td></tr>
-            `).join('');
+        function updateCalculations() {
+            runAbatible();
+            runCorredera();
+            runBarandilla();
         }
 
         function runAbatible() {
-            const p = materiales.filter(m => m.tipo === 'perfil');
             const W = parseFloat(document.getElementById('ab-w').value);
             const H = parseFloat(document.getElementById('ab-h').value);
             const nH = parseInt(document.getElementById('ab-nh').value);
-            const pm = p[document.getElementById('ab-pm').value];
-            const ph = p[document.getElementById('ab-ph').value];
-            const pb = p[document.getElementById('ab-pb').value];
-            const ori = document.getElementById('ab-ro').value;
-            const dMax = parseFloat(document.getElementById('ab-dist').value);
-
-            const hW = ((W - (pm.a*2) - 15) / nH) + 20;
-            const hH = (H - pm.a - 15) + 20;
-
-            const luz = (ori === 'V') ? (hW - ph.a*2) : (hH - ph.a*2);
-            const nHuecos = Math.ceil(luz / (dMax + pb.a));
-            const nB = nHuecos - 1;
-            const dLuz = (luz - (nB * pb.a)) / nHuecos;
-
-            let html = `<div class="corte-line"><strong>Bastidores (${nH} hojas):</strong> ${nH*2} uds x ${hH.toFixed(0)}mm | ${nH*2} uds x ${hW.toFixed(0)}mm</div>`;
-            html += `<div class="corte-line"><strong>Relleno (${nB*nH} barrotes):</strong> Long: ${(ori==='V'? hH-ph.a*2 : hW-ph.a*2).toFixed(0)}mm | Luz: ${dLuz.toFixed(1)}mm</div>`;
-            document.getElementById('ab-res').innerHTML = html;
-
-            drawPuerta(W, H, hW, hH, nH, ph.a, pb.a, nB, dLuz, ori);
+            const pb = materiales[document.getElementById('ab-pb').value] || {a:20};
+            const hW = (W / nH);
+            
+            let res = `<div class="corte-line"><strong>Hoja:</strong> ${nH} uds de ${hW.toFixed(0)} x ${H}mm</div>`;
+            document.getElementById('ab-res').innerHTML = res;
+            
+            const ctx = document.getElementById('ab-can').getContext('2d');
+            ctx.clearRect(0,0,500,400);
+            ctx.strokeStyle="#3b82f6"; ctx.lineWidth=2;
+            for(let i=0; i<nH; i++) ctx.strokeRect(50+(i*(400/nH)), 50, 400/nH, 300);
         }
 
-        function drawPuerta(W, H, hW, hH, nH, eH, eB, nB, dist, ori) {
-            const canvas = document.getElementById('ab-can');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const s = 350/W;
-            const ox = (500 - W*s)/2; const oy = (400 - H*s)/2;
-            ctx.strokeStyle = "#475569"; ctx.strokeRect(ox, oy, W*s, H*s);
-            ctx.strokeStyle = "#3b82f6"; ctx.lineWidth = 2;
-            for(let i=0; i<nH; i++) {
-                const hx = ox + (i * hW * s);
-                ctx.strokeRect(hx, oy, hW*s, hH*s);
-                ctx.fillStyle = "rgba(148, 163, 184, 0.4)";
-                for(let b=1; b<=nB; b++) {
-                    if(ori === 'V') {
-                        const bx = hx + (eH*s) + (b * (dist + eB) * s) - (eB*s);
-                        ctx.fillRect(bx, oy + eH*s, eB*s, (hH - eH*2)*s);
-                    } else {
-                        const by = oy + (eH*s) + (b * (dist + eB) * s) - (eB*s);
-                        ctx.fillRect(hx + eH*s, by, (hW - eH*2)*s, eB*s);
-                    }
-                }
-            }
+        function runCorredera() {
+            const W = parseFloat(document.getElementById('co-w').value);
+            const H = parseFloat(document.getElementById('co-h').value);
+            const cola = parseFloat(document.getElementById('co-cola').value);
+            const pInt = parseInt(document.getElementById('co-pi').value);
+            const ph = materiales[document.getElementById('co-ph').value] || {a:80};
+
+            const totalW = W + cola;
+            let res = `<div class="corte-line"><strong>Largueros:</strong> 2x ${totalW}mm</div>`;
+            res += `<div class="corte-line"><strong>Montantes:</strong> 2x ${H}mm</div>`;
+            res += `<div class="corte-line"><strong>Refuerzos:</strong> ${pInt} uds x ${(H-ph.a*2).toFixed(0)}mm</div>`;
+            document.getElementById('co-res').innerHTML = res;
+
+            const ctx = document.getElementById('co-can').getContext('2d');
+            ctx.clearRect(0,0,500,300);
+            const s = 400/totalW;
+            ctx.strokeStyle="#3b82f6"; ctx.strokeRect(50, 50, totalW*s, H*0.1); // Ejemplo visual
+        }
+
+        function runBarandilla() {
+            const L = parseFloat(document.getElementById('ba-l').value);
+            const H = parseFloat(document.getElementById('ba-h').value);
+            const pp = materiales[document.getElementById('ba-pp').value] || {a:20};
+            const pil = materiales[document.getElementById('ba-pil').value] || {a:40};
+            const pzVal = document.getElementById('ba-pz').value;
+            const pz = pzVal === 'none' ? {a:0} : materiales[pzVal];
+            const pb = materiales[document.getElementById('ba-pb').value] || {a:20};
+
+            const nPil = Math.ceil(L / 1500) + 1;
+            const hCorteBarrote = H - pp.a - pz.a;
+
+            let res = `<div class="corte-line"><strong>Pasamanos:</strong> 1x ${L}mm</div>`;
+            res += `<div class="corte-line"><strong>Pilares (${nPil} uds):</strong> Corte a ${H}mm</div>`;
+            res += `<div class="corte-line"><strong>Barrotes:</strong> Corte a ${hCorteBarrote.toFixed(0)}mm (Diferencia de pasamanos restada)</div>`;
+            document.getElementById('ba-res').innerHTML = res;
+
+            const ctx = document.getElementById('ba-can').getContext('2d');
+            ctx.clearRect(0,0,500,300);
+            const s = 400/L;
+            ctx.fillStyle="#3b82f6";
+            ctx.fillRect(50, 100, L*s, 5); // Pasamanos
+            for(let i=0; i<nPil; i++) ctx.fillRect(50+(i*(L/(nPil-1))*s), 100, 5, 100);
         }
 
         window.onload = refreshMaterialLists;
