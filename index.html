@@ -3,62 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <title>OPERARIO</title>
-<style>
-body{font-family:sans-serif;background:#111;color:#fff;padding:20px}
-.card{background:#1e293b;padding:20px;border-radius:10px}
-canvas{background:#000;width:100%;max-width:500px}
-</style>
 </head>
 
 <body>
 
-<h2>Operario</h2>
+<h2>Trabajos</h2>
 
-<div class="card">
-<div id="info"></div>
-<canvas id="cv" width="500" height="300"></canvas>
-<div id="cortes"></div>
-</div>
+<div id="lista"></div>
 
-<script>
+<script type="module">
 
-let p = JSON.parse(localStorage.getItem('mst_sel'));
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-if(!p){
-document.body.innerHTML="No hay trabajo seleccionado";
-}
+// CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+  authDomain: "mstcalc.firebaseapp.com",
+  projectId: "mstcalc",
+  storageBucket: "mstcalc.firebasestorage.app",
+  messagingSenderId: "68220801288",
+  appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
+};
 
-info.innerHTML = `
-<b>${p.nombre}</b><br>
-${p.tipo} - ${p.cliente}
-`;
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-cortes.innerHTML = p.despiece.map(d=>
-`${d.pieza} → ${d.cantidad} x ${d.largo}mm`
-).join("<br>");
-
-// DIBUJO
-let ctx = cv.getContext("2d");
-
-if(p.tipo==="abatible"){
-let W=400,H=200;
-
-ctx.strokeStyle="white";
-ctx.strokeRect(50,50,W,H);
-
-// dividir hojas
-if(p.datos.n==2){
-ctx.beginPath();
-ctx.moveTo(50+W/2,50);
-ctx.lineTo(50+W/2,50+H);
-ctx.stroke();
-}
-}
-
-if(p.tipo==="corredera"){
-ctx.strokeRect(50,100,400,100);
-ctx.fillText("Cola",460,150);
-}
+// ESCUCHAR PROYECTOS
+onSnapshot(collection(db,"proyectos"), snap => {
+  lista.innerHTML = snap.docs.map(doc=>{
+    let p = doc.data();
+    return `
+      <div style="border:1px solid #ccc;margin:10px;padding:10px">
+        <b>${p.nombre}</b><br>
+        ${p.cliente}<br>
+        ${p.tipo}<br>
+        ${p.despiece.map(d=>`${d.pieza} ${d.largo}`).join("<br>")}
+      </div>
+    `;
+  }).join("");
+});
 
 </script>
 
