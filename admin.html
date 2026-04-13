@@ -2,379 +2,389 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>MSTCALC V54 - SISTEMA MAESTRO INDUSTRIAL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSTCALC V55 - SISTEMA INTEGRAL DE CARPINTERÍA METÁLICA</title>
     <style>
         :root { 
-            --p: #0f172a; --s: #3b82f6; --bg: #f8fafc; --success: #10b981; 
-            --border: #e2e8f0; --sidebar-w: 280px; --accent: #f59e0b;
+            --p: #0f172a; --s: #3b82f6; --bg: #f1f5f9; --success: #10b981; 
+            --border: #cbd5e1; --sidebar-w: 300px; --accent: #f59e0b;
+            --card-bg: #ffffff;
         }
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; color: #1e293b; min-height: 100vh; }
         
-        /* SIDEBAR PROFESIONAL */
-        .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; border-right: 4px solid var(--s); z-index: 1000; }
-        .sidebar h2 { color: var(--s); font-size: 1.5rem; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 20px; text-align: center; font-weight: 800; }
-        .nav-group-title { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin: 30px 0 10px 0; font-weight: 900; letter-spacing: 1.5px; border-left: 3px solid var(--accent); padding-left: 8px; }
-        .nav-item { padding: 14px; margin-bottom: 8px; border-radius: 10px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; color: #cbd5e1; font-size: 0.9rem; }
+        /* SIDEBAR COMPLETO - SIN RECORTES */
+        .sidebar { width: var(--sidebar-w); background: var(--p); height: 100vh; color: white; padding: 25px; position: fixed; overflow-y: auto; border-right: 5px solid var(--s); z-index: 1000; }
+        .sidebar h2 { color: var(--s); font-size: 1.6rem; border-bottom: 2px solid #334155; padding-bottom: 15px; margin-bottom: 25px; text-align: center; font-weight: 900; }
+        .nav-group-title { font-size: 0.75rem; color: #64748b; text-transform: uppercase; margin: 25px 0 10px 0; font-weight: 900; letter-spacing: 1.5px; border-left: 3px solid var(--accent); padding-left: 10px; }
+        .nav-item { padding: 14px; margin-bottom: 6px; border-radius: 10px; cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 12px; color: #cbd5e1; font-size: 0.9rem; }
         .nav-item:hover { background: rgba(59, 130, 246, 0.15); color: white; transform: translateX(5px); }
-        .nav-item.active { background: var(--s); color: white; font-weight: 700; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+        .nav-item.active { background: var(--s); color: white; font-weight: 700; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); }
 
-        /* CONTENIDO PRINCIPAL */
+        /* ÁREA DE TRABAJO */
         .main-content { margin-left: var(--sidebar-w); padding: 40px; width: calc(100% - var(--sidebar-w)); }
-        .view { display: none; max-width: 1300px; margin: 0 auto; animation: fadeIn 0.4s ease-out; }
+        .view { display: none; max-width: 1400px; margin: 0 auto; animation: fadeIn 0.3s ease; }
         .view.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* TARJETAS Y FORMULARIOS */
-        .grid-layout { display: grid; grid-template-columns: 1fr 450px; gap: 25px; align-items: start; }
-        .card { background: white; padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .card h3 { margin-top: 0; font-size: 1rem; color: var(--p); border-bottom: 1px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        /* GRID Y TARJETAS */
+        .grid-main { display: grid; grid-template-columns: 1fr 500px; gap: 30px; }
+        .card { background: var(--card-bg); padding: 25px; border-radius: 16px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .card h3 { margin-top: 0; font-size: 1.1rem; color: var(--p); border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
         
-        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
-        .form-group { flex: 1; min-width: 140px; }
-        label { display: block; font-size: 0.7rem; font-weight: 800; color: #64748b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-        input, select { padding: 10px 12px; border: 2px solid #f1f5f9; border-radius: 8px; width: 100%; background: #f8fafc; font-size: 0.9rem; transition: 0.2s; color: var(--p); }
-        input:focus, select:focus { outline: none; border-color: var(--s); background: white; }
+        /* FORMULARIOS */
+        .f-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .f-group { flex: 1; min-width: 150px; }
+        label { display: block; font-size: 0.75rem; font-weight: 800; color: #64748b; margin-bottom: 8px; text-transform: uppercase; }
+        input, select { padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; width: 100%; background: #f8fafc; font-size: 0.9rem; transition: 0.3s; }
+        input:focus { border-color: var(--s); outline: none; background: white; }
 
-        /* RESULTADOS Y DIBUJO */
-        .canvas-container { background: #0f172a; border-radius: 16px; padding: 20px; position: sticky; top: 40px; border: 1px solid #334155; }
+        /* RESULTADOS Y TALLER */
+        .canvas-box { background: #0f172a; border-radius: 20px; padding: 25px; border: 1px solid #334155; position: sticky; top: 40px; }
         canvas { width: 100%; height: auto; border-radius: 8px; }
-        .result-box { background: #1e293b; color: #f8fafc; padding: 20px; border-radius: 12px; font-family: 'Fira Code', monospace; margin-top: 20px; border-left: 6px solid var(--s); }
-        .corte-item { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--accent); }
-        .corte-item strong { color: var(--s); display: block; margin-bottom: 4px; font-size: 0.8rem; }
+        .res-panel { background: #1e293b; color: white; padding: 25px; border-radius: 12px; margin-top: 25px; border-left: 6px solid var(--accent); font-family: 'Consolas', monospace; }
+        .corte-line { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1); }
+        .corte-line strong { color: var(--s); font-size: 0.8rem; text-transform: uppercase; display: block; margin-bottom: 4px; }
 
-        /* TABLAS */
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 12px; background: #f8fafc; color: #64748b; font-size: 0.7rem; text-transform: uppercase; border-bottom: 2px solid var(--border); }
-        td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; }
-        .badge-perfil { background: #e0f2fe; color: #0369a1; }
-        .badge-chapa { background: #fef3c7; color: #92400e; }
+        /* TABLAS PRONTUARIO */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 12px; overflow: hidden; }
+        th { background: #f8fafc; padding: 15px; text-align: left; font-size: 0.75rem; color: #64748b; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+        td { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        .btn-del { background: #fee2e2; color: #b91c1c; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <h2>MSTCALC V54</h2>
+        <h2>MSTCALC V55</h2>
         
-        <div class="nav-group-title">Puertas Industriales</div>
-        <div class="nav-item active" onclick="showView('v-puertas', this)">🚪 Abatibles</div>
+        <div class="nav-group-title">Puertas</div>
+        <div class="nav-item active" onclick="showView('v-abatibles', this)">🚪 Abatibles</div>
         <div class="nav-item" onclick="showView('v-correderas', this)">↔️ Correderas</div>
         <div class="nav-item" onclick="showView('v-autoportantes', this)">🏗️ Autoportantes</div>
 
         <div class="nav-group-title">Estructuras</div>
         <div class="nav-item" onclick="showView('v-barandillas', this)">🪜 Barandillas</div>
-        <div class="nav-item" onclick="showView('v-enrejados', this)">🏁 Enrejados / Vallas</div>
+        <div class="nav-item" onclick="showView('v-vallas', this)">🏁 Vallas / Rejas</div>
+
+        <div class="nav-group-title">Materiales</div>
+        <div class="nav-item" onclick="showView('v-prontuario', this)">📖 Prontuario Maestro</div>
+        <div class="nav-item" onclick="showView('v-stock', this)">📦 Stock / Almacén</div>
+        <div class="nav-item" onclick="showView('v-chapa', this)">✂️ Optimizador Chapa</div>
 
         <div class="nav-group-title">Administración</div>
-        <div class="nav-item" onclick="showView('v-prontuario', this)">📖 Prontuario</div>
-        <div class="nav-item" onclick="showView('v-stock', this)">📦 Stock / Almacén</div>
         <div class="nav-item" onclick="showView('v-presupuesto', this)">🧾 Presupuesto</div>
+        <div class="nav-item" onclick="showView('v-clientes', this)">👥 Clientes</div>
     </div>
 
     <div class="main-content">
-        
-        <div id="v-puertas" class="view active">
+
+        <div id="v-abatibles" class="view active">
             <h1>Ingeniería de Puertas Abatibles</h1>
-            <div class="grid-layout">
-                <div class="config-panel">
+            <div class="grid-main">
+                <div class="config">
                     <div class="card">
-                        <h3>📏 Dimensiones de Hueco</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Ancho W (mm)</label><input type="number" id="ab-w" value="3000" oninput="calcAbatible()"></div>
-                            <div class="form-group"><label>Alto H (mm)</label><input type="number" id="ab-h" value="2000" oninput="calcAbatible()"></div>
-                            <div class="form-group"><label>Hojas</label><select id="ab-nH" onchange="calcAbatible()"><option value="1">1 Hoja</option><option value="2" selected>2 Hojas</option></select></div>
+                        <h3>📏 Dimensiones y Marco</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Ancho Hueco W</label><input type="number" id="ab-w" value="3000" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Alto Hueco H</label><input type="number" id="ab-h" value="2100" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Nº Hojas</label><select id="ab-nh" onchange="runAbatible()"><option value="1">1 Hoja</option><option value="2" selected>2 Hojas</option></select></div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Marco</label><select id="ab-pm" onchange="runAbatible()"></select></div>
+                            <div class="f-group"><label>Perfil Hoja</label><select id="ab-ph" onchange="runAbatible()"></select></div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3>🏗️ Estructura y Perfiles</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Perfil Marco</label><select id="ab-pMarco" onchange="calcAbatible()"></select></div>
-                            <div class="form-group"><label>Perfil Hoja</label><select id="ab-pHoja" onchange="calcAbatible()"></select></div>
+                        <h3>🎨 Relleno (Chapa / Barrotes)</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Tipo de Relleno</label><select id="ab-rt" onchange="runAbatible()"><option value="barrotes">Barrotes</option><option value="chapa">Chapa Total</option><option value="mixto">Mixto (Chapa + Barrotes)</option></select></div>
+                            <div class="f-group"><label>Orientación</label><select id="ab-ro" onchange="runAbatible()"><option value="V">Vertical</option><option value="H">Horizontal</option></select></div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Refuerzos Horiz.</label><input type="number" id="ab-refH" value="1" oninput="calcAbatible()"></div>
-                            <div class="form-group"><label>Refuerzos Vert.</label><input type="number" id="ab-refV" value="0" oninput="calcAbatible()"></div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Barrote</label><select id="ab-pb" onchange="runAbatible()"></select></div>
+                            <div class="f-group"><label>Hueco Máx (mm)</label><input type="number" id="ab-dist" value="110" oninput="runAbatible()"></div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3>🎨 Diseño de Relleno</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Tipo</label><select id="ab-relTipo" onchange="calcAbatible()"><option value="barrotes">Barrotes</option><option value="chapa">Chapa Forrada</option><option value="mixto">Mixto</option></select></div>
-                            <div class="form-group"><label>Orientación</label><select id="ab-relOri" onchange="calcAbatible()"><option value="V">Vertical</option><option value="H">Horizontal</option></select></div>
-                        </div>
-                        <div class="form-row" id="ab-ctrl-barrotes">
-                            <div class="form-group"><label>Perfil Barrote</label><select id="ab-pBarrote" onchange="calcAbatible()"></select></div>
-                            <div class="form-group"><label>Hueco Máx (mm)</label><input type="number" id="ab-distMax" value="110" oninput="calcAbatible()"></div>
+                        <h3>🔧 Refuerzos y Solapes</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Ref. Horizontales</label><input type="number" id="ab-rh" value="1" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Ref. Verticales</label><input type="number" id="ab-rv" value="0" oninput="runAbatible()"></div>
+                            <div class="f-group"><label>Solape Sup (mm)</label><input type="number" id="ab-ss" value="20" oninput="runAbatible()"></div>
                         </div>
                     </div>
                 </div>
-
-                <div class="canvas-container">
-                    <canvas id="ab-canvas" width="400" height="300"></canvas>
-                    <div id="ab-resultados" class="result-box"></div>
+                <div class="canvas-box">
+                    <canvas id="ab-can" width="500" height="400"></canvas>
+                    <div id="ab-res" class="res-panel"></div>
                 </div>
             </div>
         </div>
 
         <div id="v-correderas" class="view">
             <h1>Ingeniería de Puertas Correderas</h1>
-            <div class="grid-layout">
-                <div class="config-panel">
+            <div class="grid-main">
+                <div class="config">
                     <div class="card">
-                        <h3>📏 Dimensiones de Obra</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Luz Libre (W)</label><input type="number" id="co-w" value="4000" oninput="calcCorredera()"></div>
-                            <div class="form-group"><label>Alto Hoja (H)</label><input type="number" id="co-h" value="2000" oninput="calcCorredera()"></div>
-                            <div class="form-group"><label>Cola / Cola de pato</label><input type="number" id="co-cola" value="400" oninput="calcCorredera()"></div>
+                        <h3>📏 Estructura de Corredera</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Luz de Paso (W)</label><input type="number" id="co-w" value="4000" oninput="runCorredera()"></div>
+                            <div class="f-group"><label>Altura Hoja (H)</label><input type="number" id="co-h" value="2000" oninput="runCorredera()"></div>
+                            <div class="f-group"><label>Cola de Pato (mm)</label><input type="number" id="co-cola" value="400" oninput="runCorredera()"></div>
+                        </div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Bastidor</label><select id="co-ph" onchange="runCorredera()"></select></div>
+                            <div class="f-group"><label>Pilares Internos</label><input type="number" id="co-pi" value="3" oninput="runCorredera()"></div>
                         </div>
                     </div>
 
                     <div class="card">
-                        <h3>🏛️ Pilares de Soporte Externos</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Pilar Recibidor</label><select id="co-pilarRec" onchange="calcCorredera()"></select></div>
-                            <div class="form-group"><label>Puente Guía</label><select id="co-pilarGuia" onchange="calcCorredera()"></select></div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h3>🏗️ Bastidor Interno</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Perfil Principal</label><select id="co-pHoja" onchange="calcCorredera()"></select></div>
-                            <div class="form-group"><label>Pilares Internos (Uds)</label><input type="number" id="co-pInt" value="2" oninput="calcCorredera()"></div>
+                        <h3>🔩 Accesorios de Instalación</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Pilar Recibidor</label><select id="co-prec" onchange="runCorredera()"></select></div>
+                            <div class="f-group"><label>Pilar Puente Rodillos</label><select id="co-pgui" onchange="runCorredera()"></select></div>
                         </div>
                     </div>
                 </div>
-                <div class="canvas-container">
-                    <canvas id="co-canvas" width="400" height="300"></canvas>
-                    <div id="co-resultados" class="result-box"></div>
+                <div class="canvas-box">
+                    <canvas id="co-can" width="500" height="300"></canvas>
+                    <div id="co-res" class="res-panel"></div>
                 </div>
             </div>
         </div>
 
         <div id="v-barandillas" class="view">
             <h1>Cálculo Técnico de Barandillas</h1>
-            <div class="grid-layout">
-                <div class="config-panel">
+            <div class="grid-main">
+                <div class="config">
                     <div class="card">
-                        <h3>📏 Medidas Totales</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Longitud Total</label><input type="number" id="ba-l" value="5000" oninput="calcBarandilla()"></div>
-                            <div class="form-group"><label>Altura Total</label><input type="number" id="ba-h" value="1000" oninput="calcBarandilla()"></div>
+                        <h3>📏 Longitud y Altura</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Longitud Total</label><input type="number" id="ba-l" value="6000" oninput="runBarandilla()"></div>
+                            <div class="f-group"><label>Altura Final</label><input type="number" id="ba-h" value="1000" oninput="runBarandilla()"></div>
                         </div>
                     </div>
                     <div class="card">
-                        <h3>🔩 Componentes</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>Pasamanos</label><select id="ba-pPasamanos" onchange="calcBarandilla()"></select></div>
-                            <div class="form-group"><label>Pilares Maestro</label><select id="ba-pPilares" onchange="calcBarandilla()"></select></div>
+                        <h3>🏗️ Perfilería</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Pasamanos</label><select id="ba-pp" onchange="runBarandilla()"></select></div>
+                            <div class="f-group"><label>Pilares Suelo</label><select id="ba-pil" onchange="runBarandilla()"></select></div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group"><label>Perfil Inferior (Zócalo)</label><select id="ba-pZocalo" onchange="calcBarandilla()">
-                                <option value="none">Sin perfil inferior</option>
-                            </select></div>
-                            <div class="form-group"><label>Dist. Pilares (mm)</label><input type="number" id="ba-distP" value="1500" oninput="calcBarandilla()"></div>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Inferior</label><select id="ba-pz" onchange="runBarandilla()"><option value="none">Ninguno (Barrotes al aire)</option></select></div>
+                            <div class="f-group"><label>Dist. Máx Pilares</label><input type="number" id="ba-dp" value="1500" oninput="runBarandilla()"></div>
                         </div>
                     </div>
                     <div class="card">
-                        <h3>🌿 Relleno de Barandilla</h3>
-                        <div class="form-row">
-                            <div class="form-group"><label>¿Lleva Barrotes?</label><select id="ba-usaB" onchange="calcBarandilla()"><option value="si">SÍ</option><option value="no">NO</option></select></div>
-                            <div class="form-group"><label>Perfil Barrote</label><select id="ba-pBarrote" onchange="calcBarandilla()"></select></div>
+                        <h3>🌿 Relleno</h3>
+                        <div class="f-row">
+                            <div class="f-group"><label>Perfil Barrote</label><select id="ba-pb" onchange="runBarandilla()"></select></div>
+                            <div class="f-group"><label>Separación Máx</label><input type="number" id="ba-db" value="110" oninput="runBarandilla()"></div>
                         </div>
                     </div>
                 </div>
-                <div class="canvas-container">
-                    <canvas id="ba-canvas" width="400" height="300"></canvas>
-                    <div id="ba-resultados" class="result-box"></div>
+                <div class="canvas-box">
+                    <canvas id="ba-can" width="500" height="300"></canvas>
+                    <div id="ba-res" class="res-panel"></div>
                 </div>
             </div>
         </div>
 
         <div id="v-prontuario" class="view">
-            <h1>📖 Gestión de Materiales (Prontuario)</h1>
+            <h1>📖 Prontuario Maestro de Materiales</h1>
             <div class="card">
-                <h3>Nuevo Registro</h3>
-                <div class="form-row">
-                    <div class="form-group"><label>Tipo</label><select id="new-t"><option value="perfil">Perfil</option><option value="chapa">Chapa</option></select></div>
-                    <div class="form-group" style="flex:2"><label>Nombre</label><input type="text" id="new-n" placeholder="Ej: Rect 80x40x2"></div>
-                    <div class="form-group"><label>Cara A / W</label><input type="number" id="new-a"></div>
-                    <div class="form-group"><label>Cara B / L</label><input type="number" id="new-b"></div>
-                    <div class="form-group"><label>Espesor</label><input type="number" id="new-e"></div>
-                    <div class="form-group"><button onclick="addMat()" style="background:var(--success); color:white; border:none; padding:11px; border-radius:8px; cursor:pointer; width:100%; font-weight:bold; margin-top:20px;">+ GUARDAR</button></div>
+                <h3>Añadir Nuevo Perfil o Chapa</h3>
+                <div class="f-row">
+                    <div class="f-group"><label>Categoría</label><select id="n-t"><option value="perfil">Perfil Estructural</option><option value="chapa">Chapa Comercial</option></select></div>
+                    <div class="f-group" style="flex:2"><label>Nombre / Referencia</label><input type="text" id="n-n" placeholder="Ej: Rectangular 80x40x2mm"></div>
+                    <div class="f-group"><label>A (Ancho)</label><input type="number" id="n-a"></div>
+                    <div class="f-group"><label>B (Fondo)</label><input type="number" id="n-b"></div>
+                    <div class="f-group"><label>e (Espesor)</label><input type="number" id="n-e"></div>
+                    <div class="f-group"><button onclick="addMaterial()" style="background:var(--p); color:white; border:none; padding:12px; border-radius:10px; cursor:pointer; width:100%; margin-top:20px; font-weight:bold;">GUARDAR</button></div>
                 </div>
             </div>
-            <div class="card"><table><thead><tr><th>Tipo</th><th>Referencia</th><th>Dimensiones</th><th>Acción</th></tr></thead><tbody id="lista-mat"></tbody></table></div>
+            <div class="card">
+                <table><thead><tr><th>Tipo</th><th>Referencia</th><th>Dimensiones</th><th>Espesor</th><th>Acción</th></tr></thead><tbody id="lista-mat"></tbody></table>
+            </div>
         </div>
+
+        <div id="v-autoportantes" class="view"><h1>🏗️ Autoportantes</h1><div class="card">En desarrollo técnico...</div></div>
+        <div id="v-vallas" class="view"><h1>🏁 Vallas y Rejas</h1><div class="card">En desarrollo técnico...</div></div>
+        <div id="v-stock" class="view"><h1>📦 Stock / Almacén</h1><div class="card">En desarrollo técnico...</div></div>
+        <div id="v-chapa" class="view"><h1>✂️ Optimizador Chapa</h1><div class="card">En desarrollo técnico...</div></div>
+        <div id="v-presupuesto" class="view"><h1>🧾 Presupuesto</h1><div class="card">En desarrollo técnico...</div></div>
+        <div id="v-clientes" class="view"><h1>👥 Clientes</h1><div class="card">En desarrollo técnico...</div></div>
 
     </div>
 
     <script>
-        let prontuario = [
+        let materiales = [
             { tipo: 'perfil', nom: "Rect 80x40", a: 80, b: 40, e: 2 },
-            { tipo: 'perfil', nom: "Rect 100x50", a: 100, b: 50, e: 3 },
+            { tipo: 'perfil', nom: "Rect 100x40", a: 100, b: 40, e: 3 },
             { tipo: 'perfil', nom: "Cuad 40x40", a: 40, b: 40, e: 1.5 },
             { tipo: 'perfil', nom: "Cuad 60x60", a: 60, b: 60, e: 2 },
             { tipo: 'perfil', nom: "Redondo Ø20", a: 20, b: 20, e: 1.5 },
             { tipo: 'perfil', nom: "Pasamanos 50x20", a: 50, b: 20, e: 2 },
-            { tipo: 'chapa', nom: "Chapa Lisa 2mm", a: 1000, b: 2000, e: 2 }
+            { tipo: 'chapa', nom: "Chapa 2mm", a: 1000, b: 2000, e: 2 }
         ];
 
-        // --- NAVEGACIÓN ---
         function showView(id, el) {
             document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             document.getElementById(id).classList.add('active');
             el.classList.add('active');
-            if(id === 'v-puertas') calcAbatible();
-            if(id === 'v-correderas') calcCorredera();
-            if(id === 'v-barandillas') calcBarandilla();
+            updateCalculations();
         }
 
-        // --- PRONTUARIO ---
-        function addMat() {
-            const t = document.getElementById('new-t').value;
-            const n = document.getElementById('new-n').value;
-            const a = parseFloat(document.getElementById('new-a').value);
-            const b = parseFloat(document.getElementById('new-b').value);
-            const e = parseFloat(document.getElementById('new-e').value) || 0;
-            if(n && a && b) { prontuario.push({tipo:t, nom:n, a, b, e}); syncSelects(); }
+        function addMaterial() {
+            const t = document.getElementById('n-t').value;
+            const n = document.getElementById('n-n').value;
+            const a = parseFloat(document.getElementById('n-a').value);
+            const b = parseFloat(document.getElementById('n-b').value);
+            const e = parseFloat(document.getElementById('n-e').value) || 0;
+            if(n && a && b) { materiales.push({tipo:t, nom:n, a, b, e}); refreshMaterialLists(); }
         }
 
-        function syncSelects() {
-            const perfiles = prontuario.filter(m => m.tipo === 'perfil');
-            const chapas = prontuario.filter(m => m.tipo === 'chapa');
+        function refreshMaterialLists() {
+            const perfiles = materiales.filter(m => m.tipo === 'perfil');
+            const selects = ['ab-pm', 'ab-ph', 'ab-pb', 'co-ph', 'co-prec', 'co-pgui', 'ba-pp', 'ba-pil', 'ba-pb', 'ba-pz'];
+            
             const pOpts = perfiles.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
-            const cOpts = chapas.map((m, i) => `<option value="${i}">${m.nom}</option>`).join('');
-
-            // Inyectar en todos los selects
-            ['ab-pMarco', 'ab-pHoja', 'ab-pBarrote', 'co-pilarRec', 'co-pilarGuia', 'co-pHoja', 'ba-pPasamanos', 'ba-pPilares', 'ba-pBarrote'].forEach(id => {
-                document.getElementById(id).innerHTML = pOpts;
+            selects.forEach(s => {
+                const el = document.getElementById(s);
+                if(el) {
+                    const current = el.innerHTML;
+                    if(s === 'ba-pz') el.innerHTML = `<option value="none">Ninguno</option>` + pOpts;
+                    else el.innerHTML = pOpts;
+                }
             });
-            document.getElementById('ab-pMarco').innerHTML += `<option value="none">Sin Marco</option>`;
-            document.getElementById('ba-pZocalo').innerHTML += pOpts;
-            
-            document.getElementById('lista-mat').innerHTML = prontuario.map((m, i) => `
-                <tr><td><span class="badge badge-${m.tipo}">${m.tipo}</span></td><td>${m.nom}</td><td>${m.a}x${m.b}</td><td><button onclick="prontuario.splice(${i},1);syncSelects()">❌</button></td></tr>
+
+            document.getElementById('lista-mat').innerHTML = materiales.map((m, i) => `
+                <tr><td>${m.tipo}</td><td>${m.nom}</td><td>${m.a}x${m.b}</td><td>${m.e}</td><td><button class="btn-del" onclick="materiales.splice(${i},1);refreshMaterialLists()">❌</button></td></tr>
             `).join('');
-            
-            calcAbatible();
+            updateCalculations();
         }
 
-        // --- LÓGICA ABATIBLES ---
-        function calcAbatible() {
-            const perfiles = prontuario.filter(m => m.tipo === 'perfil');
-            const W = parseFloat(document.getElementById('ab-w').value) || 0;
-            const H = parseFloat(document.getElementById('ab-h').value) || 0;
-            const nH = parseInt(document.getElementById('ab-nH').value);
-            const pM = perfiles[document.getElementById('ab-pMarco').value] || {a:0, b:0};
-            const pH = perfiles[document.getElementById('ab-pHoja').value];
-            const pB = perfiles[document.getElementById('ab-pBarrote').value];
-            
-            const ori = document.getElementById('ab-relOri').value;
-            const distMax = parseFloat(document.getElementById('ab-distMax').value) || 110;
+        function updateCalculations() {
+            runAbatible();
+            runCorredera();
+            runBarandilla();
+        }
 
-            // Medidas Hoja
-            const hW = ((W - (pM.a*2) - 15) / nH) + (20); // Aire de 15mm y solapes de 20mm
-            const hH = (H - pM.a - 15) + 20;
+        // --- LÓGICA ABATIBLE ---
+        function runAbatible() {
+            const p = materiales.filter(m => m.tipo === 'perfil');
+            const W = parseFloat(document.getElementById('ab-w').value);
+            const H = parseFloat(document.getElementById('ab-h').value);
+            const nH = parseInt(document.getElementById('ab-nh').value);
+            const pm = p[document.getElementById('ab-pm').value];
+            const ph = p[document.getElementById('ab-ph').value];
+            const pb = p[document.getElementById('ab-pb').value];
+            const ori = document.getElementById('ab-ro').value;
+            const dMax = parseFloat(document.getElementById('ab-dist').value);
 
-            // Reparto Barrotes
-            const luzI = (ori === 'V') ? (hW - (pH.a*2)) : (hH - (pH.a*2));
-            const nHuecos = Math.ceil(luzI / (distMax + pB.a));
+            const hW = ((W - (pm.a*2) - 15) / nH) + 20; // Aire central y solapes
+            const hH = (H - pm.a - 15) + 20;
+
+            // Reparto barrotes
+            const luz = (ori === 'V') ? (hW - ph.a*2) : (hH - ph.a*2);
+            const nHuecos = Math.ceil(luz / (dMax + pb.a));
             const nB = nHuecos - 1;
-            const dExa = (luzI - (nB * pB.a)) / nHuecos;
+            const dLuz = (luz - (nB * pb.a)) / nHuecos;
 
-            let res = `
-                <div class="corte-item"><strong>BASTIDORES (${nH} hojas)</strong> ${nH*2} uds x ${hH.toFixed(0)}mm | ${nH*2} uds x ${hW.toFixed(0)}mm</div>
-                <div class="corte-item"><strong>RELLENO (${nB*nH} barrotes)</strong> Longitud: ${(ori==='V'? hH-(pH.a*2) : hW-(pH.a*2)).toFixed(0)}mm<br>Separación luz: ${dExa.toFixed(1)}mm</div>
-            `;
-            document.getElementById('ab-resultados').innerHTML = res;
+            let html = `<div class="corte-line"><strong>Bastidores (${nH} hojas):</strong> ${nH*2} uds x ${hH.toFixed(0)}mm | ${nH*2} uds x ${hW.toFixed(0)}mm</div>`;
+            if(nB > 0) html += `<div class="corte-line"><strong>Barrotes (${nB*nH} uds):</strong> Longitud: ${(ori==='V'? hH-ph.a*2 : hW-ph.a*2).toFixed(0)}mm | Luz: ${dLuz.toFixed(1)}mm</div>`;
+            document.getElementById('ab-res').innerHTML = html;
 
-            // Dibujo
-            const ctx = document.getElementById('ab-canvas').getContext('2d');
-            ctx.clearRect(0,0,400,300);
-            const s = 300/W; const ox = (400-W*s)/2; const oy = 50;
-            ctx.strokeStyle = "#3b82f6"; ctx.strokeRect(ox, oy, W*s, H*s); // Marco
-            for(let i=0; i<nH; i++) {
-                ctx.fillStyle = "rgba(59,130,246,0.2)";
-                ctx.fillRect(ox+(i*hW*s), oy, hW*s, hH*s);
-                ctx.strokeRect(ox+(i*hW*s), oy, hW*s, hH*s);
-            }
+            drawPuerta('ab-can', W, H, hW, hH, nH, ph.a, pb.a, nB, dLuz, ori);
         }
 
-        // --- LÓGICA CORREDERAS ---
-        function calcCorredera() {
-            const perfiles = prontuario.filter(m => m.tipo === 'perfil');
-            const W = parseFloat(document.getElementById('co-w').value) || 0;
-            const H = parseFloat(document.getElementById('co-h').value) || 0;
-            const cola = parseFloat(document.getElementById('co-cola').value) || 0;
-            const pH = perfiles[document.getElementById('co-pHoja').value];
-            const pInt = parseInt(document.getElementById('co-pInt').value) || 0;
+        // --- LÓGICA CORREDERA ---
+        function runCorredera() {
+            const p = materiales.filter(m => m.tipo === 'perfil');
+            const W = parseFloat(document.getElementById('co-w').value);
+            const H = parseFloat(document.getElementById('co-h').value);
+            const cola = parseFloat(document.getElementById('co-cola').value);
+            const ph = p[document.getElementById('co-ph').value];
+            const pInt = parseInt(document.getElementById('co-pi').value);
 
             const totalW = W + cola;
-            
-            let res = `
-                <div class="corte-item"><strong>ESTRUCTURA PRINCIPAL</strong> Superior/Inferior: 2x ${totalW}mm<br>Laterales: 2x ${H}mm</div>
-                <div class="corte-item"><strong>REFUERZOS INTERNOS</strong> ${pInt} pilares verticales de ${(H-(pH.a*2)).toFixed(0)}mm</div>
-            `;
-            document.getElementById('co-resultados').innerHTML = res;
+            let html = `<div class="corte-line"><strong>Bastidor:</strong> 2 uds x ${totalW}mm | 2 uds x ${H}mm</div>`;
+            html += `<div class="corte-line"><strong>Refuerzos Internos:</strong> ${pInt} pilares de ${(H - ph.a*2).toFixed(0)}mm</div>`;
+            document.getElementById('co-res').innerHTML = html;
 
-            const ctx = document.getElementById('co-canvas').getContext('2d');
-            ctx.clearRect(0,0,400,300);
-            const s = 300/totalW;
-            ctx.strokeStyle = "#10b981";
-            ctx.strokeRect(20, 100, totalW*s, H*s); // Hoja
-            for(let i=1; i<=pInt; i++) {
-                ctx.beginPath(); ctx.moveTo(20 + (i*totalW/(pInt+1)*s), 100); ctx.lineTo(20 + (i*totalW/(pInt+1)*s), 100+(H*s)); ctx.stroke();
+            const ctx = document.getElementById('co-can').getContext('2d');
+            ctx.clearRect(0,0,500,300);
+            const s = 400/(W+cola);
+            ctx.strokeStyle = "#3b82f6"; ctx.strokeRect(50, 50, (W+cola)*s, H*s);
+            for(let i=1; i<=pInt; i++){
+                ctx.moveTo(50 + (i*(W+cola)/(pInt+1)*s), 50); ctx.lineTo(50 + (i*(W+cola)/(pInt+1)*s), 50 + H*s);
             }
+            ctx.stroke();
         }
 
-        // --- LÓGICA BARANDILLAS ---
-        function calcBarandilla() {
-            const perfiles = prontuario.filter(m => m.tipo === 'perfil');
-            const L = parseFloat(document.getElementById('ba-l').value) || 0;
-            const H = parseFloat(document.getElementById('ba-h').value) || 0;
-            const pPas = perfiles[document.getElementById('ba-pPasamanos').value];
-            const pPil = perfiles[document.getElementById('ba-pPilares').value];
-            const pBar = perfiles[document.getElementById('ba-pBarrote').value];
-            const dPil = parseFloat(document.getElementById('ba-distP').value);
-            const usaB = document.getElementById('ba-usaB').value;
+        // --- LÓGICA BARANDILLA ---
+        function runBarandilla() {
+            const p = materiales.filter(m => m.tipo === 'perfil');
+            const L = parseFloat(document.getElementById('ba-l').value);
+            const H = parseFloat(document.getElementById('ba-h').value);
+            const pp = p[document.getElementById('ba-pp').value];
+            const pil = p[document.getElementById('ba-pil').value];
+            const pb = p[document.getElementById('ba-pb').value];
+            const pzVal = document.getElementById('ba-pz').value;
+            const pz = pzVal === 'none' ? {a:0, nom:'Ninguno'} : p[pzVal];
+            const dPil = parseFloat(document.getElementById('ba-dp').value);
+            const dBar = parseFloat(document.getElementById('ba-db').value);
 
-            // Pilares
             const nPil = Math.ceil(L / dPil) + 1;
-            const dRealPil = L / (nPil - 1);
+            const hBar = H - pp.a - pz.a;
 
-            // Altura Barrote (Descontando pasamanos)
-            const hBar = H - pPas.a;
+            let html = `<div class="corte-line"><strong>Pasamanos:</strong> 1x ${L}mm</div>`;
+            html += `<div class="corte-line"><strong>Pilares (${nPil} uds):</strong> Corte a ${H}mm (al suelo)</div>`;
+            html += `<div class="corte-line"><strong>Barrotes:</strong> Longitud de corte: ${hBar.toFixed(0)}mm</div>`;
+            document.getElementById('ba-res').innerHTML = html;
 
-            let res = `
-                <div class="corte-item"><strong>PASAMANOS:</strong> 1x ${L}mm (${pPas.nom})</div>
-                <div class="corte-item"><strong>PILARES MAESTROS:</strong> ${nPil} uds x ${H}mm (al suelo)</div>
-            `;
+            const ctx = document.getElementById('ba-can').getContext('2d');
+            ctx.clearRect(0,0,500,300);
+            const s = 450/L;
+            ctx.fillStyle = "#3b82f6";
+            ctx.fillRect(25, 50, L*s, pp.a*s); // Pasamanos
+            for(let i=0; i<nPil; i++) ctx.fillRect(25 + (i*(L/(nPil-1))*s), 50, pil.a*s, H*s);
+        }
 
-            if(usaB === 'si') {
-                const luzEntrePilares = dRealPil - pPil.a;
-                const nB_tramo = Math.ceil(luzEntrePilares / (110 + pBar.a));
-                const totalB = (nB_tramo - 1) * (nPil - 1);
-                res += `<div class="corte-item"><strong>BARROTES:</strong> ${totalB} uds x ${hBar.toFixed(0)}mm</div>`;
-            }
+        function drawPuerta(id, W, H, hW, hH, nH, eH, eB, nB, dist, ori) {
+            const canvas = document.getElementById(id);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const s = 350/W;
+            const ox = (500 - W*s)/2; const oy = (400 - H*s)/2;
 
-            document.getElementById('ba-resultados').innerHTML = res;
+            ctx.strokeStyle = "#475569"; ctx.lineWidth = 2;
+            ctx.strokeRect(ox, oy, W*s, H*s); // Marco exterior
 
-            const ctx = document.getElementById('ba-canvas').getContext('2d');
-            ctx.clearRect(0,0,400,300);
-            const s = 300/L;
-            ctx.fillStyle = "#f59e0b";
-            ctx.fillRect(20, 100, L*s, pPas.a*s); // Pasamanos
-            for(let i=0; i<nPil; i++) {
-                ctx.fillRect(20 + (i*dRealPil*s), 100, pPil.a*s, H*s); // Pilares
+            ctx.strokeStyle = "#3b82f6";
+            for(let i=0; i<nH; i++) {
+                const hx = ox + (i * hW * s);
+                ctx.strokeRect(hx, oy, hW*s, hH*s);
+                
+                // Dibujar Barrotes
+                ctx.fillStyle = "rgba(148, 163, 184, 0.5)";
+                for(let b=1; b<=nB; b++) {
+                    if(ori === 'V') {
+                        const bx = hx + (eH*s) + (b * (dist + eB) * s) - (eB*s);
+                        ctx.fillRect(bx, oy + eH*s, eB*s, (hH - eH*2)*s);
+                    } else {
+                        const by = oy + (eH*s) + (b * (dist + eB) * s) - (eB*s);
+                        ctx.fillRect(hx + eH*s, by, (hW - eH*2)*s, eB*s);
+                    }
+                }
             }
         }
 
-        window.onload = () => { syncSelects(); };
+        window.onload = refreshMaterialLists;
     </script>
 </body>
 </html>
