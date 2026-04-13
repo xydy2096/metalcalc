@@ -2,41 +2,182 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>MSTCALC ADMIN PRO</title>
+<title>MSTCALC PRO</title>
+
 <style>
-body{font-family:sans-serif;padding:20px;background:#f1f5f9}
-.card{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}
+:root{
+--bg:#0f172a;
+--panel:#111827;
+--card:#ffffff;
+--accent:#3b82f6;
+--text:#1e293b;
+}
+
+body{
+margin:0;
+font-family:sans-serif;
+display:flex;
+background:#f1f5f9;
+}
+
+/* SIDEBAR */
+.sidebar{
+width:260px;
+background:var(--bg);
+color:white;
+padding:20px;
+height:100vh;
+}
+
+.sidebar h2{color:var(--accent)}
+
+.nav{
+padding:12px;
+margin-bottom:5px;
+cursor:pointer;
+border-radius:8px;
+}
+
+.nav:hover{background:#1e293b}
+.nav.active{background:var(--accent)}
+
+/* MAIN */
+.main{
+flex:1;
+padding:25px;
+}
+
+.view{display:none}
+.view.active{display:block}
+
+/* CARDS */
+.card{
+background:var(--card);
+padding:20px;
+border-radius:14px;
+margin-bottom:20px;
+box-shadow:0 5px 15px rgba(0,0,0,0.05);
+}
+
+/* GRID */
+.grid{
+display:grid;
+grid-template-columns:1fr 450px;
+gap:25px;
+}
+
+/* FORM */
+input,select{
+width:100%;
+padding:10px;
+margin-top:8px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+/* CANVAS */
+.canvasBox{
+background:#111827;
+padding:15px;
+border-radius:14px;
+}
+
+canvas{
+background:#000;
+width:100%;
+}
+
+/* RESULT */
+.res{
+background:#111827;
+color:#0f0;
+padding:15px;
+border-radius:10px;
+margin-top:15px;
+font-family:monospace;
+}
+
+button{
+padding:12px;
+background:var(--accent);
+color:white;
+border:none;
+border-radius:10px;
+cursor:pointer;
+margin-top:10px;
+}
 </style>
+
 </head>
 
 <body>
 
-<h2>ADMIN</h2>
+<div class="sidebar">
+<h2>MSTCALC</h2>
 
-<div class="card">
-<input id="nombre" placeholder="Proyecto">
-<input id="cliente" placeholder="Cliente">
+<div class="nav active" onclick="show('proyecto',this)">Proyecto</div>
+<div class="nav" onclick="show('abatible',this)">Abatibles</div>
+<div class="nav" onclick="show('hist',this)">Historial</div>
+
 </div>
 
+<div class="main">
+
+<!-- PROYECTO -->
+<div id="proyecto" class="view active">
 <div class="card">
-<h3>Abatible</h3>
-<input id="w" type="number" value="3000">
-<input id="h" type="number" value="2000">
-<select id="nh">
+<h3>Proyecto</h3>
+<input id="nombre" placeholder="Nombre obra">
+<input id="cliente" placeholder="Cliente">
+<button onclick="guardar()">Guardar Proyecto</button>
+</div>
+</div>
+
+<!-- ABATIBLE -->
+<div id="abatible" class="view">
+<div class="grid">
+
+<div>
+<div class="card">
+<h3>Puerta Abatible</h3>
+
+<label>Ancho</label>
+<input id="w" type="number" value="3000" oninput="calc()">
+
+<label>Alto</label>
+<input id="h" type="number" value="2000" oninput="calc()">
+
+<label>Hojas</label>
+<select id="nh" onchange="calc()">
 <option value="1">1 hoja</option>
 <option value="2">2 hojas</option>
 </select>
-<button onclick="calc()">Calcular</button>
+
+</div>
 </div>
 
-<pre id="res"></pre>
+<div class="canvasBox">
+<canvas id="cv" width="400" height="300"></canvas>
+<div class="res" id="res"></div>
+</div>
 
-<button onclick="guardar()">💾 Guardar en nube</button>
+</div>
+</div>
+
+<!-- HISTORIAL -->
+<div id="hist" class="view">
+<div class="card">
+<h3>Historial</h3>
+<div id="lista"></div>
+</div>
+</div>
+
+</div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
@@ -50,8 +191,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+// NAV
+window.show = function(id,el){
+document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+el.classList.add('active');
+}
+
+// PROYECTO
 let proyecto = {};
 
+// CALCULO
 window.calc = function(){
 
 let W=+w.value,H=+h.value,n=+nh.value;
@@ -63,21 +214,59 @@ let d=[
 ];
 
 proyecto = {
-  nombre:nombre.value,
-  cliente:cliente.value,
-  tipo:"abatible",
-  datos:{W,H,n},
-  despiece:d,
-  fecha:new Date().toISOString()
+nombre:nombre.value,
+cliente:cliente.value,
+tipo:"abatible",
+datos:{W,H,n},
+despiece:d,
+fecha:new Date().toISOString()
 };
 
-res.textContent = JSON.stringify(d,null,2);
+res.innerHTML = d.map(p=>`${p.pieza} → ${p.cantidad} x ${p.largo}`).join("<br>");
+
+dibujar();
 }
 
+// DIBUJO PRO
+function dibujar(){
+let ctx=cv.getContext("2d");
+ctx.clearRect(0,0,400,300);
+
+let W=300,H=180;
+
+ctx.strokeStyle="white";
+ctx.strokeRect(50,60,W,H);
+
+// medida
+ctx.fillStyle="white";
+ctx.fillText(w.value+" mm",150,50);
+
+// hojas
+if(nh.value==2){
+ctx.beginPath();
+ctx.moveTo(50+W/2,60);
+ctx.lineTo(50+W/2,240);
+ctx.stroke();
+}
+}
+
+// GUARDAR
 window.guardar = async function(){
 await addDoc(collection(db,"proyectos"), proyecto);
 alert("Guardado 🔥");
 }
+
+// HISTORIAL
+onSnapshot(collection(db,"proyectos"), snap=>{
+lista.innerHTML = snap.docs.map(d=>{
+let p=d.data();
+return `<div class="card">
+<b>${p.nombre}</b> (${p.tipo})
+</div>`;
+}).join("");
+});
+
+calc();
 
 </script>
 
