@@ -1,74 +1,66 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OPERARIO V8</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <style>
-        body { font-family: sans-serif; background: #0f172a; color: white; margin: 0; padding: 10px; }
-        .obra-btn { background: #3b82f6; border: none; padding: 20px; color: white; width: 100%; border-radius: 12px; margin-bottom: 10px; font-size: 1.2rem; }
-        .corte-card { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 8px; border-left: 8px solid #475569; display: flex; justify-content: space-between; align-items: center; }
-        .corte-card.hecho { opacity: 0.2; }
-        .img-box { background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 15px; color: #000; text-align: center; }
-        .img-box img { max-width: 100%; height: auto; border: 1px solid #ccc; }
-        .btn-ok { background: #10b981; color: white; border: none; padding: 15px; border-radius: 10px; font-weight: bold; }
-        .view { display: none; }
-        .view.active { display: block; }
-    </style>
+<meta charset="UTF-8">
+<title>OPERARIO</title>
+<style>
+body{font-family:sans-serif;background:#111;color:#fff;padding:20px}
+.card{background:#1e293b;padding:20px;border-radius:10px}
+canvas{background:#000;width:100%;max-width:500px}
+</style>
 </head>
+
 <body>
 
-    <div id="v-menu" class="view active">
-        <h1 style="text-align:center">TAREAS DE TALLER</h1>
-        <div id="lista-obras"></div>
-    </div>
+<h2>Operario</h2>
 
-    <div id="v-detalle" class="view">
-        <button onclick="location.reload()" style="background:#475569; color:white; border:none; padding:10px; border-radius:8px;">⬅ VOLVER</button>
-        <h2 id="nom-obra"></h2>
-        <div id="hoja-corte"></div>
-    </div>
+<div class="card">
+<div id="info"></div>
+<canvas id="cv" width="500" height="300"></canvas>
+<div id="cortes"></div>
+</div>
 
 <script>
-    const firebaseConfig = { apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0", authDomain: "mstcalc.firebaseapp.com", projectId: "mstcalc", storageBucket: "mstcalc.firebasestorage.app", messagingSenderId: "68220801288", appId: "1:68220801288:web:cf0a033e03658c3f579cbd" };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
 
-    db.collection("materiales").onSnapshot(snap => {
-        const menu = document.getElementById('lista-obras');
-        const obras = new Set();
-        snap.forEach(doc => { if(doc.data().trabajo) obras.add(doc.data().trabajo) });
-        menu.innerHTML = "";
-        obras.forEach(o => { menu.innerHTML += `<button class="obra-btn" onclick="verObra('${o}')">📁 ${o}</button>`; });
-    });
+let p = JSON.parse(localStorage.getItem('mst_sel'));
 
-    function verObra(id) {
-        document.getElementById('v-menu').classList.remove('active');
-        document.getElementById('v-detalle').classList.add('active');
-        document.getElementById('nom-obra').innerText = id;
+if(!p){
+document.body.innerHTML="No hay trabajo seleccionado";
+}
 
-        db.collection("materiales").where("trabajo", "==", id).onSnapshot(snap => {
-            const h = document.getElementById('hoja-corte');
-            let content = '';
-            snap.forEach(doc => {
-                const d = doc.data();
-                if(d.estado === 'info') {
-                    content += `<div class="img-box"><h3>${d.nombre}</h3><img src="${d.imagen}"></div>`;
-                } else if(d.estado !== 'cortado') {
-                    content += `
-                        <div class="corte-card">
-                            <div><b style="font-size:1.4rem; color:#60a5fa;">${d.cantidad}x ${d.medida}</b><br><span>${d.nombre}</span></div>
-                            <button class="btn-ok" onclick="listo('${doc.id}')">CORTADO</button>
-                        </div>`;
-                }
-            });
-            h.innerHTML = content;
-        });
-    }
+info.innerHTML = `
+<b>${p.nombre}</b><br>
+${p.tipo} - ${p.cliente}
+`;
 
-    function listo(id) { db.collection("materiales").doc(id).update({estado: "cortado"}); }
+cortes.innerHTML = p.despiece.map(d=>
+`${d.pieza} → ${d.cantidad} x ${d.largo}mm`
+).join("<br>");
+
+// DIBUJO
+let ctx = cv.getContext("2d");
+
+if(p.tipo==="abatible"){
+let W=400,H=200;
+
+ctx.strokeStyle="white";
+ctx.strokeRect(50,50,W,H);
+
+// dividir hojas
+if(p.datos.n==2){
+ctx.beginPath();
+ctx.moveTo(50+W/2,50);
+ctx.lineTo(50+W/2,50+H);
+ctx.stroke();
+}
+}
+
+if(p.tipo==="corredera"){
+ctx.strokeRect(50,100,400,100);
+ctx.fillText("Cola",460,150);
+}
+
 </script>
+
 </body>
 </html>
