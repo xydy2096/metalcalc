@@ -2,71 +2,71 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MSTCALC PRO</title>
-
+<title>MSTCALC ADMIN PRO</title>
 <style>
-:root { 
-    --p:#0f172a; --s:#3b82f6; --bg:#f1f5f9;
-    --border:#cbd5e1; --card:#fff; --danger:#ef4444;
-}
-body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
-.sidebar{width:260px;background:var(--p);color:#fff;padding:20px}
-.nav-item{padding:10px;cursor:pointer;border-radius:8px}
-.nav-item:hover{background:#1e293b}
-.nav-item.active{background:var(--s)}
-.main{flex:1;padding:30px}
+body{margin:0;display:flex;font-family:sans-serif;background:#f1f5f9}
+.sidebar{width:260px;background:#0f172a;color:#fff;padding:20px}
+.nav{padding:10px;cursor:pointer;border-radius:6px}
+.nav:hover{background:#1e293b}
+.nav.active{background:#3b82f6}
+.main{flex:1;padding:20px}
 .view{display:none}
 .view.active{display:block}
-.card{background:#fff;padding:20px;border-radius:12px;margin-bottom:20px}
+.card{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}
 input,select{width:100%;padding:10px;margin-top:5px}
-button{padding:10px;margin-top:10px;cursor:pointer}
-.res{background:#111;color:#0f0;padding:15px;font-family:monospace}
+button{padding:10px;margin-top:10px;width:100%}
+.res{background:#111;color:#0f0;padding:10px}
 </style>
 </head>
 
 <body>
 
 <div class="sidebar">
-    <h2>MSTCALC</h2>
-    <div class="nav-item active" onclick="show('datos',this)">Proyecto</div>
-    <div class="nav-item" onclick="show('abatible',this)">Abatible</div>
-    <div class="nav-item" onclick="show('historial',this)">Historial</div>
+<h2>ADMIN</h2>
+<div class="nav active" onclick="show('p',this)">Proyecto</div>
+<div class="nav" onclick="show('ab',this)">Abatible</div>
+<div class="nav" onclick="show('co',this)">Corredera</div>
+<div class="nav" onclick="show('hist',this)">Historial</div>
 </div>
 
 <div class="main">
 
-<!-- PROYECTO -->
-<div id="datos" class="view active">
+<div id="p" class="view active">
 <div class="card">
 <h3>Proyecto</h3>
-<input id="nombre" placeholder="Nombre">
-<input id="cliente" placeholder="Cliente">
-<select id="estado">
+<input id="n" placeholder="Nombre">
+<input id="c" placeholder="Cliente">
+<select id="e">
 <option value="pendiente">Pendiente</option>
 <option value="aceptado">Aceptado</option>
 </select>
-<button onclick="guardar()">💾 Guardar Proyecto</button>
+<button onclick="guardar()">Guardar</button>
 </div>
 </div>
 
-<!-- ABATIBLE -->
-<div id="abatible" class="view">
+<div id="ab" class="view">
 <div class="card">
-<h3>Puerta Abatible</h3>
-<input type="number" id="w" value="3000" oninput="calcAb()">
-<input type="number" id="h" value="2000" oninput="calcAb()">
-<select id="nh" onchange="calcAb()">
+<h3>Abatible</h3>
+<input id="abw" type="number" value="3000" oninput="calcAb()">
+<input id="abh" type="number" value="2000" oninput="calcAb()">
+<select id="abn" onchange="calcAb()">
 <option value="1">1 hoja</option>
 <option value="2">2 hojas</option>
 </select>
 </div>
-
-<div class="res" id="res"></div>
+<div class="res" id="abres"></div>
 </div>
 
-<!-- HISTORIAL -->
-<div id="historial" class="view">
+<div id="co" class="view">
+<div class="card">
+<h3>Corredera</h3>
+<input id="cow" type="number" value="4000" oninput="calcCo()">
+<input id="cola" type="number" value="400" oninput="calcCo()">
+</div>
+<div class="res" id="cores"></div>
+</div>
+
+<div id="hist" class="view">
 <div class="card">
 <h3>Historial</h3>
 <div id="lista"></div>
@@ -77,10 +77,8 @@ button{padding:10px;margin-top:10px;cursor:pointer}
 
 <script>
 
-// --- BASE DATOS ---
-let historial = JSON.parse(localStorage.getItem('hist')) || [];
+let historial = JSON.parse(localStorage.getItem('mst_h')) || [];
 
-// --- PROYECTO ACTIVO ---
 let proyectoActual = {
     nombre:"",
     cliente:"",
@@ -90,68 +88,77 @@ let proyectoActual = {
     despiece:[]
 };
 
-// --- NAVEGACIÓN ---
 function show(id,el){
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    el.classList.add('active');
-    renderHist();
+document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+el.classList.add('active');
+render();
 }
 
-// --- CALCULO ABATIBLE ---
+// ABATIBLE
 function calcAb(){
-    const W = parseFloat(w.value);
-    const H = parseFloat(h.value);
-    const nH = parseInt(nh.value);
+let W=+abw.value,H=+abh.value,n=+abn.value;
+let hoja=W/n;
 
-    const hoja = W / nH;
+let d=[
+{pieza:"Vertical",cantidad:n*2,largo:H},
+{pieza:"Horizontal",cantidad:n*2,largo:hoja}
+];
 
-    const despiece = [
-        {pieza:"Vertical", cantidad:nH*2, largo:H},
-        {pieza:"Horizontal", cantidad:nH*2, largo:hoja}
-    ];
+proyectoActual.tipo="abatible";
+proyectoActual.datos={W,H,n};
+proyectoActual.despiece=d;
 
-    // guardar en proyecto
-    proyectoActual.tipo = "abatible";
-    proyectoActual.datos = {W,H,nH};
-    proyectoActual.despiece = despiece;
-
-    // pintar
-    res.innerHTML = despiece.map(p =>
-        `${p.pieza} → ${p.cantidad} uds x ${p.largo.toFixed(0)}mm`
-    ).join("<br>");
+abres.innerHTML=d.map(p=>`${p.pieza} ${p.cantidad} x ${p.largo}`).join("<br>");
 }
 
-// --- GUARDAR ---
+// CORREDERA
+function calcCo(){
+let W=+cow.value,cola=+cola.value;
+
+let d=[
+{pieza:"Larguero",cantidad:2,largo:W+cola}
+];
+
+proyectoActual.tipo="corredera";
+proyectoActual.datos={W,cola};
+proyectoActual.despiece=d;
+
+cores.innerHTML=d.map(p=>`${p.pieza} ${p.cantidad} x ${p.largo}`).join("<br>");
+}
+
+// GUARDAR
 function guardar(){
-    proyectoActual.nombre = nombre.value;
-    proyectoActual.cliente = cliente.value;
-    proyectoActual.estado = estado.value;
-    proyectoActual.fecha = new Date().toLocaleDateString();
+proyectoActual.nombre=n.value;
+proyectoActual.cliente=c.value;
+proyectoActual.estado=e.value;
+proyectoActual.fecha=new Date().toLocaleDateString();
 
-    historial.push({...proyectoActual});
-    localStorage.setItem('hist', JSON.stringify(historial));
+historial.push({...proyectoActual});
+localStorage.setItem('mst_h',JSON.stringify(historial));
 
-    alert("Guardado completo");
+alert("Guardado");
 }
 
-// --- HISTORIAL ---
-function renderHist(){
-    lista.innerHTML = historial.map(p => `
-        <div style="border-bottom:1px solid #ccc;margin-bottom:10px">
-            <b>${p.nombre}</b> (${p.tipo})<br>
-            ${p.cliente} - ${p.estado}<br>
-            <small>${p.fecha}</small>
-        </div>
-    `).join('');
+// HISTORIAL
+function render(){
+lista.innerHTML=historial.map((p,i)=>`
+<div style="border-bottom:1px solid #ccc">
+<b>${p.nombre}</b> (${p.tipo})
+<button onclick="ver(${i})">Ver</button>
+</div>`).join('');
 }
 
-// INIT
+function ver(i){
+localStorage.setItem('mst_sel',JSON.stringify(historial[i]));
+alert("Abre operario");
+}
+
 calcAb();
-renderHist();
+calcCo();
+render();
 
 </script>
-
 </body>
 </html>
