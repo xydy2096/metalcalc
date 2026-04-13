@@ -3,25 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <title>MSTCALC ADMIN PRO</title>
+<style>
+body{font-family:sans-serif;padding:20px;background:#f1f5f9}
+.card{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}
+</style>
 </head>
 
 <body>
 
 <h2>ADMIN</h2>
 
+<div class="card">
 <input id="nombre" placeholder="Proyecto">
 <input id="cliente" placeholder="Cliente">
+</div>
 
-<button onclick="guardar()">Guardar</button>
+<div class="card">
+<h3>Abatible</h3>
+<input id="w" type="number" value="3000">
+<input id="h" type="number" value="2000">
+<select id="nh">
+<option value="1">1 hoja</option>
+<option value="2">2 hojas</option>
+</select>
+<button onclick="calc()">Calcular</button>
+</div>
 
-<pre id="out"></pre>
+<pre id="res"></pre>
+
+<button onclick="guardar()">💾 Guardar en nube</button>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// TU CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
   authDomain: "mstcalc.firebaseapp.com",
@@ -34,28 +50,33 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// PROYECTO
-let proyectoActual = {
-  nombre:"",
-  cliente:"",
+let proyecto = {};
+
+window.calc = function(){
+
+let W=+w.value,H=+h.value,n=+nh.value;
+let hoja=W/n;
+
+let d=[
+{pieza:"Vertical",cantidad:n*2,largo:H},
+{pieza:"Horizontal",cantidad:n*2,largo:hoja}
+];
+
+proyecto = {
+  nombre:nombre.value,
+  cliente:cliente.value,
   tipo:"abatible",
-  datos:{W:3000,H:2000,n:2},
-  despiece:[
-    {pieza:"Vertical",cantidad:4,largo:2000},
-    {pieza:"Horizontal",cantidad:4,largo:1500}
-  ]
+  datos:{W,H,n},
+  despiece:d,
+  fecha:new Date().toISOString()
 };
 
-// GUARDAR
-async function guardar(){
+res.textContent = JSON.stringify(d,null,2);
+}
 
-  proyectoActual.nombre = nombre.value;
-  proyectoActual.cliente = cliente.value;
-  proyectoActual.fecha = new Date().toISOString();
-
-  await addDoc(collection(db, "proyectos"), proyectoActual);
-
-  out.textContent = "Guardado en Firebase 🔥";
+window.guardar = async function(){
+await addDoc(collection(db,"proyectos"), proyecto);
+alert("Guardado 🔥");
 }
 
 </script>
