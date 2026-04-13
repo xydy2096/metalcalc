@@ -3,162 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <title>MSTCALC ADMIN PRO</title>
-<style>
-body{margin:0;display:flex;font-family:sans-serif;background:#f1f5f9}
-.sidebar{width:260px;background:#0f172a;color:#fff;padding:20px}
-.nav{padding:10px;cursor:pointer;border-radius:6px}
-.nav:hover{background:#1e293b}
-.nav.active{background:#3b82f6}
-.main{flex:1;padding:20px}
-.view{display:none}
-.view.active{display:block}
-.card{background:#fff;padding:20px;border-radius:10px;margin-bottom:20px}
-input,select{width:100%;padding:10px;margin-top:5px}
-button{padding:10px;margin-top:10px;width:100%}
-.res{background:#111;color:#0f0;padding:10px}
-</style>
 </head>
 
 <body>
 
-<div class="sidebar">
 <h2>ADMIN</h2>
-<div class="nav active" onclick="show('p',this)">Proyecto</div>
-<div class="nav" onclick="show('ab',this)">Abatible</div>
-<div class="nav" onclick="show('co',this)">Corredera</div>
-<div class="nav" onclick="show('hist',this)">Historial</div>
-</div>
 
-<div class="main">
+<input id="nombre" placeholder="Proyecto">
+<input id="cliente" placeholder="Cliente">
 
-<div id="p" class="view active">
-<div class="card">
-<h3>Proyecto</h3>
-<input id="n" placeholder="Nombre">
-<input id="c" placeholder="Cliente">
-<select id="e">
-<option value="pendiente">Pendiente</option>
-<option value="aceptado">Aceptado</option>
-</select>
 <button onclick="guardar()">Guardar</button>
-</div>
-</div>
 
-<div id="ab" class="view">
-<div class="card">
-<h3>Abatible</h3>
-<input id="abw" type="number" value="3000" oninput="calcAb()">
-<input id="abh" type="number" value="2000" oninput="calcAb()">
-<select id="abn" onchange="calcAb()">
-<option value="1">1 hoja</option>
-<option value="2">2 hojas</option>
-</select>
-</div>
-<div class="res" id="abres"></div>
-</div>
+<pre id="out"></pre>
 
-<div id="co" class="view">
-<div class="card">
-<h3>Corredera</h3>
-<input id="cow" type="number" value="4000" oninput="calcCo()">
-<input id="cola" type="number" value="400" oninput="calcCo()">
-</div>
-<div class="res" id="cores"></div>
-</div>
+<script type="module">
 
-<div id="hist" class="view">
-<div class="card">
-<h3>Historial</h3>
-<div id="lista"></div>
-</div>
-</div>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-</div>
-
-<script>
-
-let historial = JSON.parse(localStorage.getItem('mst_h')) || [];
-
-let proyectoActual = {
-    nombre:"",
-    cliente:"",
-    estado:"pendiente",
-    tipo:"",
-    datos:{},
-    despiece:[]
+// TU CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+  authDomain: "mstcalc.firebaseapp.com",
+  projectId: "mstcalc",
+  storageBucket: "mstcalc.firebasestorage.app",
+  messagingSenderId: "68220801288",
+  appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
 };
 
-function show(id,el){
-document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
-document.querySelectorAll('.nav').forEach(n=>n.classList.remove('active'));
-document.getElementById(id).classList.add('active');
-el.classList.add('active');
-render();
-}
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// ABATIBLE
-function calcAb(){
-let W=+abw.value,H=+abh.value,n=+abn.value;
-let hoja=W/n;
-
-let d=[
-{pieza:"Vertical",cantidad:n*2,largo:H},
-{pieza:"Horizontal",cantidad:n*2,largo:hoja}
-];
-
-proyectoActual.tipo="abatible";
-proyectoActual.datos={W,H,n};
-proyectoActual.despiece=d;
-
-abres.innerHTML=d.map(p=>`${p.pieza} ${p.cantidad} x ${p.largo}`).join("<br>");
-}
-
-// CORREDERA
-function calcCo(){
-let W=+cow.value,cola=+cola.value;
-
-let d=[
-{pieza:"Larguero",cantidad:2,largo:W+cola}
-];
-
-proyectoActual.tipo="corredera";
-proyectoActual.datos={W,cola};
-proyectoActual.despiece=d;
-
-cores.innerHTML=d.map(p=>`${p.pieza} ${p.cantidad} x ${p.largo}`).join("<br>");
-}
+// PROYECTO
+let proyectoActual = {
+  nombre:"",
+  cliente:"",
+  tipo:"abatible",
+  datos:{W:3000,H:2000,n:2},
+  despiece:[
+    {pieza:"Vertical",cantidad:4,largo:2000},
+    {pieza:"Horizontal",cantidad:4,largo:1500}
+  ]
+};
 
 // GUARDAR
-function guardar(){
-proyectoActual.nombre=n.value;
-proyectoActual.cliente=c.value;
-proyectoActual.estado=e.value;
-proyectoActual.fecha=new Date().toLocaleDateString();
+async function guardar(){
 
-historial.push({...proyectoActual});
-localStorage.setItem('mst_h',JSON.stringify(historial));
+  proyectoActual.nombre = nombre.value;
+  proyectoActual.cliente = cliente.value;
+  proyectoActual.fecha = new Date().toISOString();
 
-alert("Guardado");
+  await addDoc(collection(db, "proyectos"), proyectoActual);
+
+  out.textContent = "Guardado en Firebase 🔥";
 }
-
-// HISTORIAL
-function render(){
-lista.innerHTML=historial.map((p,i)=>`
-<div style="border-bottom:1px solid #ccc">
-<b>${p.nombre}</b> (${p.tipo})
-<button onclick="ver(${i})">Ver</button>
-</div>`).join('');
-}
-
-function ver(i){
-localStorage.setItem('mst_sel',JSON.stringify(historial[i]));
-alert("Abre operario");
-}
-
-calcAb();
-calcCo();
-render();
 
 </script>
+
 </body>
 </html>
