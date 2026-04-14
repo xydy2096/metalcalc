@@ -11,16 +11,11 @@
     --s: #3b82f6; 
     --bg: #f1f5f9; 
     --border: #cbd5e1; 
-    --accent: #f59e0b;
 }
 
 * { box-sizing: border-box; font-family: sans-serif; }
 
-body { 
-    margin: 0; 
-    display: flex; 
-    background: var(--bg);
-}
+body { margin: 0; display: flex; background: var(--bg); }
 
 /* SIDEBAR */
 .sidebar { 
@@ -55,30 +50,14 @@ body {
     text-transform: uppercase;
 }
 
-.category-title::after {
-    content: '▼';
-    float: right;
-}
+.category-title::after { content: '▼'; float: right; }
+.category-title.open::after { content: '▲'; }
 
-.category-title.open::after {
-    content: '▲';
-}
-
-.submenu {
-    display: none;
-    padding-left: 10px;
-}
-
-.submenu.open {
-    display: block;
-}
+.submenu { display: none; padding-left: 10px; }
+.submenu.open { display: block; }
 
 /* MAIN */
-.main {
-    flex:1;
-    padding:30px;
-}
-
+.main { flex:1; padding:30px; }
 .view { display:none; }
 .view.active { display:block; }
 
@@ -89,7 +68,6 @@ body {
     margin-bottom:20px;
 }
 
-/* GRID */
 .grid {
     display:grid;
     grid-template-columns:1fr 450px;
@@ -135,25 +113,35 @@ canvas {
 <div class="nav-item active" onclick="showView('v-datos',this)">📝 Proyecto</div>
 <div class="nav-item" onclick="showView('v-historial',this)">📂 Historial</div>
 
+<!-- TRABAJOS -->
 <div class="menu-category">
-<div class="category-title open" onclick="toggleSubmenu('sub-p',this)">🚪 Puertas</div>
+<div class="category-title open" onclick="toggleSubmenu('sub-trabajos',this)">🏗️ Trabajos</div>
 
-<div class="submenu open" id="sub-p">
-<div class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</div>
-<div class="nav-item" onclick="showView('v-correderas',this)">Correderas</div>
-<div class="nav-item" onclick="showView('v-autoportantes',this)">Autoportantes</div>
+<div class="submenu open" id="sub-trabajos">
+
+    <!-- PUERTAS -->
+    <div class="menu-category">
+        <div class="category-title" onclick="toggleSubmenu('sub-puertas',this)">🚪 Puertas</div>
+        <div class="submenu" id="sub-puertas">
+            <div class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</div>
+            <div class="nav-item" onclick="showView('v-correderas',this)">Correderas</div>
+            <div class="nav-item" onclick="showView('v-autoportantes',this)">Autoportantes</div>
+        </div>
+    </div>
+
+    <!-- ESTRUCTURAS -->
+    <div class="menu-category">
+        <div class="category-title" onclick="toggleSubmenu('sub-estructuras',this)">🪜 Estructuras</div>
+        <div class="submenu" id="sub-estructuras">
+            <div class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</div>
+            <div class="nav-item" onclick="showView('v-vallas',this)">Vallas</div>
+        </div>
+    </div>
+
 </div>
 </div>
 
-<div class="menu-category">
-<div class="category-title open" onclick="toggleSubmenu('sub-e',this)">🪜 Estructuras</div>
-
-<div class="submenu open" id="sub-e">
-<div class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</div>
-<div class="nav-item" onclick="showView('v-vallas',this)">Vallas</div>
-</div>
-</div>
-
+<!-- STOCK -->
 <div class="menu-category">
 <div class="category-title" onclick="toggleSubmenu('sub-stock',this)">📦 Stock</div>
 <div class="submenu" id="sub-stock">
@@ -161,6 +149,7 @@ canvas {
 </div>
 </div>
 
+<!-- PRONTUARIO -->
 <div class="menu-category">
 <div class="category-title" onclick="toggleSubmenu('sub-pr',this)">📖 Prontuario</div>
 <div class="submenu" id="sub-pr">
@@ -173,7 +162,6 @@ canvas {
 <!-- MAIN -->
 <div class="main">
 
-<!-- PROYECTO -->
 <div id="v-datos" class="view active">
 <div class="card">
 <h2>Proyecto</h2>
@@ -182,7 +170,6 @@ canvas {
 </div>
 </div>
 
-<!-- ABATIBLE -->
 <div id="v-abatibles" class="view">
 <div class="grid">
 
@@ -204,7 +191,6 @@ canvas {
 </div>
 </div>
 
-<!-- RESTO VISTAS (vacías de momento) -->
 <div id="v-correderas" class="view"><div class="card">Correderas</div></div>
 <div id="v-autoportantes" class="view"><div class="card">Autoportantes</div></div>
 <div id="v-barandillas" class="view"><div class="card">Barandillas</div></div>
@@ -217,7 +203,6 @@ canvas {
 
 <script>
 
-// MENU
 function toggleSubmenu(id, el) {
     document.getElementById(id).classList.toggle('open');
     el.classList.toggle('open');
@@ -226,16 +211,14 @@ function toggleSubmenu(id, el) {
 function showView(id, el) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
     document.getElementById(id).classList.add('active');
     el.classList.add('active');
 }
 
-// CALCULO ABATIBLE
 function runAb(){
-let W=+document.getElementById('ab-w').value;
-let H=+document.getElementById('ab-h').value;
-let n=+document.getElementById('ab-n').value;
+let W=+ab-w.value;
+let H=+ab-h.value;
+let n=+ab-n.value;
 
 let hoja=W/n;
 
@@ -247,7 +230,6 @@ Horizontal: ${n*2} x ${hoja.toFixed(0)}mm
 dibujar(W,H,n);
 }
 
-// DIBUJO
 function dibujar(W,H,n){
 let ctx=cv.getContext("2d");
 ctx.clearRect(0,0,400,300);
