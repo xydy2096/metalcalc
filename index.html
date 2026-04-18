@@ -6,231 +6,155 @@
 <title>MSTCALC OPERARIO</title>
 
 <style>
-body{margin:0;display:flex;background:#f1f5f9;font-family:sans-serif}
+body{margin:0;font-family:sans-serif;background:#0f172a;color:white}
 
-.sidebar{
-width:300px;
-background:#0f172a;
-color:white;
+.header{
 padding:20px;
-height:100vh;
-overflow:auto;
+background:#020617;
+font-size:1.5rem;
 }
 
-.item{
-padding:10px;
-border-bottom:1px solid #334155;
-cursor:pointer;
+.container{
+padding:20px;
 }
-.item:hover{background:#1e293b}
-
-.main{flex:1;padding:30px}
 
 .card{
-background:white;
+background:#111827;
 padding:20px;
 border-radius:12px;
 margin-bottom:20px;
 }
 
-.res{
-background:#111;
-color:#0f0;
-padding:15px;
-font-family:monospace;
-border-radius:10px;
+.pieza{
+padding:10px;
+margin-bottom:10px;
+background:#1e293b;
+border-radius:8px;
 }
+
+button{
+margin-top:5px;
+padding:8px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+}
+
+.ok{background:#10b981;color:white}
+.stock{background:#3b82f6;color:white}
+.chatarra{background:#ef4444;color:white}
 
 canvas{
 background:#000;
 width:100%;
+margin-top:20px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="sidebar">
-<h2>TRABAJOS</h2>
-<div id="lista"></div>
-</div>
+<div class="header">👷 OPERARIO - TRABAJOS</div>
 
-<div class="main">
+<div class="container">
 
-<div class="card">
-<h3 id="titulo">Selecciona un trabajo</h3>
-</div>
-
-<div class="card">
-<h3>Despiece</h3>
-<div id="despiece" class="res"></div>
-</div>
-<div class="card">
-<h3>Registrar sobrante</h3>
-
-<select id="accion">
-<option value="chatarra">Chatarra</option>
-<option value="stock">Guardar en stock</option>
-</select>
-
-<input id="pieza" placeholder="Tipo pieza">
-<input id="largo" type="number" placeholder="Largo mm">
-
-<select id="zona">
-<option value="A">Cantilever A</option>
-<option value="B">Cantilever B</option>
-<option value="C">Cantilever C</option>
-</select>
-
-<button onclick="guardarResto()">Guardar</button>
-</div>
-  
-<div class="card">
-<h3>Plano</h3>
-<canvas id="cv" width="500" height="300"></canvas>
-</div>
+<div id="trabajos"></div>
 
 </div>
-
-<!-- FIREBASE -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
 
-  let stock = JSON.parse(localStorage.getItem("mst_stock")) || [];
-
-function guardarStock(){
-localStorage.setItem("mst_stock", JSON.stringify(stock));
-}
-  
+/* FIREBASE */
 firebase.initializeApp({
-apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+apiKey: "AIza...",
 authDomain: "mstcalc.firebaseapp.com",
 projectId: "mstcalc"
 });
 
-const db = firebase.firestore();
+const db = firebase.firestore()
 
-let trabajos = [];
+/* CARGAR TRABAJOS */
+db.collection("trabajos").onSnapshot(snap => {
 
-/* ----------- CARGA DATOS ----------- */
+let cont = document.getElementById("trabajos")
 
-// 🔥 Firebase
-db.collection("trabajos").get().then(snapshot=>{
-trabajos = snapshot.docs.map(doc => doc.data());
-renderLista();
-});
+cont.innerHTML = ""
 
-// 🔁 fallback local
-if(trabajos.length === 0){
-trabajos = JSON.parse(localStorage.getItem("mst_hist")) || [];
-renderLista();
-}
+snap.forEach(doc => {
 
-/* ----------- LISTA ----------- */
+let t = doc.data()
 
-function renderLista(){
-const lista = document.getElementById("lista");
+let html = `
+<div class="card">
+<h3>${t.nombre || "Sin nombre"}</h3>
+<p>${t.tipo}</p>
 
-if(trabajos.length === 0){
-lista.innerHTML = "No hay trabajos";
-return;
-}
+${t.despiece.map((p,i)=>`
+<div class="pieza">
+${p.pieza} → ${p.cantidad} x ${p.largo}mm<br>
 
-lista.innerHTML = trabajos.map((t,i)=>`
-<div class="item" onclick="cargar(${i})">
-<b>${t.nombre || "Sin nombre"}</b><br>
-<small>${t.tipo}</small>
+<button class="ok">✔ Cortado</button>
+<button class="stock" onclick="guardarStock('${p.pieza}',${p.largo})">📦 Guardar</button>
+<button class="chatarra">🗑 Chatarra</button>
 </div>
-`).join("");
+`).join("")}
+
+<canvas id="cv-${doc.id}" width="400" height="250"></canvas>
+
+</div>
+`
+
+cont.innerHTML += html
+
+dibujarPlano(`cv-${doc.id}`, t)
+
+})
+
+})
+
+/* DIBUJO */
+function dibujarPlano(id, t){
+
+let c = document.getElementById(id)
+if(!c) return
+
+let ctx = c.getContext("2d")
+
+ctx.clearRect(0,0,400,250)
+
+ctx.strokeStyle="white"
+ctx.strokeRect(50,50,300,150)
+
+if(t.tipo==="abatible" && t.datos.n==2){
+ctx.beginPath()
+ctx.moveTo(200,50)
+ctx.lineTo(200,200)
+ctx.stroke()
 }
 
-/* ----------- CARGAR TRABAJO ----------- */
-
-function cargar(i){
-const t = trabajos[i];
-
-document.getElementById("titulo").innerText =
-`${t.nombre} - ${t.tipo}`;
-
-/* DESPIECE */
-document.getElementById("despiece").innerHTML =
-(t.despiece || []).map(p =>
-`${p.pieza} → ${p.cantidad} x ${p.largo.toFixed(0)}mm`
-).join("<br>");
-
-/* PLANO */
-dibujar(t);
 }
 
-/* ----------- DIBUJO ----------- */
+/* STOCK DESDE OPERARIO */
+function guardarStock(pieza,largo){
 
-function dibujar(t){
-const ctx = document.getElementById("cv").getContext("2d");
-ctx.clearRect(0,0,500,300);
-
-ctx.strokeStyle="white";
-
-if(t.tipo==="abatible"){
-ctx.strokeRect(100,50,300,200);
-
-if(t.datos.n==2){
-ctx.beginPath();
-ctx.moveTo(250,50);
-ctx.lineTo(250,250);
-ctx.stroke();
-}
-}
-
-if(t.tipo==="corredera"){
-ctx.strokeRect(50,100,400,100);
-}
-
-if(t.tipo==="autoportante"){
-ctx.strokeRect(50,100,400,100);
-ctx.fillRect(400,100,50,100);
-}
-
-if(t.tipo==="barandilla"){
-ctx.strokeRect(50,150,400,50);
-}
-
-if(t.tipo==="valla"){
-ctx.strokeRect(50,150,400,50);
-}
-}
-  function guardarResto(){
-
-let accion = document.getElementById("accion").value;
-let pieza = document.getElementById("pieza").value;
-let largo = +document.getElementById("largo").value;
-let zona = document.getElementById("zona").value;
-
-if(!pieza || !largo){
-alert("Faltan datos");
-return;
-}
-
-if(accion === "stock"){
+let stock = JSON.parse(localStorage.getItem("mst_stock")) || []
 
 stock.push({
 pieza,
 largo,
-zona,
-fecha: new Date().toLocaleString()
-});
+zona:"OPERARIO"
+})
 
-guardarStock();
+localStorage.setItem("mst_stock", JSON.stringify(stock))
 
-alert("Guardado en stock");
+alert("Guardado en stock")
 
-}else{
-alert("Marcado como chatarra");
-}
 }
 
 </script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 </body>
 </html>
