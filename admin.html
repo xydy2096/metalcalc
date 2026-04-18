@@ -200,14 +200,6 @@ canvas{
 </div>
 </div>
 
-<!-- STOCK -->
-<div id="v-stock" class="view"><div class="card">Stock material</div></div>
-<div id="v-stock-pintura" class="view"><div class="card">Stock pinturas</div></div>
-
-<!-- PRONTUARIO -->
-<div id="v-prontuario" class="view"><div class="card">Materiales</div></div>
-<div id="v-prontuario-pintura" class="view"><div class="card">Pinturas</div></div>
-
 <!-- HISTORIAL -->
 <div id="v-historial" class="view">
 <div class="card">
@@ -221,11 +213,8 @@ canvas{
 <script>
 
 /* VARIABLES */
-let proyectoActual = {
-nombre:"",cliente:"",tipo:"",datos:{},despiece:[],fecha:""
-};
-
-let historial = JSON.parse(localStorage.getItem("mst_hist")) || [];
+let proyectoActual = {}
+let historial = JSON.parse(localStorage.getItem("mst_hist")) || []
 
 /* MENU */
 function toggle(id){
@@ -240,36 +229,12 @@ if(el) el.classList.add('active')
 if(id==="v-historial") renderHistorial()
 }
 
-/* PLANO PRO REAL */
-function dibujarPlano(W,H,n){
-let ctx=document.getElementById("cv").getContext("2d")
-ctx.clearRect(0,0,400,300)
-
-let scale=Math.min(300/W,200/H)
-let w=W*scale
-let h=H*scale
-
-ctx.strokeStyle="white"
-ctx.strokeRect(50,40,w,h)
-
-if(n==2){
-ctx.beginPath()
-ctx.moveTo(50+w/2,40)
-ctx.lineTo(50+w/2,40+h)
-ctx.stroke()
-}
-
-ctx.fillStyle="yellow"
-ctx.font="12px monospace"
-ctx.fillText(W+" mm",50+w/2-30,30)
-ctx.fillText(H+" mm",10,40+h/2)
-}
-
 /* CALCULOS */
+
 function runAb(){
-let W=+document.getElementById('ab-w').value
-let H=+document.getElementById('ab-h').value
-let n=+document.getElementById('ab-n').value
+let W=+ab-w.value
+let H=+ab-h.value
+let n=+ab-n.value
 
 let hoja=W/n
 
@@ -281,99 +246,80 @@ let despiece=[
 document.getElementById("ab-res").innerHTML=
 despiece.map(p=>`${p.pieza} → ${p.cantidad} x ${p.largo.toFixed(0)}mm`).join("<br>")
 
-proyectoActual.tipo="abatible"
-proyectoActual.datos={W,H,n}
-proyectoActual.despiece=despiece
+proyectoActual={tipo:"abatible",datos:{W,H,n},despiece}
+dibujar(W,H,n)
+}
 
-dibujarPlano(W,H,n)
+function dibujar(W,H,n){
+let ctx=cv.getContext("2d")
+ctx.clearRect(0,0,400,300)
+ctx.strokeStyle="white"
+ctx.strokeRect(50,60,300,180)
+if(n==2){
+ctx.beginPath()
+ctx.moveTo(200,60)
+ctx.lineTo(200,240)
+ctx.stroke()
+}
 }
 
 function runCo(){
-let W=+document.getElementById('co-w').value
-let cola=+document.getElementById('co-cola').value
-
+let W=+co-w.value
+let cola=+co-cola.value
 let despiece=[{pieza:"Larguero",cantidad:2,largo:W+cola}]
-
-document.getElementById("co-res").innerHTML=`Largueros: ${W+cola}mm`
-
-proyectoActual.tipo="corredera"
-proyectoActual.datos={W,cola}
-proyectoActual.despiece=despiece
+co-res.innerHTML=`Largueros: ${W+cola}mm`
+proyectoActual={tipo:"corredera",datos:{W,cola},despiece}
 }
 
 function runAu(){
-let W=+document.getElementById('au-w').value
+let W=+au-w.value
 let cp=W*0.35
-
 let despiece=[
 {pieza:"Guía",cantidad:1,largo:W+cp},
 {pieza:"Contrapeso",cantidad:1,largo:cp}
 ]
-
-document.getElementById("au-res").innerHTML=`Contrapeso ${cp}<br>Total ${W+cp}`
-
-proyectoActual.tipo="autoportante"
-proyectoActual.datos={W}
-proyectoActual.despiece=despiece
+au-res.innerHTML=`Contrapeso ${cp}<br>Total ${W+cp}`
+proyectoActual={tipo:"autoportante",datos:{W},despiece}
 }
 
 function runBa(){
-let L=+document.getElementById('ba-l').value
-let H=+document.getElementById('ba-h').value
-
+let L=+ba-l.value
+let H=+ba-h.value
 let despiece=[
 {pieza:"Pasamanos",cantidad:1,largo:L},
 {pieza:"Barrote",cantidad:Math.floor(L/120),largo:H-100}
 ]
-
-document.getElementById("ba-res").innerHTML=`Pasamanos ${L}<br>Barrote ${H-100}`
-
-proyectoActual.tipo="barandilla"
-proyectoActual.datos={L,H}
-proyectoActual.despiece=despiece
+ba-res.innerHTML=`Pasamanos ${L}<br>Barrote ${H-100}`
+proyectoActual={tipo:"barandilla",datos:{L,H},despiece}
 }
 
 function runVa(){
-let W=+document.getElementById('va-w').value
-
+let W=+va-w.value
 let despiece=[{pieza:"Marco",cantidad:1,largo:W}]
-
-document.getElementById("va-res").innerHTML=`Tramo ${W}`
-
-proyectoActual.tipo="valla"
-proyectoActual.datos={W}
-proyectoActual.despiece=despiece
+va-res.innerHTML=`Tramo ${W}`
+proyectoActual={tipo:"valla",datos:{W},despiece}
 }
 
 /* GUARDAR */
 function guardarProyecto(){
-proyectoActual.nombre=document.getElementById("p-nombre").value
-proyectoActual.cliente=document.getElementById("p-cliente").value
-proyectoActual.fecha=new Date().toLocaleDateString()
+proyectoActual.nombre=p-nombre.value
+proyectoActual.cliente=p-cliente.value
+proyectoActual.fecha=new Date().toLocaleString()
 
 historial.push({...proyectoActual})
 localStorage.setItem("mst_hist",JSON.stringify(historial))
 
-alert("Proyecto guardado correctamente")
+alert("Proyecto guardado")
 }
 
 /* HISTORIAL */
 function renderHistorial(){
-let cont=document.getElementById("historial-lista")
-
-cont.innerHTML=historial.map((p,i)=>`
-<div style="border-bottom:1px solid #ccc;margin-bottom:10px">
+historial-lista.innerHTML=historial.map(p=>`
+<div>
 <b>${p.nombre}</b> (${p.tipo})<br>
 ${p.cliente}<br>
-<small>${p.fecha}</small><br>
-<button onclick="cargar(${i})">Cargar</button>
-</div>
-`).join("")
-}
-
-function cargar(i){
-proyectoActual = historial[i]
-alert("Proyecto cargado: "+proyectoActual.nombre)
+${p.fecha}
+</div>`).join("")
 }
 
 /* INIT */
