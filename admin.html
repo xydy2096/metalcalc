@@ -6,251 +6,198 @@
 <title>MSTCALC PRO</title>
 
 <style>
-:root { 
-    --p: #0f172a; 
-    --s: #3b82f6; 
-    --bg: #f1f5f9; 
-    --border: #cbd5e1; 
-}
+:root { --p:#0f172a; --s:#3b82f6; --bg:#f1f5f9; }
 
-* { box-sizing: border-box; font-family: sans-serif; }
-
-body { margin: 0; display: flex; background: var(--bg); }
+body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
 
 /* SIDEBAR */
-.sidebar { 
-    width: 280px; 
-    background: var(--p); 
-    color: white; 
-    padding: 20px; 
-    height: 100vh; 
-    overflow-y: auto;
-}
+.sidebar{width:280px;background:var(--p);color:#fff;padding:20px;height:100vh;overflow:auto}
+.nav-item{padding:10px;cursor:pointer;border-radius:8px;margin-bottom:5px}
+.nav-item:hover{background:#1e293b}
+.nav-item.active{background:var(--s)}
 
-.sidebar h2 { color: var(--s); }
-
-.nav-item { 
-    padding: 10px; 
-    cursor: pointer; 
-    border-radius: 8px;
-    margin-bottom:5px;
-}
-
-.nav-item:hover { background: #1e293b; }
-.nav-item.active { background: var(--s); }
-
-.menu-category { margin-bottom: 10px; }
-
-.category-title {
-    padding: 10px;
-    background: rgba(255,255,255,0.05);
-    cursor: pointer;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-}
-
-.category-title::after { content: '▼'; float: right; }
-.category-title.open::after { content: '▲'; }
-
-.submenu { display: none; padding-left: 10px; }
-.submenu.open { display: block; }
+.category-title{padding:10px;background:rgba(255,255,255,0.05);cursor:pointer;border-radius:8px;font-size:0.75rem}
+.submenu{display:none;padding-left:10px}
+.submenu.open{display:block}
 
 /* MAIN */
-.main { flex:1; padding:30px; }
-.view { display:none; }
-.view.active { display:block; }
+.main{flex:1;padding:30px}
+.view{display:none}
+.view.active{display:block}
+.card{background:#fff;padding:20px;border-radius:12px;margin-bottom:20px}
 
-.card {
-    background:#fff;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
-}
+.grid{display:grid;grid-template-columns:1fr 400px;gap:20px}
 
-.grid {
-    display:grid;
-    grid-template-columns:1fr 450px;
-    gap:20px;
-}
+input,select{width:100%;padding:10px;margin-top:5px}
 
-input, select {
-    width:100%;
-    padding:10px;
-    margin-top:5px;
-}
+.canvasBox{background:#111;padding:10px;border-radius:10px}
+canvas{background:#000;width:100%}
 
-/* CANVAS */
-.canvasBox {
-    background:#111827;
-    padding:15px;
-    border-radius:12px;
-}
-
-canvas {
-    background:#000;
-    width:100%;
-}
-
-.res {
-    background:#111;
-    color:#0f0;
-    padding:15px;
-    margin-top:10px;
-    font-family:monospace;
-}
+.res{background:#111;color:#0f0;padding:10px;margin-top:10px;font-family:monospace}
 </style>
-
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
 <div class="sidebar">
 
 <h2>MSTCALC</h2>
 
-<div class="nav-item active" onclick="showView('v-datos',this)">📝 Proyecto</div>
-<div class="nav-item" onclick="showView('v-historial',this)">📂 Historial</div>
+<div class="nav-item active" onclick="showView('v-datos',this)">Proyecto</div>
+<div class="nav-item" onclick="showView('v-historial',this)">Historial</div>
 
 <!-- TRABAJOS -->
-<div class="menu-category">
-<div class="category-title open" onclick="toggleSubmenu('sub-trabajos',this)">🏗️ Trabajos</div>
+<div class="category-title" onclick="toggle('t1')">🏗️ Trabajos</div>
+<div id="t1" class="submenu open">
 
-<div class="submenu open" id="sub-trabajos">
-
-    <!-- PUERTAS -->
-    <div class="menu-category">
-        <div class="category-title" onclick="toggleSubmenu('sub-puertas',this)">🚪 Puertas</div>
-        <div class="submenu" id="sub-puertas">
-            <div class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</div>
-            <div class="nav-item" onclick="showView('v-correderas',this)">Correderas</div>
-            <div class="nav-item" onclick="showView('v-autoportantes',this)">Autoportantes</div>
-        </div>
-    </div>
-
-    <!-- ESTRUCTURAS -->
-    <div class="menu-category">
-        <div class="category-title" onclick="toggleSubmenu('sub-estructuras',this)">🪜 Estructuras</div>
-        <div class="submenu" id="sub-estructuras">
-            <div class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</div>
-            <div class="nav-item" onclick="showView('v-vallas',this)">Vallas</div>
-        </div>
-    </div>
-
+<div class="category-title" onclick="toggle('t2')">Puertas</div>
+<div id="t2" class="submenu">
+<div class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</div>
+<div class="nav-item" onclick="showView('v-correderas',this)">Correderas</div>
+<div class="nav-item" onclick="showView('v-auto',this)">Autoportantes</div>
 </div>
+
+<div class="category-title" onclick="toggle('t3')">Estructuras</div>
+<div id="t3" class="submenu">
+<div class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</div>
+<div class="nav-item" onclick="showView('v-vallas',this)">Vallas</div>
+</div>
+
 </div>
 
 <!-- STOCK -->
-<div class="menu-category">
-<div class="category-title" onclick="toggleSubmenu('sub-stock',this)">📦 Stock</div>
-<div class="submenu" id="sub-stock">
-<div class="nav-item" onclick="showView('v-stock',this)">Material</div>
-</div>
+<div class="category-title" onclick="toggle('s1')">📦 Stock</div>
+<div id="s1" class="submenu">
+<div class="nav-item" onclick="showView('v-stock')">Material</div>
+<div class="nav-item" onclick="showView('v-stock-pintura')">🎨 Pinturas</div>
 </div>
 
 <!-- PRONTUARIO -->
-<div class="menu-category">
-<div class="category-title" onclick="toggleSubmenu('sub-pr',this)">📖 Prontuario</div>
-<div class="submenu" id="sub-pr">
-<div class="nav-item" onclick="showView('v-prontuario',this)">Materiales</div>
-</div>
-</div>
-
+<div class="category-title" onclick="toggle('p1')">📖 Prontuario</div>
+<div id="p1" class="submenu">
+<div class="nav-item" onclick="showView('v-prontuario')">Materiales</div>
+<div class="nav-item" onclick="showView('v-prontuario-pintura')">🎨 Pinturas</div>
 </div>
 
-<!-- MAIN -->
+</div>
+
 <div class="main">
 
+<!-- PROYECTO -->
 <div id="v-datos" class="view active">
 <div class="card">
-<h2>Proyecto</h2>
+<h3>Proyecto</h3>
 <input placeholder="Nombre">
 <input placeholder="Cliente">
 </div>
 </div>
 
+<!-- ABATIBLE -->
 <div id="v-abatibles" class="view">
 <div class="grid">
-
 <div class="card">
-<h3>Puerta Abatible</h3>
-<input id="ab-w" type="number" value="3000" oninput="runAb()">
-<input id="ab-h" type="number" value="2000" oninput="runAb()">
+<input id="ab-w" value="3000" oninput="runAb()">
+<input id="ab-h" value="2000" oninput="runAb()">
 <select id="ab-n" onchange="runAb()">
-<option value="1">1 hoja</option>
-<option value="2">2 hojas</option>
+<option value="1">1</option><option value="2">2</option>
 </select>
 </div>
-
 <div class="canvasBox">
-<canvas id="cv" width="400" height="300"></canvas>
-<div id="res" class="res"></div>
+<canvas id="cv"></canvas>
+<div id="res"></div>
+</div>
+</div>
 </div>
 
+<!-- CORREDERA -->
+<div id="v-correderas" class="view">
+<div class="card">
+<input id="co-w" value="4000" oninput="runCo()">
+<input id="co-cola" value="400" oninput="runCo()">
+<div id="co-res" class="res"></div>
 </div>
 </div>
 
-<div id="v-correderas" class="view"><div class="card">Correderas</div></div>
-<div id="v-autoportantes" class="view"><div class="card">Autoportantes</div></div>
-<div id="v-barandillas" class="view"><div class="card">Barandillas</div></div>
-<div id="v-vallas" class="view"><div class="card">Vallas</div></div>
-<div id="v-stock" class="view"><div class="card">Stock</div></div>
-<div id="v-prontuario" class="view"><div class="card">Prontuario</div></div>
+<!-- AUTO -->
+<div id="v-auto" class="view">
+<div class="card">
+<input id="au-w" value="5000" oninput="runAu()">
+<div id="au-res" class="res"></div>
+</div>
+</div>
+
+<!-- BARANDILLA -->
+<div id="v-barandillas" class="view">
+<div class="card">
+<input id="ba-l" value="6000" oninput="runBa()">
+<input id="ba-h" value="1000" oninput="runBa()">
+<div id="ba-res" class="res"></div>
+</div>
+</div>
+
+<!-- VALLAS -->
+<div id="v-vallas" class="view">
+<div class="card">
+<input id="va-w" value="2000" oninput="runVa()">
+<div id="va-res" class="res"></div>
+</div>
+</div>
+
+<!-- STOCK -->
+<div id="v-stock" class="view"><div class="card">Stock material</div></div>
+<div id="v-stock-pintura" class="view"><div class="card">Stock pinturas</div></div>
+
+<!-- PRONTUARIO -->
+<div id="v-prontuario" class="view"><div class="card">Materiales</div></div>
+<div id="v-prontuario-pintura" class="view"><div class="card">Pinturas</div></div>
+
 <div id="v-historial" class="view"><div class="card">Historial</div></div>
 
 </div>
 
 <script>
 
-function toggleSubmenu(id, el) {
-    document.getElementById(id).classList.toggle('open');
-    el.classList.toggle('open');
+function toggle(id){
+document.getElementById(id).classList.toggle('open')
 }
 
-function showView(id, el) {
-    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-    el.classList.add('active');
+function showView(id,el){
+document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
+document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+document.getElementById(id).classList.add('active')
+if(el) el.classList.add('active')
 }
+
+/* CALCULOS */
 
 function runAb(){
-let W=+ab-w.value;
-let H=+ab-h.value;
-let n=+ab-n.value;
-
-let hoja=W/n;
-
-res.innerHTML = `
-Vertical: ${n*2} x ${H}mm <br>
-Horizontal: ${n*2} x ${hoja.toFixed(0)}mm
-`;
-
-dibujar(W,H,n);
+let W=+ab-w.value,H=+ab-h.value,n=+ab-n.value
+let hoja=W/n
+res.innerHTML=`Vertical ${n*2} x ${H}<br>Horizontal ${n*2} x ${hoja}`
 }
 
-function dibujar(W,H,n){
-let ctx=cv.getContext("2d");
-ctx.clearRect(0,0,400,300);
-
-let w=300,h=180;
-
-ctx.strokeStyle="white";
-ctx.strokeRect(50,60,w,h);
-
-ctx.fillStyle="white";
-ctx.fillText(W+" mm",150,50);
-
-if(n==2){
-ctx.beginPath();
-ctx.moveTo(50+w/2,60);
-ctx.lineTo(50+w/2,240);
-ctx.stroke();
-}
+function runCo(){
+let W=+co-w.value,cola=+co-cola.value
+co-res.innerHTML=`Largueros: ${W+cola}mm`
 }
 
-runAb();
+function runAu(){
+let W=+au-w.value
+let cp=W*0.35
+au-res.innerHTML=`Contrapeso: ${cp}<br>Total: ${W+cp}`
+}
+
+function runBa(){
+let L=+ba-l.value,H=+ba-h.value
+ba-res.innerHTML=`Pasamanos: ${L}<br>Barrotes: ${H-100}`
+}
+
+function runVa(){
+let W=+va-w.value
+va-res.innerHTML=`Tramo: ${W}`
+}
+
+runAb();runCo();runAu();runBa();runVa();
 
 </script>
 
