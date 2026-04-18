@@ -14,6 +14,7 @@
 
 body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
 
+/* SIDEBAR */
 .sidebar{
     width:300px;
     background:var(--p);
@@ -45,6 +46,7 @@ body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
 .submenu{display:none;padding-left:10px}
 .submenu.open{display:block}
 
+/* MAIN */
 .main{flex:1;padding:30px}
 .view{display:none}
 .view.active{display:block}
@@ -136,6 +138,7 @@ canvas{
 
 <div class="main">
 
+<!-- PROYECTO -->
 <div id="v-datos" class="view active">
 <div class="card">
 <h3>Proyecto</h3>
@@ -145,6 +148,7 @@ canvas{
 </div>
 </div>
 
+<!-- ABATIBLE -->
 <div id="v-abatibles" class="view">
 <div class="grid">
 <div class="card">
@@ -162,6 +166,41 @@ canvas{
 </div>
 </div>
 
+<!-- CORREDERA -->
+<div id="v-correderas" class="view">
+<div class="card">
+<input id="co-w" value="4000" oninput="runCo()">
+<input id="co-cola" value="400" oninput="runCo()">
+<div id="co-res" class="res"></div>
+</div>
+</div>
+
+<!-- AUTO -->
+<div id="v-auto" class="view">
+<div class="card">
+<input id="au-w" value="5000" oninput="runAu()">
+<div id="au-res" class="res"></div>
+</div>
+</div>
+
+<!-- BARANDILLA -->
+<div id="v-barandillas" class="view">
+<div class="card">
+<input id="ba-l" value="6000" oninput="runBa()">
+<input id="ba-h" value="1000" oninput="runBa()">
+<div id="ba-res" class="res"></div>
+</div>
+</div>
+
+<!-- VALLAS -->
+<div id="v-vallas" class="view">
+<div class="card">
+<input id="va-w" value="2000" oninput="runVa()">
+<div id="va-res" class="res"></div>
+</div>
+</div>
+
+<!-- HISTORIAL -->
 <div id="v-historial" class="view">
 <div class="card">
 <h3>Historial</h3>
@@ -173,9 +212,11 @@ canvas{
 
 <script>
 
+/* VARIABLES */
 let proyectoActual = {}
 let historial = JSON.parse(localStorage.getItem("mst_hist")) || []
 
+/* MENU */
 function toggle(id){
 document.getElementById(id).classList.toggle('open')
 }
@@ -187,6 +228,8 @@ document.getElementById(id).classList.add('active')
 if(el) el.classList.add('active')
 if(id==="v-historial") renderHistorial()
 }
+
+/* CALCULOS */
 
 function runAb(){
 let W = +document.getElementById('ab-w').value
@@ -223,35 +266,60 @@ ctx.stroke()
 }
 }
 
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
-  authDomain: "mstcalc.firebaseapp.com",
-  projectId: "mstcalc"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const guardarOriginal = guardarProyecto;
-
-window.guardarProyecto = async function(){
-
-    guardarOriginal(); // sigue guardando en local
-
-    try{
-        await addDoc(collection(db, "trabajos"), proyectoActual);
-        console.log("Enviado a operario");
-    }catch(e){
-        console.error("Error Firebase", e);
-    }
+function runCo(){
+let W=+document.getElementById('co-w').value
+let cola=+document.getElementById('co-cola').value
+let despiece=[{pieza:"Larguero",cantidad:2,largo:W+cola}]
+document.getElementById("co-res").innerHTML=`Largueros: ${W+cola}mm`
+proyectoActual={tipo:"corredera",datos:{W,cola},despiece}
 }
 
+function runAu(){
+let W=+document.getElementById('au-w').value
+let cp=W*0.35
+let despiece=[
+{pieza:"Guía",cantidad:1,largo:W+cp},
+{pieza:"Contrapeso",cantidad:1,largo:cp}
+]
+document.getElementById("au-res").innerHTML=`Contrapeso ${cp}<br>Total ${W+cp}`
+proyectoActual={tipo:"autoportante",datos:{W},despiece}
+}
 
+function runBa(){
+let L=+document.getElementById('ba-l').value
+let H=+document.getElementById('ba-h').value
+let despiece=[
+{pieza:"Pasamanos",cantidad:1,largo:L},
+{pieza:"Barrote",cantidad:Math.floor(L/120),largo:H-100}
+]
+document.getElementById("ba-res").innerHTML=`Pasamanos ${L}<br>Barrote ${H-100}`
+proyectoActual={tipo:"barandilla",datos:{L,H},despiece}
+}
+
+function runVa(){
+let W=+document.getElementById('va-w').value
+let despiece=[{pieza:"Marco",cantidad:1,largo:W}]
+document.getElementById("va-res").innerHTML=`Tramo ${W}`
+proyectoActual={tipo:"valla",datos:{W},despiece}
+}
+
+/* GUARDAR */
+function guardarProyecto(){
+
+proyectoActual.nombre=document.getElementById("p-nombre").value
+proyectoActual.cliente=document.getElementById("p-cliente").value
+proyectoActual.fecha=new Date().toLocaleString()
+
+historial.push({...proyectoActual})
+localStorage.setItem("mst_hist",JSON.stringify(historial))
+
+// 🔥 FIREBASE
+firebase.firestore().collection("trabajos").add(proyectoActual)
+
+alert("Proyecto guardado")
+}
+
+/* HISTORIAL */
 function renderHistorial(){
 document.getElementById("historial-lista").innerHTML =
 historial.map(p=>`
@@ -264,6 +332,18 @@ ${p.fecha}
 
 runAb()
 
+</script>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+firebase.initializeApp({
+apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+authDomain: "mstcalc.firebaseapp.com",
+projectId: "mstcalc"
+});
 </script>
 
 </body>
