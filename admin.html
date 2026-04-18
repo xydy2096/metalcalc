@@ -70,6 +70,16 @@ input,select{
     margin-top:5px;
 }
 
+button{
+    margin-top:10px;
+    padding:10px;
+    cursor:pointer;
+    border:none;
+    border-radius:8px;
+    background:var(--s);
+    color:white;
+}
+
 .res{
     background:#111;
     color:#0f0;
@@ -91,21 +101,21 @@ canvas{
 
 <h2>MSTCALC</h2>
 
-<div class="nav-item active" onclick="showView('v-datos',this)">Proyecto <button onclick="guardarProyecto()">💾 Guardar Proyecto Completo</button></div>
+<div class="nav-item active" onclick="showView('v-datos',this)">Proyecto</div>
 <div class="nav-item" onclick="showView('v-historial',this)">Historial</div>
 
 <div class="category-title" onclick="toggle('trabajos')">Trabajos</div>
 <div id="trabajos" class="submenu open">
 
 <div class="category-title" onclick="toggle('puertas')">Puertas</div>
-<div id="puertas" class="submenu">
+<div id="puertas" class="submenu open">
 <div class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</div>
 <div class="nav-item" onclick="showView('v-correderas',this)">Correderas</div>
 <div class="nav-item" onclick="showView('v-auto',this)">Autoportantes</div>
 </div>
 
 <div class="category-title" onclick="toggle('estructuras')">Estructuras</div>
-<div id="estructuras" class="submenu">
+<div id="estructuras" class="submenu open">
 <div class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</div>
 <div class="nav-item" onclick="showView('v-vallas',this)">Vallas</div>
 </div>
@@ -128,11 +138,13 @@ canvas{
 
 <div class="main">
 
+<!-- PROYECTO -->
 <div id="v-datos" class="view active">
 <div class="card">
 <h3>Proyecto</h3>
-<input placeholder="Nombre">
-<input placeholder="Cliente">
+<input id="p-nombre" placeholder="Nombre">
+<input id="p-cliente" placeholder="Cliente">
+<button onclick="guardarProyecto()">💾 Guardar Proyecto Completo</button>
 </div>
 </div>
 
@@ -188,32 +200,39 @@ canvas{
 </div>
 </div>
 
+<!-- STOCK -->
 <div id="v-stock" class="view"><div class="card">Stock material</div></div>
 <div id="v-stock-pintura" class="view"><div class="card">Stock pinturas</div></div>
 
+<!-- PRONTUARIO -->
 <div id="v-prontuario" class="view"><div class="card">Materiales</div></div>
 <div id="v-prontuario-pintura" class="view"><div class="card">Pinturas</div></div>
 
+<!-- HISTORIAL -->
 <div id="v-historial" class="view">
 <div class="card">
 <h3>Historial</h3>
 <div id="historial-lista"></div>
 </div>
 </div>
+
 </div>
 
 <script>
+
+/* ---------- VARIABLES ---------- */
 let proyectoActual = {
-    nombre: "",
-    cliente: "",
-    tipo: "",
-    datos: {},
-    despiece: [],
-    fecha: ""
+    nombre:"",
+    cliente:"",
+    tipo:"",
+    datos:{},
+    despiece:[],
+    fecha:""
 };
 
 let historial = JSON.parse(localStorage.getItem("mst_hist")) || [];
 
+/* ---------- MENU ---------- */
 function toggle(id){
 document.getElementById(id).classList.toggle('open')
 }
@@ -223,9 +242,11 @@ document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
 document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
 document.getElementById(id).classList.add('active')
 if(el) el.classList.add('active')
+
+if(id==="v-historial") renderHistorial()
 }
 
-/* CALCULOS */
+/* ---------- CALCULOS ---------- */
 
 function runAb(){
 let W=+document.getElementById('ab-w').value
@@ -234,124 +255,123 @@ let n=+document.getElementById('ab-n').value
 
 let hoja=W/n
 
-let despiece = [
-    {pieza:"Vertical", cantidad:n*2, largo:H},
-    {pieza:"Horizontal", cantidad:n*2, largo:hoja}
-];
+let despiece=[
+{pieza:"Vertical",cantidad:n*2,largo:H},
+{pieza:"Horizontal",cantidad:n*2,largo:hoja}
+]
 
-document.getElementById("ab-res").innerHTML =
-despiece.map(p => `${p.pieza} → ${p.cantidad} x ${p.largo.toFixed(0)}mm`).join("<br>");
+document.getElementById("ab-res").innerHTML=
+despiece.map(p=>`${p.pieza} → ${p.cantidad} x ${p.largo.toFixed(0)}mm`).join("<br>")
 
-// 🔥 GUARDAR EN PROYECTO
-proyectoActual.tipo = "abatible";
-proyectoActual.datos = {W,H,n};
-proyectoActual.despiece = despiece;
+proyectoActual.tipo="abatible"
+proyectoActual.datos={W,H,n}
+proyectoActual.despiece=despiece
 
- function drawPuerta(W, H, hW, nH, eH, eB, nB, dist, ori) {
-            const ctx = document.getElementById('ab-can').getContext('2d');
-            ctx.clearRect(0,0,500,400);
-            const s = 350 / W;
-            const ox = (500 - W*s)/2;
-            ctx.strokeStyle = "#475569";
-            for(let i=0; i<nH; i++) {
-                ctx.strokeRect(ox + (i*hW*s), 50, hW*s, H*s);
+dibujar(W,H,n)
+}
 
+function dibujar(W,H,n){
+let ctx=document.getElementById("cv").getContext("2d")
+ctx.clearRect(0,0,400,300)
+
+ctx.strokeStyle="white"
+ctx.strokeRect(50,60,300,180)
+
+if(n==2){
+ctx.beginPath()
+ctx.moveTo(200,60)
+ctx.lineTo(200,240)
+ctx.stroke()
+}
+}
 
 function runCo(){
 let W=+document.getElementById('co-w').value
 let cola=+document.getElementById('co-cola').value
 
-let despiece = [
-    {pieza:"Larguero", cantidad:2, largo:W+cola}
-];
+let despiece=[{pieza:"Larguero",cantidad:2,largo:W+cola}]
 
-document.getElementById("co-res").innerHTML =
-`Largueros: ${W+cola}mm`
+document.getElementById("co-res").innerHTML=`Largueros: ${W+cola}mm`
 
-proyectoActual.tipo = "corredera";
-proyectoActual.datos = {W,cola};
-proyectoActual.despiece = despiece;
+proyectoActual.tipo="corredera"
+proyectoActual.datos={W,cola}
+proyectoActual.despiece=despiece
 }
 
 function runAu(){
 let W=+document.getElementById('au-w').value
 let cp=W*0.35
 
-let despiece = [
-    {pieza:"Guía", cantidad:1, largo:W+cp},
-    {pieza:"Contrapeso", cantidad:1, largo:cp}
-];
+let despiece=[
+{pieza:"Guía",cantidad:1,largo:W+cp},
+{pieza:"Contrapeso",cantidad:1,largo:cp}
+]
 
-document.getElementById("au-res").innerHTML =
-`Contrapeso ${cp}<br>Total ${W+cp}`
+document.getElementById("au-res").innerHTML=`Contrapeso ${cp}<br>Total ${W+cp}`
 
-proyectoActual.tipo = "autoportante";
-proyectoActual.datos = {W};
-proyectoActual.despiece = despiece;
+proyectoActual.tipo="autoportante"
+proyectoActual.datos={W}
+proyectoActual.despiece=despiece
 }
 
 function runBa(){
 let L=+document.getElementById('ba-l').value
 let H=+document.getElementById('ba-h').value
 
-let despiece = [
-    {pieza:"Pasamanos", cantidad:1, largo:L},
-    {pieza:"Barrote", cantidad:Math.floor(L/120), largo:H-100}
-];
+let despiece=[
+{pieza:"Pasamanos",cantidad:1,largo:L},
+{pieza:"Barrote",cantidad:Math.floor(L/120),largo:H-100}
+]
 
-document.getElementById("ba-res").innerHTML =
-`Pasamanos ${L}<br>Barrotes ${H-100}`
+document.getElementById("ba-res").innerHTML=`Pasamanos ${L}<br>Barrote ${H-100}`
 
-proyectoActual.tipo = "barandilla";
-proyectoActual.datos = {L,H};
-proyectoActual.despiece = despiece;
+proyectoActual.tipo="barandilla"
+proyectoActual.datos={L,H}
+proyectoActual.despiece=despiece
 }
 
 function runVa(){
 let W=+document.getElementById('va-w').value
 
-let despiece = [
-    {pieza:"Marco", cantidad:1, largo:W}
-];
+let despiece=[{pieza:"Marco",cantidad:1,largo:W}]
 
-document.getElementById("va-res").innerHTML =
-`Tramo ${W}`
+document.getElementById("va-res").innerHTML=`Tramo ${W}`
 
-proyectoActual.tipo = "valla";
-proyectoActual.datos = {W};
-proyectoActual.despiece = despiece;
+proyectoActual.tipo="valla"
+proyectoActual.datos={W}
+proyectoActual.despiece=despiece
 }
 
-/* INIT */
-runAb(); runCo(); runAu(); runBa(); runVa();
+/* ---------- GUARDAR ---------- */
 
 function guardarProyecto(){
 
-proyectoActual.nombre = document.querySelector("#v-datos input:nth-child(2)").value;
-proyectoActual.cliente = document.querySelector("#v-datos input:nth-child(3)").value;
-proyectoActual.fecha = new Date().toLocaleDateString();
+proyectoActual.nombre=document.getElementById("p-nombre").value
+proyectoActual.cliente=document.getElementById("p-cliente").value
+proyectoActual.fecha=new Date().toLocaleDateString()
 
-// guardar copia
-historial.push({...proyectoActual});
+historial.push({...proyectoActual})
+localStorage.setItem("mst_hist",JSON.stringify(historial))
 
-localStorage.setItem("mst_hist", JSON.stringify(historial));
-
-alert("Proyecto guardado correctamente");
+alert("Proyecto guardado correctamente")
 }
 
-function renderHistorial(){
-let cont = document.getElementById("historial-lista");
+/* ---------- HISTORIAL ---------- */
 
-cont.innerHTML = historial.map(p => `
+function renderHistorial(){
+let cont=document.getElementById("historial-lista")
+
+cont.innerHTML=historial.map(p=>`
 <div style="border-bottom:1px solid #ccc;margin-bottom:10px">
 <b>${p.nombre}</b> (${p.tipo})<br>
 ${p.cliente}<br>
 <small>${p.fecha}</small>
 </div>
-`).join("");
+`).join("")
 }
 
-if(id === "v-historial") renderHistorial();
+/* INIT */
+runAb(); runCo(); runAu(); runBa(); runVa();
 
 </script>
 
