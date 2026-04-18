@@ -2,66 +2,209 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Operario MSTCALC</title>
+<title>MSTCALC OPERARIO PRO</title>
 
 <style>
-body{font-family:sans-serif;background:#111;color:#0f0;padding:20px}
-.card{border:1px solid #333;padding:15px;margin-bottom:10px}
+:root { --p:#0f172a; --s:#3b82f6; --bg:#020617;}
+
+body{
+margin:0;
+display:flex;
+background:var(--bg);
+color:white;
+font-family:sans-serif;
+}
+
+/* SIDEBAR */
+.sidebar{
+width:260px;
+background:var(--p);
+padding:20px;
+height:100vh;
+overflow:auto;
+}
+
+.nav-item{
+padding:12px;
+border-radius:8px;
+cursor:pointer;
+margin-bottom:5px;
+}
+.nav-item:hover{background:#1e293b}
+.nav-item.active{background:var(--s)}
+
+/* MAIN */
+.main{flex:1;padding:25px}
+
+.view{display:none}
+.view.active{display:block}
+
+.card{
+background:#1e293b;
+padding:15px;
+border-radius:10px;
+margin-bottom:15px;
+}
+
+canvas{
+width:100%;
+background:#000;
+border-radius:10px;
+margin-top:10px;
+}
+
+.despiece{
+margin-top:10px;
+font-family:monospace;
+color:#0f0;
+}
 </style>
 </head>
 
 <body>
 
-<h2>📡 Trabajos en Taller</h2>
+<div class="sidebar">
 
+<h2>OPERARIO</h2>
+
+<div class="nav-item active" onclick="showView('v-trabajos',this)">Trabajos</div>
+<div class="nav-item" onclick="showView('v-detalle',this)">Trabajo activo</div>
+
+</div>
+
+<div class="main">
+
+<!-- LISTADO -->
+<div id="v-trabajos" class="view active">
+<h2>📡 Trabajos</h2>
 <div id="lista"></div>
+</div>
 
-<script type="module">
+<!-- DETALLE -->
+<div id="v-detalle" class="view">
+<h2>🔧 Trabajo</h2>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<div class="card">
+<div id="info"></div>
+<canvas id="canvas"></canvas>
+<div id="despiece" class="despiece"></div>
+</div>
 
-const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "mstcalc.firebaseapp.com",
-  projectId: "mstcalc",
-  storageBucket: "mstcalc.firebasestorage.app",
-  messagingSenderId: "68220801288",
-  appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
-};
+</div>
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+</div>
 
-const lista = document.getElementById("lista");
+<script>
 
-// 🔥 ESCUCHAR EN TIEMPO REAL
-onSnapshot(collection(db, "proyectos"), (snapshot) => {
+/* NAV */
+function showView(id,el){
+document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
+document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+document.getElementById(id).classList.add('active')
+if(el) el.classList.add('active')
+}
 
-lista.innerHTML = "";
+/* PLANO PRO (MISMO QUE ADMIN) */
+function dibujarPlano(canvas,tipo,d){
 
-snapshot.forEach(doc => {
+const ctx=canvas.getContext("2d")
+canvas.width=400; canvas.height=250
+ctx.clearRect(0,0,400,250)
 
-let p = doc.data();
+ctx.strokeStyle="white"
+ctx.fillStyle="yellow"
+ctx.font="12px monospace"
 
-let div = document.createElement("div");
-div.className = "card";
+if(tipo=="abatible"){
+let scale=Math.min(350/d.W,200/d.H)
+let w=d.W*scale, h=d.H*scale
 
-div.innerHTML = `
-<b>${p.nombre}</b> (${p.tipo})<br>
-Cliente: ${p.cliente}<br>
-Fecha: ${p.fecha}<br><br>
+ctx.strokeRect(25,20,w,h)
 
-${p.despiece.map(d =>
-`• ${d.pieza} → ${d.cantidad} x ${Math.round(d.largo)}mm`
-).join("<br>")}
-`;
+if(d.n==2){
+ctx.beginPath()
+ctx.moveTo(25+w/2,20)
+ctx.lineTo(25+w/2,20+h)
+ctx.stroke()
+}
 
-lista.appendChild(div);
+ctx.fillText(d.W+"mm",25+w/2,240)
+ctx.fillText(d.H+"mm",5,20+h/2)
+}
 
-});
+}
 
-});
+/* DATOS SIMULADOS (luego Firebase) */
+let trabajos=[
+{
+nombre:"Puerta Nave A",
+cliente:"Cliente 1",
+tipo:"abatible",
+fecha:"12/03/2026",
+datos:{W:3000,H:2000,n:2},
+despiece:[
+{pieza:"Vertical",cantidad:4,largo:2000},
+{pieza:"Horizontal",cantidad:4,largo:1500}
+]
+},
+{
+nombre:"Puerta Peatonal",
+cliente:"Cliente 2",
+tipo:"abatible",
+fecha:"10/03/2026",
+datos:{W:1000,H:2000,n:1},
+despiece:[
+{pieza:"Vertical",cantidad:2,largo:2000},
+{pieza:"Horizontal",cantidad:2,largo:1000}
+]
+}
+]
+
+let actual=null
+
+/* RENDER LISTA */
+function renderLista(){
+
+let lista=document.getElementById("lista")
+
+lista.innerHTML = trabajos.map((t,i)=>`
+<div class="card" onclick="abrir(${i})">
+<b>${t.nombre}</b><br>
+${t.cliente}<br>
+<small>${t.fecha}</small>
+</div>
+`).join("")
+
+}
+
+/* ABRIR TRABAJO */
+function abrir(i){
+
+actual = trabajos[i]
+
+showView("v-detalle")
+
+document.getElementById("info").innerHTML=`
+<b>${actual.nombre}</b><br>
+Cliente: ${actual.cliente}<br>
+Tipo: ${actual.tipo}
+`
+
+dibujarPlano(
+document.getElementById("canvas"),
+actual.tipo,
+actual.datos
+)
+
+document.getElementById("despiece").innerHTML =
+actual.despiece.map(d =>
+`• ${d.pieza} → ${d.cantidad} x ${d.largo}mm`
+).join("<br>")
+
+}
+
+/* INIT */
+renderLista()
 
 </script>
 
