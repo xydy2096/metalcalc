@@ -2,43 +2,24 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>MSTCALC OPERARIO</title>
+<title>OPERARIO</title>
 
 <style>
-body{
-    margin:0;
-    background:#020617;
-    color:white;
-    font-family:sans-serif;
-}
-
-.card{
-    background:#1e293b;
-    margin:15px;
-    padding:15px;
-    border-radius:10px;
-}
-
-canvas{
-    width:100%;
-    background:black;
-    margin-top:10px;
-}
-
-h2{padding:15px}
+body{margin:0;background:#020617;color:white;font-family:sans-serif}
+.card{background:#1e293b;margin:10px;padding:15px;border-radius:10px}
+canvas{width:100%;background:black;margin-top:10px}
 </style>
 </head>
 
 <body>
 
-<h2>📋 TRABAJOS EN TALLER</h2>
-
+<h2 style="padding:10px">TRABAJOS</h2>
 <div id="lista"></div>
 
-<script type="module">
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script>
 
 const firebaseConfig = {
   apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
@@ -46,23 +27,23 @@ const firebaseConfig = {
   projectId: "mstcalc"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
 const lista = document.getElementById("lista");
 
-onSnapshot(collection(db, "trabajos"), (snapshot)=>{
+db.collection("trabajos").onSnapshot(snapshot=>{
 
     lista.innerHTML="";
 
     snapshot.forEach(doc=>{
 
-        const t = doc.data();
+        let t = doc.data();
 
-        const div = document.createElement("div");
+        let div = document.createElement("div");
         div.className="card";
 
-        div.innerHTML = `
+        div.innerHTML=`
         <b>${t.nombre || "Sin nombre"}</b><br>
         ${t.cliente || ""}<br>
         <small>${t.tipo}</small>
@@ -70,23 +51,21 @@ onSnapshot(collection(db, "trabajos"), (snapshot)=>{
         <canvas id="cv-${doc.id}" width="400" height="200"></canvas>
 
         <div>
-        ${t.despiece.map(d=>`
-            ${d.pieza} → ${d.cantidad} x ${d.largo.toFixed(0)}mm
+        ${(t.despiece || []).map(d=>`
+            ${d.pieza} → ${d.cantidad} x ${d.largo}
         `).join("<br>")}
         </div>
-
-        <button onclick="error('${doc.id}')">⚠️ Error corte</button>
         `;
 
         lista.appendChild(div);
 
-        // DIBUJO SIMPLE
-        const ctx = document.getElementById("cv-"+doc.id).getContext("2d");
+        // dibujo básico
+        let ctx = document.getElementById("cv-"+doc.id).getContext("2d");
 
         ctx.strokeStyle="white";
         ctx.strokeRect(20,20,300,120);
 
-        if(t.tipo==="abatible" && t.datos.n==2){
+        if(t.tipo==="abatible" && t.datos && t.datos.n==2){
             ctx.beginPath();
             ctx.moveTo(170,20);
             ctx.lineTo(170,140);
@@ -96,10 +75,6 @@ onSnapshot(collection(db, "trabajos"), (snapshot)=>{
     });
 
 });
-
-window.error = function(id){
-    alert("Error registrado en pieza: " + id);
-};
 
 </script>
 
