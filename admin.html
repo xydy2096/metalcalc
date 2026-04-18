@@ -332,6 +332,20 @@ localStorage.setItem("mst_hist", JSON.stringify(historial));
 alert("Proyecto guardado correctamente");
 }
 
+function renderHistorial(){
+let cont = document.getElementById("historial-lista");
+
+cont.innerHTML = historial.map(p => `
+<div style="border-bottom:1px solid #ccc;margin-bottom:10px">
+<b>${p.nombre}</b> (${p.tipo})<br>
+${p.cliente}<br>
+<small>${p.fecha}</small>
+</div>
+`).join("");
+}
+
+if(id === "v-historial") renderHistorial();
+
 </script>
 
 </body>
