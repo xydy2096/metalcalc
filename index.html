@@ -65,7 +65,26 @@ width:100%;
 <h3>Despiece</h3>
 <div id="despiece" class="res"></div>
 </div>
+<div class="card">
+<h3>Registrar sobrante</h3>
 
+<select id="accion">
+<option value="chatarra">Chatarra</option>
+<option value="stock">Guardar en stock</option>
+</select>
+
+<input id="pieza" placeholder="Tipo pieza">
+<input id="largo" type="number" placeholder="Largo mm">
+
+<select id="zona">
+<option value="A">Cantilever A</option>
+<option value="B">Cantilever B</option>
+<option value="C">Cantilever C</option>
+</select>
+
+<button onclick="guardarResto()">Guardar</button>
+</div>
+  
 <div class="card">
 <h3>Plano</h3>
 <canvas id="cv" width="500" height="300"></canvas>
@@ -79,6 +98,12 @@ width:100%;
 
 <script>
 
+  let stock = JSON.parse(localStorage.getItem("mst_stock")) || [];
+
+function guardarStock(){
+localStorage.setItem("mst_stock", JSON.stringify(stock));
+}
+  
 firebase.initializeApp({
 apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
 authDomain: "mstcalc.firebaseapp.com",
@@ -173,6 +198,35 @@ ctx.strokeRect(50,150,400,50);
 
 if(t.tipo==="valla"){
 ctx.strokeRect(50,150,400,50);
+}
+}
+  function guardarResto(){
+
+let accion = document.getElementById("accion").value;
+let pieza = document.getElementById("pieza").value;
+let largo = +document.getElementById("largo").value;
+let zona = document.getElementById("zona").value;
+
+if(!pieza || !largo){
+alert("Faltan datos");
+return;
+}
+
+if(accion === "stock"){
+
+stock.push({
+pieza,
+largo,
+zona,
+fecha: new Date().toLocaleString()
+});
+
+guardarStock();
+
+alert("Guardado en stock");
+
+}else{
+alert("Marcado como chatarra");
 }
 }
 
