@@ -124,7 +124,10 @@ canvas{
 
 <div class="category-title" onclick="toggle('stock')">Stock</div>
 <div id="stock" class="submenu">
-<div class="nav-item" onclick="showView('v-stock',this)">Material</div>
+<div class="nav-item" onclick="showView('v-stock',this)">Material</div><div class="card">
+<h3>Stock Taller</h3>
+<div id="lista-stock"></div>
+</div>
 <div class="nav-item" onclick="showView('v-stock-pintura',this)">Pinturas</div>
 </div>
 
@@ -212,6 +215,12 @@ canvas{
 
 <script>
 
+    let stock = JSON.parse(localStorage.getItem("mst_stock")) || [];
+
+function guardarStock(){
+localStorage.setItem("mst_stock", JSON.stringify(stock));
+}
+
 /* VARIABLES */
 let proyectoActual = {}
 let historial = JSON.parse(localStorage.getItem("mst_hist")) || []
@@ -266,6 +275,13 @@ ctx.stroke()
 }
 }
 
+    let avisos = comprobarStockNecesario(despiece);
+
+if(avisos.length){
+document.getElementById("ab-res").innerHTML +=
+"<br><br><b>STOCK DISPONIBLE:</b><br>" + avisos.join("<br>");
+}
+    
 function runCo(){
 let W=+document.getElementById('co-w').value
 let cola=+document.getElementById('co-cola').value
@@ -274,6 +290,11 @@ document.getElementById("co-res").innerHTML=`Largueros: ${W+cola}mm`
 proyectoActual={tipo:"corredera",datos:{W,cola},despiece}
 }
 
+    let avisos = comprobarStockNecesario(despiece);
+if(avisos.length){
+document.getElementById("co-res").innerHTML += "<br><br>" + avisos.join("<br>");
+}
+    
 function runAu(){
 let W=+document.getElementById('au-w').value
 let cp=W*0.35
@@ -285,6 +306,11 @@ document.getElementById("au-res").innerHTML=`Contrapeso ${cp}<br>Total ${W+cp}`
 proyectoActual={tipo:"autoportante",datos:{W},despiece}
 }
 
+    let avisos = comprobarStockNecesario(despiece);
+if(avisos.length){
+document.getElementById("au-res").innerHTML += "<br><br>" + avisos.join("<br>");
+}
+    
 function runBa(){
 let L=+document.getElementById('ba-l').value
 let H=+document.getElementById('ba-h').value
@@ -296,12 +322,22 @@ document.getElementById("ba-res").innerHTML=`Pasamanos ${L}<br>Barrote ${H-100}`
 proyectoActual={tipo:"barandilla",datos:{L,H},despiece}
 }
 
+    let avisos = comprobarStockNecesario(despiece);
+if(avisos.length){
+document.getElementById("ba-res").innerHTML += "<br><br>" + avisos.join("<br>");
+}
+    
 function runVa(){
 let W=+document.getElementById('va-w').value
 let despiece=[{pieza:"Marco",cantidad:1,largo:W}]
 document.getElementById("va-res").innerHTML=`Tramo ${W}`
 proyectoActual={tipo:"valla",datos:{W},despiece}
 }
+    let avisos = comprobarStockNecesario(despiece);
+if(avisos.length){
+document.getElementById("va-res").innerHTML += "<br><br>" + avisos.join("<br>");
+}
+    
 
 /* GUARDAR */
 function guardarProyecto(){
@@ -328,6 +364,47 @@ historial.map(p=>`
 ${p.cliente}<br>
 ${p.fecha}
 </div>`).join("")
+}
+
+    function renderStock(){
+
+let cont = document.getElementById("lista-stock");
+
+if(!cont) return;
+
+if(!stock.length){
+cont.innerHTML = "Stock vacío";
+return;
+}
+
+cont.innerHTML = stock.map(s=>`
+<div style="border-bottom:1px solid #ccc;margin-bottom:10px">
+<b>${s.pieza}</b><br>
+${s.largo} mm<br>
+Zona: ${s.zona}
+</div>
+`).join("");
+}
+
+    if(id==="v-stock") renderStock();
+
+    function comprobarStockNecesario(despiece){
+
+let avisos = [];
+
+despiece.forEach(p => {
+
+let match = stock.find(s => 
+s.pieza === p.pieza && s.largo >= p.largo
+);
+
+if(match){
+avisos.push(`✔ Puedes usar ${p.pieza} de ${match.largo}mm (Zona ${match.zona})`);
+}
+
+});
+
+return avisos;
 }
 
 runAb()
