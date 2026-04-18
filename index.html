@@ -2,54 +2,27 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>OPERARIO PRO</title>
+<title>Operario MSTCALC</title>
+
 <style>
-body{background:#111;color:#fff;font-family:sans-serif;padding:20px}
-.card{background:#1e293b;padding:20px;border-radius:10px;margin-bottom:20px}
-button{margin:5px;padding:10px}
-canvas{background:#000}
+body{font-family:sans-serif;background:#111;color:#0f0;padding:20px}
+.card{border:1px solid #333;padding:15px;margin-bottom:10px}
 </style>
 </head>
 
 <body>
 
-<h2>OPERARIO</h2>
+<h2>📡 Trabajos en Taller</h2>
 
 <div id="lista"></div>
 
-<div class="card" id="trabajo" style="display:none">
-<h3 id="titulo"></h3>
-
-<canvas id="cv" width="500" height="300"></canvas>
-
-<div id="cortes"></div>
-
-<h4>Error de corte</h4>
-
-<select id="piezaSel"></select>
-
-<select id="accion">
-<option value="chatarra">Chatarra</option>
-<option value="stock">Guardar en stock</option>
-</select>
-
-<select id="ubicacion">
-<option>Cantilever A</option>
-<option>Cantilever B</option>
-<option>Cantilever C</option>
-</select>
-
-<button onclick="registrarError()">Registrar</button>
-
-</div>
-
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, onSnapshot, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+  apiKey: "TU_API_KEY",
   authDomain: "mstcalc.firebaseapp.com",
   projectId: "mstcalc",
   storageBucket: "mstcalc.firebasestorage.app",
@@ -60,82 +33,35 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let actual = null;
+const lista = document.getElementById("lista");
 
-// LISTA TRABAJOS
-onSnapshot(collection(db,"proyectos"), snap=>{
-lista.innerHTML = snap.docs.map((d,i)=>{
-let p=d.data();
-return `<div class="card">
-<b>${p.nombre}</b>
-<button onclick="abrir(${i})">Abrir</button>
-</div>`;
-}).join("");
+// 🔥 ESCUCHAR EN TIEMPO REAL
+onSnapshot(collection(db, "proyectos"), (snapshot) => {
 
-window.docs = snap.docs;
+lista.innerHTML = "";
+
+snapshot.forEach(doc => {
+
+let p = doc.data();
+
+let div = document.createElement("div");
+div.className = "card";
+
+div.innerHTML = `
+<b>${p.nombre}</b> (${p.tipo})<br>
+Cliente: ${p.cliente}<br>
+Fecha: ${p.fecha}<br><br>
+
+${p.despiece.map(d =>
+`• ${d.pieza} → ${d.cantidad} x ${Math.round(d.largo)}mm`
+).join("<br>")}
+`;
+
+lista.appendChild(div);
+
 });
 
-// ABRIR TRABAJO
-window.abrir = function(i){
-actual = docs[i].data();
-
-trabajo.style.display="block";
-titulo.textContent = actual.nombre;
-
-cortes.innerHTML = actual.despiece.map((d,i)=>`
-${i} - ${d.pieza} ${d.largo}mm
-`).join("<br>");
-
-piezaSel.innerHTML = actual.despiece.map((d,i)=>`
-<option value="${i}">${d.pieza}</option>
-`);
-
-dibujar();
-}
-
-// DIBUJO PRO
-function dibujar(){
-let ctx=cv.getContext("2d");
-ctx.clearRect(0,0,500,300);
-
-let W=400,H=200;
-
-ctx.strokeStyle="white";
-ctx.strokeRect(50,50,W,H);
-
-// medida ancho
-ctx.fillText(actual.datos.W+" mm",200,40);
-
-// dividir hojas
-if(actual.datos.n==2){
-ctx.beginPath();
-ctx.moveTo(50+W/2,50);
-ctx.lineTo(50+W/2,250);
-ctx.stroke();
-}
-}
-
-// ERROR
-window.registrarError = async function(){
-
-let p = actual.despiece[piezaSel.value];
-
-if(accion.value==="stock"){
-
-await addDoc(collection(db,"stock"),{
-material:p.pieza,
-largo:p.largo,
-ubicacion:ubicacion.value,
-fecha:new Date().toISOString()
 });
-
-alert("Guardado en stock");
-}
-else{
-alert("Enviado a chatarra");
-}
-
-}
 
 </script>
 
