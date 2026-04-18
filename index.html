@@ -2,209 +2,104 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>MSTCALC OPERARIO PRO</title>
+<title>MSTCALC OPERARIO</title>
 
 <style>
-:root { --p:#0f172a; --s:#3b82f6; --bg:#020617;}
-
 body{
-margin:0;
-display:flex;
-background:var(--bg);
-color:white;
-font-family:sans-serif;
+    margin:0;
+    background:#020617;
+    color:white;
+    font-family:sans-serif;
 }
-
-/* SIDEBAR */
-.sidebar{
-width:260px;
-background:var(--p);
-padding:20px;
-height:100vh;
-overflow:auto;
-}
-
-.nav-item{
-padding:12px;
-border-radius:8px;
-cursor:pointer;
-margin-bottom:5px;
-}
-.nav-item:hover{background:#1e293b}
-.nav-item.active{background:var(--s)}
-
-/* MAIN */
-.main{flex:1;padding:25px}
-
-.view{display:none}
-.view.active{display:block}
 
 .card{
-background:#1e293b;
-padding:15px;
-border-radius:10px;
-margin-bottom:15px;
+    background:#1e293b;
+    margin:15px;
+    padding:15px;
+    border-radius:10px;
 }
 
 canvas{
-width:100%;
-background:#000;
-border-radius:10px;
-margin-top:10px;
+    width:100%;
+    background:black;
+    margin-top:10px;
 }
 
-.despiece{
-margin-top:10px;
-font-family:monospace;
-color:#0f0;
-}
+h2{padding:15px}
 </style>
 </head>
 
 <body>
 
-<div class="sidebar">
+<h2>📋 TRABAJOS EN TALLER</h2>
 
-<h2>OPERARIO</h2>
-
-<div class="nav-item active" onclick="showView('v-trabajos',this)">Trabajos</div>
-<div class="nav-item" onclick="showView('v-detalle',this)">Trabajo activo</div>
-
-</div>
-
-<div class="main">
-
-<!-- LISTADO -->
-<div id="v-trabajos" class="view active">
-<h2>📡 Trabajos</h2>
 <div id="lista"></div>
-</div>
 
-<!-- DETALLE -->
-<div id="v-detalle" class="view">
-<h2>🔧 Trabajo</h2>
+<script type="module">
 
-<div class="card">
-<div id="info"></div>
-<canvas id="canvas"></canvas>
-<div id="despiece" class="despiece"></div>
-</div>
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-</div>
+const firebaseConfig = {
+  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+  authDomain: "mstcalc.firebaseapp.com",
+  projectId: "mstcalc"
+};
 
-</div>
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-<script>
+const lista = document.getElementById("lista");
 
-/* NAV */
-function showView(id,el){
-document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
-document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
-document.getElementById(id).classList.add('active')
-if(el) el.classList.add('active')
-}
+onSnapshot(collection(db, "trabajos"), (snapshot)=>{
 
-/* PLANO PRO (MISMO QUE ADMIN) */
-function dibujarPlano(canvas,tipo,d){
+    lista.innerHTML="";
 
-const ctx=canvas.getContext("2d")
-canvas.width=400; canvas.height=250
-ctx.clearRect(0,0,400,250)
+    snapshot.forEach(doc=>{
 
-ctx.strokeStyle="white"
-ctx.fillStyle="yellow"
-ctx.font="12px monospace"
+        const t = doc.data();
 
-if(tipo=="abatible"){
-let scale=Math.min(350/d.W,200/d.H)
-let w=d.W*scale, h=d.H*scale
+        const div = document.createElement("div");
+        div.className="card";
 
-ctx.strokeRect(25,20,w,h)
+        div.innerHTML = `
+        <b>${t.nombre || "Sin nombre"}</b><br>
+        ${t.cliente || ""}<br>
+        <small>${t.tipo}</small>
 
-if(d.n==2){
-ctx.beginPath()
-ctx.moveTo(25+w/2,20)
-ctx.lineTo(25+w/2,20+h)
-ctx.stroke()
-}
+        <canvas id="cv-${doc.id}" width="400" height="200"></canvas>
 
-ctx.fillText(d.W+"mm",25+w/2,240)
-ctx.fillText(d.H+"mm",5,20+h/2)
-}
+        <div>
+        ${t.despiece.map(d=>`
+            ${d.pieza} → ${d.cantidad} x ${d.largo.toFixed(0)}mm
+        `).join("<br>")}
+        </div>
 
-}
+        <button onclick="error('${doc.id}')">⚠️ Error corte</button>
+        `;
 
-/* DATOS SIMULADOS (luego Firebase) */
-let trabajos=[
-{
-nombre:"Puerta Nave A",
-cliente:"Cliente 1",
-tipo:"abatible",
-fecha:"12/03/2026",
-datos:{W:3000,H:2000,n:2},
-despiece:[
-{pieza:"Vertical",cantidad:4,largo:2000},
-{pieza:"Horizontal",cantidad:4,largo:1500}
-]
-},
-{
-nombre:"Puerta Peatonal",
-cliente:"Cliente 2",
-tipo:"abatible",
-fecha:"10/03/2026",
-datos:{W:1000,H:2000,n:1},
-despiece:[
-{pieza:"Vertical",cantidad:2,largo:2000},
-{pieza:"Horizontal",cantidad:2,largo:1000}
-]
-}
-]
+        lista.appendChild(div);
 
-let actual=null
+        // DIBUJO SIMPLE
+        const ctx = document.getElementById("cv-"+doc.id).getContext("2d");
 
-/* RENDER LISTA */
-function renderLista(){
+        ctx.strokeStyle="white";
+        ctx.strokeRect(20,20,300,120);
 
-let lista=document.getElementById("lista")
+        if(t.tipo==="abatible" && t.datos.n==2){
+            ctx.beginPath();
+            ctx.moveTo(170,20);
+            ctx.lineTo(170,140);
+            ctx.stroke();
+        }
 
-lista.innerHTML = trabajos.map((t,i)=>`
-<div class="card" onclick="abrir(${i})">
-<b>${t.nombre}</b><br>
-${t.cliente}<br>
-<small>${t.fecha}</small>
-</div>
-`).join("")
+    });
 
-}
+});
 
-/* ABRIR TRABAJO */
-function abrir(i){
-
-actual = trabajos[i]
-
-showView("v-detalle")
-
-document.getElementById("info").innerHTML=`
-<b>${actual.nombre}</b><br>
-Cliente: ${actual.cliente}<br>
-Tipo: ${actual.tipo}
-`
-
-dibujarPlano(
-document.getElementById("canvas"),
-actual.tipo,
-actual.datos
-)
-
-document.getElementById("despiece").innerHTML =
-actual.despiece.map(d =>
-`• ${d.pieza} → ${d.cantidad} x ${d.largo}mm`
-).join("<br>")
-
-}
-
-/* INIT */
-renderLista()
+window.error = function(id){
+    alert("Error registrado en pieza: " + id);
+};
 
 </script>
 
