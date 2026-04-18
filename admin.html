@@ -91,7 +91,7 @@ canvas{
 
 <h2>MSTCALC</h2>
 
-<div class="nav-item active" onclick="showView('v-datos',this)">Proyecto</div>
+<div class="nav-item active" onclick="showView('v-datos',this)">Proyecto <button onclick="guardarProyecto()">💾 Guardar Proyecto Completo</button></div>
 <div class="nav-item" onclick="showView('v-historial',this)">Historial</div>
 
 <div class="category-title" onclick="toggle('trabajos')">Trabajos</div>
@@ -194,11 +194,25 @@ canvas{
 <div id="v-prontuario" class="view"><div class="card">Materiales</div></div>
 <div id="v-prontuario-pintura" class="view"><div class="card">Pinturas</div></div>
 
-<div id="v-historial" class="view"><div class="card">Historial</div></div>
-
+<div id="v-historial" class="view">
+<div class="card">
+<h3>Historial</h3>
+<div id="historial-lista"></div>
+</div>
+</div>
 </div>
 
 <script>
+let proyectoActual = {
+    nombre: "",
+    cliente: "",
+    tipo: "",
+    datos: {},
+    despiece: [],
+    fecha: ""
+};
+
+let historial = JSON.parse(localStorage.getItem("mst_hist")) || [];
 
 function toggle(id){
 document.getElementById(id).classList.toggle('open')
@@ -220,52 +234,103 @@ let n=+document.getElementById('ab-n').value
 
 let hoja=W/n
 
+let despiece = [
+    {pieza:"Vertical", cantidad:n*2, largo:H},
+    {pieza:"Horizontal", cantidad:n*2, largo:hoja}
+];
+
 document.getElementById("ab-res").innerHTML =
-`Vertical ${n*2} x ${H}<br>Horizontal ${n*2} x ${hoja.toFixed(0)}`
+despiece.map(p => `${p.pieza} → ${p.cantidad} x ${p.largo.toFixed(0)}mm`).join("<br>");
+
+// 🔥 GUARDAR EN PROYECTO
+proyectoActual.tipo = "abatible";
+proyectoActual.datos = {W,H,n};
+proyectoActual.despiece = despiece;
 
 dibujar(W,H,n)
-}
-
-function dibujar(W,H,n){
-let ctx=document.getElementById("cv").getContext("2d")
-ctx.clearRect(0,0,400,300)
-
-ctx.strokeStyle="white"
-ctx.strokeRect(50,60,300,180)
-
-if(n==2){
-ctx.beginPath()
-ctx.moveTo(200,60)
-ctx.lineTo(200,240)
-ctx.stroke()
-}
 }
 
 function runCo(){
 let W=+document.getElementById('co-w').value
 let cola=+document.getElementById('co-cola').value
-document.getElementById("co-res").innerHTML=`Largueros: ${W+cola}mm`
+
+let despiece = [
+    {pieza:"Larguero", cantidad:2, largo:W+cola}
+];
+
+document.getElementById("co-res").innerHTML =
+`Largueros: ${W+cola}mm`
+
+proyectoActual.tipo = "corredera";
+proyectoActual.datos = {W,cola};
+proyectoActual.despiece = despiece;
 }
 
 function runAu(){
 let W=+document.getElementById('au-w').value
 let cp=W*0.35
-document.getElementById("au-res").innerHTML=`Contrapeso ${cp}<br>Total ${W+cp}`
+
+let despiece = [
+    {pieza:"Guía", cantidad:1, largo:W+cp},
+    {pieza:"Contrapeso", cantidad:1, largo:cp}
+];
+
+document.getElementById("au-res").innerHTML =
+`Contrapeso ${cp}<br>Total ${W+cp}`
+
+proyectoActual.tipo = "autoportante";
+proyectoActual.datos = {W};
+proyectoActual.despiece = despiece;
 }
 
 function runBa(){
 let L=+document.getElementById('ba-l').value
 let H=+document.getElementById('ba-h').value
-document.getElementById("ba-res").innerHTML=`Pasamanos ${L}<br>Barrote ${H-100}`
+
+let despiece = [
+    {pieza:"Pasamanos", cantidad:1, largo:L},
+    {pieza:"Barrote", cantidad:Math.floor(L/120), largo:H-100}
+];
+
+document.getElementById("ba-res").innerHTML =
+`Pasamanos ${L}<br>Barrotes ${H-100}`
+
+proyectoActual.tipo = "barandilla";
+proyectoActual.datos = {L,H};
+proyectoActual.despiece = despiece;
 }
 
 function runVa(){
 let W=+document.getElementById('va-w').value
-document.getElementById("va-res").innerHTML=`Tramo ${W}`
+
+let despiece = [
+    {pieza:"Marco", cantidad:1, largo:W}
+];
+
+document.getElementById("va-res").innerHTML =
+`Tramo ${W}`
+
+proyectoActual.tipo = "valla";
+proyectoActual.datos = {W};
+proyectoActual.despiece = despiece;
 }
 
 /* INIT */
 runAb(); runCo(); runAu(); runBa(); runVa();
+
+function guardarProyecto(){
+
+proyectoActual.nombre = document.querySelector("#v-datos input:nth-child(2)").value;
+proyectoActual.cliente = document.querySelector("#v-datos input:nth-child(3)").value;
+proyectoActual.fecha = new Date().toLocaleDateString();
+
+// guardar copia
+historial.push({...proyectoActual});
+
+localStorage.setItem("mst_hist", JSON.stringify(historial));
+
+alert("Proyecto guardado correctamente");
+}
 
 </script>
 
