@@ -2,79 +2,179 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>OPERARIO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSTCALC OPERARIO</title>
 
 <style>
-body{margin:0;background:#020617;color:white;font-family:sans-serif}
-.card{background:#1e293b;margin:10px;padding:15px;border-radius:10px}
-canvas{width:100%;background:black;margin-top:10px}
+body{margin:0;display:flex;background:#f1f5f9;font-family:sans-serif}
+
+.sidebar{
+width:300px;
+background:#0f172a;
+color:white;
+padding:20px;
+height:100vh;
+overflow:auto;
+}
+
+.item{
+padding:10px;
+border-bottom:1px solid #334155;
+cursor:pointer;
+}
+.item:hover{background:#1e293b}
+
+.main{flex:1;padding:30px}
+
+.card{
+background:white;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+}
+
+.res{
+background:#111;
+color:#0f0;
+padding:15px;
+font-family:monospace;
+border-radius:10px;
+}
+
+canvas{
+background:#000;
+width:100%;
+}
 </style>
 </head>
 
 <body>
 
-<h2 style="padding:10px">TRABAJOS</h2>
+<div class="sidebar">
+<h2>TRABAJOS</h2>
 <div id="lista"></div>
+</div>
 
+<div class="main">
+
+<div class="card">
+<h3 id="titulo">Selecciona un trabajo</h3>
+</div>
+
+<div class="card">
+<h3>Despiece</h3>
+<div id="despiece" class="res"></div>
+</div>
+
+<div class="card">
+<h3>Plano</h3>
+<canvas id="cv" width="500" height="300"></canvas>
+</div>
+
+</div>
+
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
 <script>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
-  authDomain: "mstcalc.firebaseapp.com",
-  projectId: "mstcalc"
-};
+firebase.initializeApp({
+apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+authDomain: "mstcalc.firebaseapp.com",
+projectId: "mstcalc"
+});
 
-firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+let trabajos = [];
+
+/* ----------- CARGA DATOS ----------- */
+
+// 🔥 Firebase
+db.collection("trabajos").get().then(snapshot=>{
+trabajos = snapshot.docs.map(doc => doc.data());
+renderLista();
+});
+
+// 🔁 fallback local
+if(trabajos.length === 0){
+trabajos = JSON.parse(localStorage.getItem("mst_hist")) || [];
+renderLista();
+}
+
+/* ----------- LISTA ----------- */
+
+function renderLista(){
 const lista = document.getElementById("lista");
 
-db.collection("trabajos").onSnapshot(snapshot=>{
+if(trabajos.length === 0){
+lista.innerHTML = "No hay trabajos";
+return;
+}
 
-    lista.innerHTML="";
+lista.innerHTML = trabajos.map((t,i)=>`
+<div class="item" onclick="cargar(${i})">
+<b>${t.nombre || "Sin nombre"}</b><br>
+<small>${t.tipo}</small>
+</div>
+`).join("");
+}
 
-    snapshot.forEach(doc=>{
+/* ----------- CARGAR TRABAJO ----------- */
 
-        let t = doc.data();
+function cargar(i){
+const t = trabajos[i];
 
-        let div = document.createElement("div");
-        div.className="card";
+document.getElementById("titulo").innerText =
+`${t.nombre} - ${t.tipo}`;
 
-        div.innerHTML=`
-        <b>${t.nombre || "Sin nombre"}</b><br>
-        ${t.cliente || ""}<br>
-        <small>${t.tipo}</small>
+/* DESPIECE */
+document.getElementById("despiece").innerHTML =
+(t.despiece || []).map(p =>
+`${p.pieza} → ${p.cantidad} x ${p.largo.toFixed(0)}mm`
+).join("<br>");
 
-        <canvas id="cv-${doc.id}" width="400" height="200"></canvas>
+/* PLANO */
+dibujar(t);
+}
 
-        <div>
-        ${(t.despiece || []).map(d=>`
-            ${d.pieza} → ${d.cantidad} x ${d.largo}
-        `).join("<br>")}
-        </div>
-        `;
+/* ----------- DIBUJO ----------- */
 
-        lista.appendChild(div);
+function dibujar(t){
+const ctx = document.getElementById("cv").getContext("2d");
+ctx.clearRect(0,0,500,300);
 
-        // dibujo básico
-        let ctx = document.getElementById("cv-"+doc.id).getContext("2d");
+ctx.strokeStyle="white";
 
-        ctx.strokeStyle="white";
-        ctx.strokeRect(20,20,300,120);
+if(t.tipo==="abatible"){
+ctx.strokeRect(100,50,300,200);
 
-        if(t.tipo==="abatible" && t.datos && t.datos.n==2){
-            ctx.beginPath();
-            ctx.moveTo(170,20);
-            ctx.lineTo(170,140);
-            ctx.stroke();
-        }
+if(t.datos.n==2){
+ctx.beginPath();
+ctx.moveTo(250,50);
+ctx.lineTo(250,250);
+ctx.stroke();
+}
+}
 
-    });
+if(t.tipo==="corredera"){
+ctx.strokeRect(50,100,400,100);
+}
 
-});
+if(t.tipo==="autoportante"){
+ctx.strokeRect(50,100,400,100);
+ctx.fillRect(400,100,50,100);
+}
+
+if(t.tipo==="barandilla"){
+ctx.strokeRect(50,150,400,50);
+}
+
+if(t.tipo==="valla"){
+ctx.strokeRect(50,150,400,50);
+}
+}
 
 </script>
 
