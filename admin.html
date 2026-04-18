@@ -219,7 +219,22 @@ canvas{
 </div>
 
 <script>
+    
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+const firebaseConfig = {
+  apiKey: "TU_API_KEY",
+  authDomain: "mstcalc.firebaseapp.com",
+  projectId: "mstcalc",
+  storageBucket: "mstcalc.firebasestorage.app",
+  messagingSenderId: "68220801288",
+  appId: "1:68220801288:web:cf0a033e03658c3f579cbd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 /* ---------- VARIABLES ---------- */
 let proyectoActual = {
     nombre:"",
@@ -344,16 +359,20 @@ proyectoActual.despiece=despiece
 
 /* ---------- GUARDAR ---------- */
 
-function guardarProyecto(){
+async function guardarProyecto(){
 
-proyectoActual.nombre=document.getElementById("p-nombre").value
-proyectoActual.cliente=document.getElementById("p-cliente").value
-proyectoActual.fecha=new Date().toLocaleDateString()
+proyectoActual.nombre = document.getElementById("p-nombre").value
+proyectoActual.cliente = document.getElementById("p-cliente").value
+proyectoActual.fecha = new Date().toLocaleDateString()
 
+// guardar en local (por seguridad)
 historial.push({...proyectoActual})
-localStorage.setItem("mst_hist",JSON.stringify(historial))
+localStorage.setItem("mst_hist", JSON.stringify(historial))
 
-alert("Proyecto guardado correctamente")
+// 🔥 guardar en FIREBASE
+await addDoc(collection(db, "proyectos"), proyectoActual);
+
+alert("Proyecto guardado y enviado al operario 🚀")
 }
 
 /* ---------- HISTORIAL ---------- */
