@@ -223,16 +223,34 @@ ctx.stroke()
 }
 }
 
-function guardarProyecto(){
-proyectoActual.nombre=document.getElementById("p-nombre").value
-proyectoActual.cliente=document.getElementById("p-cliente").value
-proyectoActual.fecha=new Date().toLocaleString()
+<script type="module">
 
-historial.push({...proyectoActual})
-localStorage.setItem("mst_hist",JSON.stringify(historial))
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-alert("Proyecto guardado")
+const firebaseConfig = {
+  apiKey: "AIzaSyDzV1DaH14HMxoDRBHe_AvAmvaWDxWW4p0",
+  authDomain: "mstcalc.firebaseapp.com",
+  projectId: "mstcalc"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const guardarOriginal = guardarProyecto;
+
+window.guardarProyecto = async function(){
+
+    guardarOriginal(); // sigue guardando en local
+
+    try{
+        await addDoc(collection(db, "trabajos"), proyectoActual);
+        console.log("Enviado a operario");
+    }catch(e){
+        console.error("Error Firebase", e);
+    }
 }
+
 
 function renderHistorial(){
 document.getElementById("historial-lista").innerHTML =
