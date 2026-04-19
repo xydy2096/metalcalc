@@ -11,7 +11,7 @@ body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
 
 /* SIDEBAR */
 .sidebar{width:300px;background:var(--p);color:white;padding:20px;height:100vh;overflow:auto;}
-.nav-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:5px;}
+.nav-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:5px;background:transparent;border:1px solid transparent}
 .nav-item:hover{background:#1e293b}
 .nav-item.active{background:var(--s)}
 .category-title{padding:10px;margin-top:10px;background:#1e293b;border-radius:8px;cursor:pointer;font-size:0.8rem;}
@@ -24,43 +24,66 @@ body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
 .view.active{display:block}
 .card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;}
 .grid{display:grid;grid-template-columns:1fr 480px;gap:20px;}
-input,select{width:100%;padding:10px;margin-top:5px;}
-button{margin-top:10px;padding:10px;cursor:pointer;border:none;border-radius:8px;background:var(--s);color:white;}
-.res{background:#111;color:#0f0;padding:15px;border-radius:10px;font-family:monospace;}
+input,select{width:100%;padding:10px;margin-top:5px;border:1px solid #ddd;border-radius:6px}
+button{margin-top:10px;padding:10px;cursor:pointer;border:none;border-radius:8px;background:var(--s);color:white}
+button.secondary{background:#64748b}
+.res{background:#111;color:#0f0;padding:15px;border-radius:10px;font-family:monospace;min-height:60px}
 canvas{width:100%;background:#000;}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{padding:8px;background:#f8fafc;border-radius:6px;border:1px solid #e5e7eb}
+.canvasWrap{display:flex;flex-direction:column;gap:8px}
+@media (max-width: 900px){
+  .sidebar{width:100%; height:auto; display:flex; overflow:auto; }
+  .main{padding:16px}
+  .grid{grid-template-columns:1fr}
+}
 </style>
 </head>
 
 <body>
 
-<div class="sidebar">
+<div class="sidebar" aria-label="Menú lateral">
 
 <h2>MSTCALC</h2>
 
-<div class="nav-item active" onclick="showView('v-datos',this)">Proyecto</div>
-<div class="nav-item" onclick="showView('v-historial',this)">Historial</div>
+<button class="nav-item active" onclick="showView('v-datos',this)" aria-label="Proyecto">Proyecto</button>
+<button class="nav-item" onclick="showView('v-historial',this)" aria-label="Historial">Historial</button>
 
 <div class="category-title" onclick="toggle('trabajos')">Trabajos</div>
 <div id="trabajos" class="submenu open">
 
-<div class="category-title" onclick="toggle('puertas')">Puertas</div>
-<div id="puertas" class="submenu open">
-<div class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</div>
-<div class="nav-item" onclick="showView('v-correderas',this)">Correderas</div>
-<div class="nav-item" onclick="showView('v-auto',this)">Autoportantes</div>
-</div>
+  <div class="category-title" onclick="toggle('puertas')">Puertas</div>
+  <div id="puertas" class="submenu open">
+    <button class="nav-item" onclick="showView('v-abatibles',this)" aria-label="Abatibles">Abatibles</button>
+    <button class="nav-item" onclick="showView('v-correderas',this)" aria-label="Correderas">Correderas</button>
+    <button class="nav-item" onclick="showView('v-auto',this)" aria-label="Autoportantes">Autoportantes</button>
+  </div>
 
-<div class="category-title" onclick="toggle('estructuras')">Estructuras</div>
-<div id="estructuras" class="submenu open">
-<div class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</div>
-<div class="nav-item" onclick="showView('v-vallas',this)">Vallas</div>
-</div>
+  <div class="category-title" onclick="toggle('estructuras')">Estructuras</div>
+  <div id="estructuras" class="submenu open">
+    <button class="nav-item" onclick="showView('v-barandillas',this)" aria-label="Barandillas">Barandillas</button>
+    <button class="nav-item" onclick="showView('v-vallas',this)" aria-label="Vallas">Vallas</button>
+  </div>
 
 </div>
 
 <div class="category-title" onclick="toggle('stock')">Stock</div>
 <div id="stock" class="submenu">
-<div class="nav-item" onclick="showView('v-stock',this)">Material</div>
+  <!-- Submenus para Pinturas y Prontuario -->
+  <button class="nav-item" onclick="showView('v-stock-pinturas',this)" aria-label="Pinturas">Pinturas</button>
+
+  <div class="category-title" onclick="toggle('prontuario')">Prontuario</div>
+  <div id="prontuario" class="submenu">
+    <div class="category-title" onclick="toggle('prontuario-materiales')">Materiales</div>
+    <div id="prontuario-materiales" class="submenu">
+      <button class="nav-item" onclick="showView('v-stock-materiales',this)" aria-label="Materiales">Materiales</button>
+    </div>
+    <div class="category-title" onclick="toggle('prontuario-pinturas')">Pinturas</div>
+    <div id="prontuario-pinturas" class="submenu">
+      <button class="nav-item" onclick="showView('v-stock-pinturas-prontuario',this)" aria-label="Pinturas prontuario">Pinturas</button>
+    </div>
+  </div>
+
 </div>
 
 </div>
@@ -68,219 +91,363 @@ canvas{width:100%;background:#000;}
 <div class="main">
 
 <!-- PROYECTO -->
-<div id="v-datos" class="view active">
-<div class="card">
-<h3>Proyecto</h3>
-<input id="p-nombre" placeholder="Nombre">
-<input id="p-cliente" placeholder="Cliente">
-<button onclick="guardarProyecto()">💾 Guardar Proyecto</button>
-</div>
+<div id="v-datos" class="view active" role="region" aria-label="Proyecto">
+  <div class="card">
+    <h3>Proyecto</h3>
+    <input id="p-nombre" placeholder="Nombre" aria-label="Nombre del proyecto">
+    <input id="p-cliente" placeholder="Cliente" aria-label="Cliente del proyecto">
+    <button onclick="guardarProyecto()">💾 Guardar Proyecto</button>
+  </div>
 </div>
 
 <!-- ABATIBLE -->
-<div id="v-abatibles" class="view">
-<div class="grid">
-<div class="card">
-<input id="ab-w" value="3000" oninput="runAb()">
-<input id="ab-h" value="2000" oninput="runAb()">
-<select id="ab-n" onchange="runAb()">
-<option value="1">1</option>
-<option value="2">2</option>
-</select>
-</div>
-<div>
-<canvas id="cv" width="400" height="300"></canvas>
-<div id="ab-res" class="res"></div>
-</div>
-</div>
+<div id="v-abatibles" class="view" role="region" aria-label="Abatibles">
+  <div class="grid">
+    <div class="card">
+      <label>Ancho (W)</label>
+      <input id="ab-w" value="3000" oninput="runAb()" aria-label="Ancho">
+      <label>Alto (H)</label>
+      <input id="ab-h" value="2000" oninput="runAb()" aria-label="Alto">
+      <label>Número de piezas (n)</label>
+      <select id="ab-n" onchange="runAb()" aria-label="Número de piezas">
+        <option value="1">1</option>
+        <option value="2" selected>2</option>
+      </select>
+    </div>
+    <div>
+      <canvas id="cv" width="400" height="300" aria-label="Vista previa" role="img"></canvas>
+      <div id="ab-res" class="res" aria-live="polite"></div>
+    </div>
+  </div>
 </div>
 
-<!-- HISTORIAL -->
-<div id="v-historial" class="view">
-<div class="card">
-<h3>Historial</h3>
-<div id="historial-lista"></div>
-</div>
+<!-- CORTES Y OTROS VISTA DE HISTORIA PREVIA -->
+<div id="v-historial" class="view" role="region" aria-label="Historial">
+  <div class="card">
+    <h3>Historial</h3>
+    <div id="historial-lista" class="list"></div>
+  </div>
 </div>
 
 <!-- STOCK -->
-<div id="v-stock" class="view">
-<div class="card">
-<h3>Stock</h3>
-<input id="st-pieza" placeholder="Pieza">
-<input id="st-largo" placeholder="Largo">
-<input id="st-zona" placeholder="Zona (A1, B2...)">
-<button onclick="addStock()">Añadir</button>
-<div id="lista-stock"></div>
+<div id="v-stock" class="view" role="region" aria-label="Stock general">
+  <div class="card grid" style="grid-template-columns:1fr 1fr; gap:20px;">
+    <div>
+      <h3>Stock</h3>
+      <input id="st-pieza" placeholder="Pieza" aria-label="Pieza">
+      <input id="st-largo" placeholder="Largo (mm)" aria-label="Largo">
+      <input id="st-zona" placeholder="Zona (A1, B2...)" aria-label="Zona">
+      <button onclick="addStock()">Añadir</button>
+      <div id="lista-stock" class="list" style="margin-top:10px"></div>
+    </div>
+    <div class="canvasWrap" aria-label="Pruebas de renderizado">
+      <div class="card" style="padding:12px;">
+        <div class="tip" style="font-size:0.9rem;color:#555">Notas rápidas de stock</div>
+      </div>
+      <div id="stock-visual" class="card" style="min-height:60px;">
+        <!-- Espacio para posibles visuales de stock -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección extendida de prontuario -->
+  <div class="card" style="margin-top:14px;">
+    <h3>Prontuario - Materiales y Pinturas</h3>
+    <div id="prontuario-detalles" class="list">
+      <!--dinámico: se pueden agregar entradas si se desea en futuras mejoras-->
+      <div class="item">Materiales listos para entrega: 0</div>
+      <div class="item">Pinturas disponibles: 0</div>
+    </div>
+  </div>
 </div>
+
+<!-- VISTA de Pinturas (Pinturas segregadas bajo Pinturas) -->
+<div id="v-stock-pinturas" class="view" role="region" aria-label="Stock Pinturas">
+  <div class="card">
+    <h3>Pinturas</h3>
+    <input id="st-pintura" placeholder="Nombre pintura" aria-label="Pintura nombre">
+    <input id="st-pintura-codigo" placeholder="Código" aria-label="Código pintura">
+    <button onclick="addPintura()">Añadir Pintura</button>
+  </div>
+  <div class="card">
+    <div id="lista-pinturas" class="list"></div>
+  </div>
+</div>
+
+<div id="v-stock-pinturas-prontuario" class="view" role="region" aria-label="Pinturas Prontuario">
+  <div class="card">
+    <h3>Pinturas - Prontuario</h3>
+    <div id="lista-pinturas-prontuario" class="list"></div>
+  </div>
+</div>
+
+<div id="v-stock-materiales" class="view" role="region" aria-label="Materiales Stock">
+  <div class="card">
+    <h3>Materiales</h3>
+    <input id="st-material-nombre" placeholder="Nombre material" aria-label="Nombre material">
+    <input id="st-material-cantidad" placeholder="Cantidad" aria-label="Cantidad">
+    <button onclick="addMaterial()">Añadir Material</button>
+  </div>
+  <div class="card">
+    <div id="lista-materiales" class="list"></div>
+  </div>
 </div>
 
 </div>
 
 <script>
-
 /* ===== BASE ===== */
 let historial = JSON.parse(localStorage.getItem("mst_hist")) || []
 let stock = JSON.parse(localStorage.getItem("mst_stock")) || []
+let pinturas = JSON.parse(localStorage.getItem("mst_pinturas")) || []
+let materiales = JSON.parse(localStorage.getItem("mst_materiales")) || []
 
 let proyectoActual = {}
 
-/* ===== MENU ===== */
+/* ===== UTILIDADES UI ===== */
 function toggle(id){
-document.getElementById(id).classList.toggle('open')
+  const el = document.getElementById(id)
+  if(!el) return
+  el.classList.toggle('open')
 }
 
 function showView(id,el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
 
-document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
-document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+  document.getElementById(id).classList.add('active')
+  if(el) el.classList.add('active')
 
-document.getElementById(id).classList.add('active')
-if(el) el.classList.add('active')
+  // Cargas específicas por vistas
+  if(id==="v-historial") renderHistorial()
+  if(id==="v-stock" || id==="v-stock-pinturas" || id==="v-stock-materiales" || id==="v-stock-pinturas-prontuario") renderStock()
+  if(id==="v-stock-pinturas" || id==="v-stock-pinturas-prontuario") renderPinturas()
+  if(id==="v-stock-materiales") renderMateriales()
+  if(id==="v-stock") renderStock()
+  if(id==="v-datos"){} // no-op
+  if(id==="v-abatibles"){ /* ya dibuja en runAb */ }
 
-if(id==="v-historial") renderHistorial()
-if(id==="v-stock") renderStock()
+  // Opcional: dibujar historial al abrir
+  if(id==="v-historial") renderHistorial()
 }
 
 /* ===== STOCK ===== */
 function addStock(){
+  const pieza = (document.getElementById("st-pieza")?.value || "").trim()
+  const largo = Number(document.getElementById("st-largo").value)
+  const zona = (document.getElementById("st-zona")?.value || "").trim()
 
-let pieza = document.getElementById("st-pieza").value
-let largo = +document.getElementById("st-largo").value
-let zona = document.getElementById("st-zona").value
+  if(!pieza || !largo || isNaN(largo) || largo <= 0 || !zona){
+    alert("Completa correctamente Pieza, Largo (>0) y Zona.")
+    return
+  }
 
-if(!pieza || !largo || !zona) return
-
-stock.push({pieza,largo,zona})
-
-localStorage.setItem("mst_stock", JSON.stringify(stock))
-
-renderStock()
+  stock.push({pieza,largo,zona})
+  localStorage.setItem("mst_stock", JSON.stringify(stock))
+  renderStock()
+  // Actualizar prontuario
+  renderProntuarioTotals()
 }
 
 function renderStock(){
-
-let cont = document.getElementById("lista-stock")
-
-if(!cont) return
-
-cont.innerHTML = stock.map(s=>
-`<div>${s.pieza} - ${s.largo}mm (Zona ${s.zona})</div>`
-).join("")
+  const cont = document.getElementById("lista-stock")
+  if(!cont) return
+  cont.innerHTML = stock.map(s=>
+    `<div class="item">${s.pieza} - ${s.largo}mm (Zona ${s.zona})</div>`
+  ).join("")
+  // Actualizar sección de stock en prontuario si aplica
+  renderProntuarioTotals()
 }
 
 function comprobarStock(despiece){
-
-let avisos=[]
-
-despiece.forEach(p=>{
-
-let m = stock.find(s=>s.pieza===p.pieza && s.largo>=p.largo)
-
-if(m){
-avisos.push(`✔ Usar ${m.pieza} ${m.largo}mm en zona ${m.zona}`)
+  let avisos=[]
+  despiece.forEach(p=>{
+    let m = stock.find(s=>s.pieza===p.pieza && s.largo>=p.largo)
+    if(m){
+      avisos.push(`✔ Usar ${m.pieza} ${m.largo}mm en zona ${m.zona}`)
+    }
+  })
+  return avisos
 }
 
-})
+/* ===== PINTURAS Y MATERIALES (MEGAGE MODULAR) ===== */
+function addPintura(){
+  const nombre = (document.getElementById("st-pintura")?.value || "").trim()
+  const codigo = (document.getElementById("st-pintura-codigo")?.value || "").trim()
+  if(!nombre){ alert("Ingresa un nombre para la pintura"); return }
+  const entry = {nombre, codigo}
+  pinturas.push(entry)
+  localStorage.setItem("mst_pinturas", JSON.stringify(pinturas))
+  renderPinturas()
+}
 
-return avisos
+function renderPinturas(){
+  const cont = document.getElementById("lista-pinturas")
+  if(!cont) return
+  cont.innerHTML = pinturas.map(p=>`<div class="item">${p.nombre} ${p.codigo?`- ${p.codigo}`:""}</div>`).join("")
+}
+
+function renderPinturasProntuario(){
+  const cont = document.getElementById("lista-pinturas-prontuario")
+  if(!cont) return
+  cont.innerHTML = pinturas.length
+    ? pinturas.map(p=>`<div class="item">${p.nombre} ${p.codigo?`- ${p.codigo}`:""}</div>`).join("")
+    : `<div class="item">Sin pinturas en prontuario</div>`
+}
+
+function addMaterial(){
+  const nombre = (document.getElementById("st-material-nombre")?.value || "").trim()
+  const cantidad = Number(document.getElementById("st-material-cantidad").value)
+  if(!nombre || !isFinite(cantidad) || cantidad<=0){
+    alert("Ingresa nombre y cantidad válidos para el material.")
+    return
+  }
+  const entry = {nombre, cantidad}
+  materiales.push(entry)
+  localStorage.setItem("mst_materiales", JSON.stringify(materiales))
+  renderMateriales()
+}
+
+function renderMateriales(){
+  const cont = document.getElementById("lista-materiales")
+  if(!cont) return
+  cont.innerHTML = materiales.map(m=>`<div class="item">${m.nombre} - ${m.cantidad}</div>`).join("")
+}
+
+function renderMaterialesTotals(){
+  // placeholder para ampliar si se quiere mostrar totales
+}
+
+/* Prontuario totals (mock) */
+function renderProntuarioTotals(){
+  const cont = document.getElementById("prontuario-detalles")
+  if(!cont) return
+  const totalMat = materiales.length
+  const totalPint = pinturas.length
+  cont.innerHTML = `
+    <div class="item">Materiales listados: ${totalMat}</div>
+    <div class="item">Pinturas disponibles: ${totalPint}</div>
+  `
+}
+function renderPinturasProntuarioTotals(){
+  renderPinturasProntuario()
+  renderProntuarioTotals()
 }
 
 /* ===== CALCULO ===== */
 function runAb(){
+  const W = Number(document.getElementById("ab-w").value)
+  const H = Number(document.getElementById("ab-h").value)
+  const n = Number(document.getElementById("ab-n").value)
 
-let W = +document.getElementById("ab-w").value
-let H = +document.getElementById("ab-h").value
-let n = +document.getElementById("ab-n").value
+  const canvas = document.getElementById("cv")
+  if(!canvas) return
+  const ctx = canvas.getContext("2d")
 
-if(!W || !H || !n) return
+  if(!isFinite(W) || !isFinite(H) || !isFinite(n) || W <= 0 || H <= 0 || n <= 0){
+    document.getElementById("ab-res").innerHTML = "Entradas inválidas"
+    return
+  }
 
-let hoja = W/n
+  const hoja = W / n
+  const despiece = [
+    {pieza:"Vertical",cantidad:n*2,largo:H},
+    {pieza:"Horizontal",cantidad:n*2,largo:hoja}
+  ]
 
-let despiece=[
-{pieza:"Vertical",cantidad:n*2,largo:H},
-{pieza:"Horizontal",cantidad:n*2,largo:hoja}
-]
+  let html = despiece.map(p=>
+    `${p.pieza} → ${p.cantidad} x ${p.largo}`
+  ).join("<br>")
 
-let html = despiece.map(p=>
-`${p.pieza} → ${p.cantidad} x ${p.largo}`
-).join("<br>")
+  const avisos = comprobarStock(despiece)
 
-let avisos = comprobarStock(despiece)
+  if(avisos.length){
+    html += "<br><br><b>STOCK:</b><br>" + avisos.join("<br>")
+  }
 
-if(avisos.length){
-html += "<br><br><b>STOCK:</b><br>" + avisos.join("<br>")
-}
+  document.getElementById("ab-res").innerHTML = html
 
-document.getElementById("ab-res").innerHTML = html
+  proyectoActual = {
+    tipo:"abatible",
+    datos:{W,H,n},
+    despiece
+  }
 
-proyectoActual = {
-tipo:"abatible",
-datos:{W,H,n},
-despiece
-}
+  dibujar(W,H,n)
 
-dibujar(W,H,n)
+  // Opcional: actualizar prontuario
+  renderProntuarioTotals()
 }
 
 /* ===== DIBUJO ===== */
 function dibujar(W,H,n){
+  const canvas = document.getElementById("cv")
+  if(!canvas) return
+  const ctx = canvas.getContext("2d")
 
-let canvas = document.getElementById("cv")
-if(!canvas) return
+  ctx.clearRect(0,0,400,300)
 
-let ctx = canvas.getContext("2d")
+  ctx.strokeStyle="white"
+  ctx.strokeRect(50,60,300,180)
 
-ctx.clearRect(0,0,400,300)
-
-ctx.strokeStyle="white"
-ctx.strokeRect(50,60,300,180)
-
-if(n==2){
-ctx.beginPath()
-ctx.moveTo(200,60)
-ctx.lineTo(200,240)
-ctx.stroke()
-}
+  if(n==2){
+    ctx.beginPath()
+    ctx.moveTo(200,60)
+    ctx.lineTo(200,240)
+    ctx.stroke()
+  }
 }
 
 /* ===== GUARDAR ===== */
 function guardarProyecto(){
+  const pNombre = document.getElementById("p-nombre").value
+  const pCliente = document.getElementById("p-cliente").value
 
-proyectoActual.nombre = document.getElementById("p-nombre").value
-proyectoActual.cliente = document.getElementById("p-cliente").value
-proyectoActual.fecha = new Date().toLocaleString()
+  proyectoActual.nombre = pNombre
+  proyectoActual.cliente = pCliente
+  proyectoActual.fecha = new Date().toISOString()
 
-historial.push({...proyectoActual})
+  historial.push({...proyectoActual})
 
-localStorage.setItem("mst_hist",JSON.stringify(historial))
+  localStorage.setItem("mst_hist",JSON.stringify(historial))
 
-/* FIREBASE SEGURO */
-if(window.firebase){
-firebase.firestore().collection("trabajos").add(proyectoActual)
-}
+  /* FIREBASE SEGURO */
+  if(window.firebase){
+    try{
+      firebase.firestore().collection("trabajos").add(proyectoActual)
+    } catch(e){
+      console.warn("Firebase no disponible:", e)
+    }
+  }
 
-alert("Guardado OK")
+  alert("Guardado OK")
+  // Limpiar inputs opcional
+  // document.getElementById("p-nombre").value = ""
+  // document.getElementById("p-cliente").value = ""
 }
 
 /* ===== HISTORIAL ===== */
 function renderHistorial(){
-
-let cont = document.getElementById("historial-lista")
-
-if(!cont) return
-
-cont.innerHTML =
-historial.map(p=>
-`<div><b>${p.nombre}</b> (${p.tipo})</div>`
-).join("")
+  const cont = document.getElementById("historial-lista")
+  if(!cont) return
+  cont.innerHTML =
+  historial.map(p=>
+    `<div><b>${p.nombre || "(sin nombre)"}</b> (${p.tipo})${p.fecha?` - ${new Date(p.fecha).toLocaleString()}`:""}</div>`
+  ).join("")
 }
 
-/* INIT */
+/* ===== INIT/RENDER INICIAL ===== */
 window.onload = function(){
-runAb()
+  // Configurar estado inicial
+  runAb()
+  renderHistorial()
+  renderStock()
+  renderPinturas()
+  renderMateriales()
+  renderProntuarioTotals()
+  // Carga de vistas por defecto si se desea
+  // showView('v-datos',null)
 }
-
 </script>
 </body>
 </html>
