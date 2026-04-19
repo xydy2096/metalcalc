@@ -1,7 +1,123 @@
-<script>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSTCALC PRO</title>
 
-/* ===== ESPERAR A QUE CARGUE TODO ===== */
-window.onload = function(){
+<style>
+:root { --p:#0f172a; --s:#3b82f6; --bg:#f1f5f9; }
+body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
+
+/* SIDEBAR */
+.sidebar{width:300px;background:var(--p);color:white;padding:20px;height:100vh;overflow:auto;}
+.nav-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:5px;}
+.nav-item:hover{background:#1e293b}
+.nav-item.active{background:var(--s)}
+.category-title{padding:10px;margin-top:10px;background:#1e293b;border-radius:8px;cursor:pointer;font-size:0.8rem;}
+.submenu{display:none;padding-left:10px}
+.submenu.open{display:block}
+
+/* MAIN */
+.main{flex:1;padding:30px}
+.view{display:none}
+.view.active{display:block}
+.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;}
+.grid{display:grid;grid-template-columns:1fr 480px;gap:20px;}
+input,select{width:100%;padding:10px;margin-top:5px;}
+button{margin-top:10px;padding:10px;cursor:pointer;border:none;border-radius:8px;background:var(--s);color:white;}
+.res{background:#111;color:#0f0;padding:15px;border-radius:10px;font-family:monospace;}
+canvas{width:100%;background:#000;}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h2>MSTCALC</h2>
+
+<div class="nav-item active" onclick="showView('v-datos',this)">Proyecto</div>
+<div class="nav-item" onclick="showView('v-historial',this)">Historial</div>
+
+<div class="category-title" onclick="toggle('trabajos')">Trabajos</div>
+<div id="trabajos" class="submenu open">
+
+<div class="category-title" onclick="toggle('puertas')">Puertas</div>
+<div id="puertas" class="submenu open">
+<div class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</div>
+<div class="nav-item" onclick="showView('v-correderas',this)">Correderas</div>
+<div class="nav-item" onclick="showView('v-auto',this)">Autoportantes</div>
+</div>
+
+<div class="category-title" onclick="toggle('estructuras')">Estructuras</div>
+<div id="estructuras" class="submenu open">
+<div class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</div>
+<div class="nav-item" onclick="showView('v-vallas',this)">Vallas</div>
+</div>
+
+</div>
+
+<div class="category-title" onclick="toggle('stock')">Stock</div>
+<div id="stock" class="submenu">
+<div class="nav-item" onclick="showView('v-stock',this)">Material</div>
+</div>
+
+</div>
+
+<div class="main">
+
+<!-- PROYECTO -->
+<div id="v-datos" class="view active">
+<div class="card">
+<h3>Proyecto</h3>
+<input id="p-nombre" placeholder="Nombre">
+<input id="p-cliente" placeholder="Cliente">
+<button onclick="guardarProyecto()">💾 Guardar Proyecto</button>
+</div>
+</div>
+
+<!-- ABATIBLE -->
+<div id="v-abatibles" class="view">
+<div class="grid">
+<div class="card">
+<input id="ab-w" value="3000" oninput="runAb()">
+<input id="ab-h" value="2000" oninput="runAb()">
+<select id="ab-n" onchange="runAb()">
+<option value="1">1</option>
+<option value="2">2</option>
+</select>
+</div>
+<div>
+<canvas id="cv" width="400" height="300"></canvas>
+<div id="ab-res" class="res"></div>
+</div>
+</div>
+</div>
+
+<!-- HISTORIAL -->
+<div id="v-historial" class="view">
+<div class="card">
+<h3>Historial</h3>
+<div id="historial-lista"></div>
+</div>
+</div>
+
+<!-- STOCK -->
+<div id="v-stock" class="view">
+<div class="card">
+<h3>Stock</h3>
+<input id="st-pieza" placeholder="Pieza">
+<input id="st-largo" placeholder="Largo">
+<input id="st-zona" placeholder="Zona (A1, B2...)">
+<button onclick="addStock()">Añadir</button>
+<div id="lista-stock"></div>
+</div>
+</div>
+
+</div>
+
+<script>
 
 /* ===== BASE ===== */
 let historial = JSON.parse(localStorage.getItem("mst_hist")) || []
@@ -10,18 +126,14 @@ let stock = JSON.parse(localStorage.getItem("mst_stock")) || []
 let proyectoActual = {}
 
 /* ===== MENU ===== */
-window.toggle = function(id){
+function toggle(id){
 document.getElementById(id).classList.toggle('open')
 }
 
-window.showView = function(id,el){
-
+function showView(id,el){
 document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
 document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
-
-let vista = document.getElementById(id)
-if(vista) vista.classList.add('active')
-
+document.getElementById(id).classList.add('active')
 if(el) el.classList.add('active')
 
 if(id==="v-historial") renderHistorial()
@@ -29,67 +141,45 @@ if(id==="v-stock") renderStock()
 }
 
 /* ===== STOCK ===== */
-window.addStock = function(){
-
-let pieza = document.getElementById("st-pieza")?.value
-let largo = +document.getElementById("st-largo")?.value
-let zona = document.getElementById("st-zona")?.value
-
-if(!pieza || !largo || !zona) return
+function addStock(){
+let pieza = document.getElementById("st-pieza").value
+let largo = +document.getElementById("st-largo").value
+let zona = document.getElementById("st-zona").value
 
 stock.push({pieza,largo,zona})
-
 localStorage.setItem("mst_stock", JSON.stringify(stock))
-
 renderStock()
 }
 
 function renderStock(){
-
-let cont = document.getElementById("lista-stock")
-if(!cont) return
-
-cont.innerHTML = stock.map(s=>`
-<div>${s.pieza} - ${s.largo}mm (Zona ${s.zona})</div>
-`).join("")
+document.getElementById("lista-stock").innerHTML =
+stock.map(s=>`<div>${s.pieza} - ${s.largo}mm (Zona ${s.zona})</div>`).join("")
 }
 
 function comprobarStock(despiece){
-
 let avisos=[]
-
 despiece.forEach(p=>{
-
 let m = stock.find(s=>s.pieza===p.pieza && s.largo>=p.largo)
-
-if(m){
-avisos.push(`✔ Usar ${m.pieza} ${m.largo}mm en zona ${m.zona}`)
-}
-
+if(m) avisos.push(`✔ Usar ${m.pieza} ${m.largo}mm en zona ${m.zona}`)
 })
-
 return avisos
 }
 
-/* ===== CALCULO ABATIBLE ===== */
-window.runAb = function(){
+/* ===== CALCULO ===== */
+function runAb(){
 
-let W = +document.getElementById('ab-w')?.value
-let H = +document.getElementById('ab-h')?.value
-let n = +document.getElementById('ab-n')?.value
+let W = +ab-w.value
+let H = +ab-h.value
+let n = +ab-n.value
 
-if(!W || !H || !n) return
+let hoja = W/n
 
-let hoja = W / n
-
-let despiece = [
+let despiece=[
 {pieza:"Vertical",cantidad:n*2,largo:H},
 {pieza:"Horizontal",cantidad:n*2,largo:hoja}
 ]
 
-let html = despiece.map(p =>
-`${p.pieza} → ${p.cantidad} x ${p.largo.toFixed(0)}mm`
-).join("<br>")
+let html = despiece.map(p=>`${p.pieza} → ${p.cantidad} x ${p.largo}`).join("<br>")
 
 let avisos = comprobarStock(despiece)
 
@@ -97,26 +187,16 @@ if(avisos.length){
 html += "<br><br><b>STOCK:</b><br>" + avisos.join("<br>")
 }
 
-let res = document.getElementById("ab-res")
-if(res) res.innerHTML = html
+ab-res.innerHTML = html
 
-proyectoActual = {
-tipo:"abatible",
-datos:{W,H,n},
-despiece
-}
+proyectoActual = {tipo:"abatible",datos:{W,H,n},despiece}
 
 dibujar(W,H,n)
 }
 
 /* ===== DIBUJO ===== */
 function dibujar(W,H,n){
-
-let canvas = document.getElementById("cv")
-if(!canvas) return
-
-let ctx = canvas.getContext("2d")
-
+let ctx=cv.getContext("2d")
 ctx.clearRect(0,0,400,300)
 
 ctx.strokeStyle="white"
@@ -131,41 +211,41 @@ ctx.stroke()
 }
 
 /* ===== GUARDAR ===== */
-window.guardarProyecto = function(){
+function guardarProyecto(){
 
-proyectoActual.nombre = document.getElementById("p-nombre")?.value
-proyectoActual.cliente = document.getElementById("p-cliente")?.value
-proyectoActual.fecha = new Date().toLocaleString()
+proyectoActual.nombre=p-nombre.value
+proyectoActual.cliente=p-cliente.value
+proyectoActual.fecha=new Date().toLocaleString()
 
 historial.push({...proyectoActual})
+localStorage.setItem("mst_hist",JSON.stringify(historial))
 
-localStorage.setItem("mst_hist", JSON.stringify(historial))
-
-/* FIREBASE SEGURO */
-if(window.firebase){
 firebase.firestore().collection("trabajos").add(proyectoActual)
-}
 
-alert("Proyecto guardado correctamente")
+alert("Guardado OK")
 }
 
 /* ===== HISTORIAL ===== */
 function renderHistorial(){
-
-let cont = document.getElementById("historial-lista")
-if(!cont) return
-
-cont.innerHTML = historial.map(p=>`
-<div style="margin-bottom:10px">
-<b>${p.nombre}</b> (${p.tipo})<br>
-${p.cliente}<br>
-<small>${p.fecha}</small>
-</div>
-`).join("")
+historial-lista.innerHTML =
+historial.map(p=>`<div><b>${p.nombre}</b> (${p.tipo})</div>`).join("")
 }
 
-/* ===== INIT ===== */
+/* INIT */
 runAb()
 
-}
 </script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+firebase.initializeApp({
+apiKey: "AIza...",
+authDomain: "mstcalc.firebaseapp.com",
+projectId: "mstcalc"
+});
+</script>
+
+</body>
+</html>
