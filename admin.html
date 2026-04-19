@@ -3,337 +3,444 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSTCALC PRO V63 - Gestión de Stock y Presupuestos</title>
+    <title>MSTCALC PRO V63 - Sistema Integral</title>
     <style>
         :root {
             --primary: #2563eb; --primary-dark: #1e40af; --bg: #f8fafc;
             --card: #ffffff; --text: #1e293b; --border: #e2e8f0;
             --ok: #22c55e; --warn: #f59e0b; --danger: #ef4444; --secondary: #64748b;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
 
-        /* SIDEBAR */
+        /* SIDEBAR PROFESIONAL */
         .sidebar { width: 260px; background: #0f172a; color: white; display: flex; flex-direction: column; overflow-y: auto; flex-shrink: 0; }
-        .sidebar h2 { padding: 20px; font-size: 1.2rem; color: var(--ok); text-align: center; border-bottom: 1px solid #1e293b; }
-        .nav-item { padding: 12px 20px; cursor: pointer; border: none; background: none; color: #94a3b8; text-align: left; width: 100%; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; }
+        .sidebar h2 { padding: 20px; font-size: 1.1rem; color: var(--ok); text-align: center; border-bottom: 1px solid #1e293b; letter-spacing: 1px; }
+        .nav-item { padding: 12px 20px; cursor: pointer; border: none; background: none; color: #94a3b8; text-align: left; width: 100%; transition: 0.2s; font-size: 0.85rem; display: flex; align-items: center; gap: 10px; }
         .nav-item:hover { background: #1e293b; color: white; }
         .nav-item.active { background: var(--primary); color: white; }
-        .category-title { padding: 15px 20px 5px; font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; }
+        
+        .category-title { padding: 15px 20px 5px; font-size: 0.7rem; color: #64748b; text-transform: uppercase; font-weight: bold; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
         .submenu { display: none; flex-direction: column; background: #0a0f1d; }
         .submenu.open { display: flex; }
+        .chev { transition: 0.3s; font-size: 0.6rem; }
+        .open .chev { transform: rotate(90deg); }
 
-        /* CONTENT */
-        .main { flex-grow: 1; overflow-y: auto; padding: 25px; display: flex; flex-direction: column; gap: 20px; }
+        /* MAIN CONTENT */
+        .main { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
         .view { display: none; }
-        .view.active { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .view.active { display: block; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .card { background: var(--card); border-radius: 8px; border: 1px solid var(--border); padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; gap: 10px; }
         
-        /* FORMULARIOS */
-        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .group { display: flex; flex-direction: column; gap: 5px; }
-        label { font-size: 0.85rem; font-weight: 600; color: var(--secondary); }
-        input, select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; outline: none; transition: 0.2s; }
-        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        /* INPUTS Y BOTONES toggle */
+        .grid-inputs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.75rem; font-weight: 700; color: var(--secondary); }
+        input, select { padding: 7px 10px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+        
+        .btn-toggle-group { display: flex; background: #f1f5f9; padding: 3px; border-radius: 6px; gap: 2px; }
+        .btn-toggle { flex: 1; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; background: transparent; font-weight: 600; color: var(--secondary); }
+        .btn-toggle.active { background: white; color: var(--primary); shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
-        /* BOTONES DE ORIENTACIÓN Y CARA */
-        .btn-toggle-group { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; background: #f1f5f9; padding: 4px; border-radius: 8px; }
-        .btn-toggle { border: none; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; background: transparent; color: var(--secondary); font-weight: 600; }
-        .btn-toggle.active { background: white; color: var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        /* TABLAS Y RESULTADOS */
+        .res { white-space: pre-wrap; font-family: 'Courier New', monospace; background: #f8fafc; padding: 15px; border-radius: 6px; font-size: 0.85rem; border: 1px solid var(--border); color: #334155; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { text-align: left; padding: 8px; border-bottom: 2px solid var(--border); color: var(--secondary); }
+        td { padding: 8px; border-bottom: 1px solid var(--border); }
 
-        /* TABLAS Y LISTAS */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-        th { text-align: left; background: #f8fafc; padding: 10px; border-bottom: 2px solid var(--border); }
-        td { padding: 10px; border-bottom: 1px solid var(--border); }
-        .res { white-space: pre-wrap; font-family: monospace; background: #f1f5f9; padding: 15px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; border-left: 4px solid var(--primary); }
+        button { padding: 8px 14px; border-radius: 4px; border: none; cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .ok { background: var(--ok); color: white; }
+        .danger { background: var(--danger); color: white; }
+        .secondary { background: var(--secondary); color: white; }
 
-        button { padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer; font-weight: 600; transition: 0.2s; display: inline-flex; align-items: center; gap: 5px; }
-        button.ok { background: var(--ok); color: white; }
-        button.warn { background: var(--warn); color: white; }
-        button.danger { background: var(--danger); color: white; }
-        button.secondary { background: var(--secondary); color: white; }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
-
-        canvas { background: white; border: 1px solid var(--border); border-radius: 8px; width: 100%; max-width: 800px; height: auto; display: block; margin: 0 auto; }
-        .modal-back { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000; }
-        .modal-back.open { display:flex; }
-        .modal { background:white; padding:25px; border-radius:12px; width:90%; max-width:500px; max-height: 90vh; overflow-y: auto; }
+        canvas { background: white; border: 1px solid var(--border); width: 100%; height: auto; max-width: 900px; margin: 0 auto; display: block; }
     </style>
 </head>
 <body>
 
 <div class="sidebar">
-    <h2>MSTCALC PRO V63</h2>
-    <button class="nav-item active" onclick="showView('v-abatibles',this)">🏠 Abatibles</button>
-    <button class="nav-item" onclick="showView('v-presupuestos',this)">💰 Presupuestos</button>
-    <button class="nav-item" onclick="showView('v-historial',this)">📂 Historial</button>
-
-    <div class="category-title open" onclick="toggle('stock-sub',this)">Stock <span>▼</span></div>
-    <div id="stock-sub" class="submenu open">
-        <button class="nav-item" onclick="showView('v-stock-materiales',this)">📦 Materiales</button>
-        <button class="nav-item" onclick="showView('v-stock-chapas',this)">🖼️ Chapas</button>
-        <button class="nav-item" onclick="showView('v-stock-pinturas',this)">🎨 Pinturas</button>
+    <h2>MSTCALC PRO</h2>
+    
+    <div class="category-title open" onclick="toggleSub('t-sub',this)">Trabajos <span class="chev">▶</span></div>
+    <div id="t-sub" class="submenu open">
+        <button class="nav-item active" onclick="showView('v-abatibles',this)">🚪 P. Abatibles</button>
+        <button class="nav-item" onclick="showView('v-correderas',this)">↔️ P. Correderas</button>
+        <button class="nav-item" onclick="showView('v-barandillas',this)">🪜 Barandillas</button>
     </div>
 
-    <div class="category-title" onclick="toggle('pron-sub',this)">Prontuario <span>▼</span></div>
-    <div id="pron-sub" class="submenu">
-        <button class="nav-item" onclick="showView('v-prontuario-materiales',this)">📋 Materiales</button>
-        <button class="nav-item" onclick="showView('v-prontuario-chapas',this)">📋 Chapas</button>
+    <button class="nav-item" onclick="showView('v-presupuestos',this)">💰 Presupuestos</button>
+    <button class="nav-item" onclick="showView('v-historial',this)">📂 Historial Proyectos</button>
+
+    <div class="category-title" onclick="toggleSub('s-sub',this)">Stock Actual <span class="chev">▶</span></div>
+    <div id="s-sub" class="submenu">
+        <button class="nav-item" onclick="showView('v-stock-mat',this)">📦 Materiales</button>
+        <button class="nav-item" onclick="showView('v-stock-cha',this)">🖼️ Chapas</button>
+        <button class="nav-item" onclick="showView('v-stock-pin',this)">🎨 Pinturas</button>
+    </div>
+
+    <div class="category-title" onclick="toggleSub('p-sub',this)">Prontuario <span class="chev">▶</span></div>
+    <div id="p-sub" class="submenu">
+        <button class="nav-item" onclick="showView('v-pron-mat',this)">📋 Lista Perfiles</button>
+        <button class="nav-item" onclick="showView('v-pron-cha',this)">📋 Lista Chapas</button>
+        <button class="nav-item" onclick="showView('v-pron-pin',this)">📋 Lista Pinturas</button>
     </div>
 </div>
 <div class="main">
     <div id="v-abatibles" class="view active">
         <div class="card">
             <div class="toolbar">
-                <h3>Calculadora de Puerta Abatible</h3>
-                <div class="group">
-                    <input type="text" id="p-nombre" placeholder="Nombre Proyecto">
-                    <input type="text" id="p-cliente" placeholder="Cliente">
+                <h3>Puerta Abatible (Cálculo y Despiece)</h3>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="ab-nombre" placeholder="Nombre Proyecto" style="width:180px">
+                    <input type="text" id="ab-cliente" placeholder="Cliente" style="width:150px">
                 </div>
             </div>
-
             <div class="grid-inputs">
-                <div class="group"><label>W Total (mm)</label><input type="number" id="ab-w" value="1000" oninput="runAb()"></div>
-                <div class="group"><label>H Total (mm)</label><input type="number" id="ab-h" value="2100" oninput="runAb()"></div>
+                <div class="group"><label>Ancho Total (W)</label><input type="number" id="ab-w" value="1000" oninput="runAb()"></div>
+                <div class="group"><label>Alto Total (H)</label><input type="number" id="ab-h" value="2100" oninput="runAb()"></div>
                 <div class="group">
-                    <label>Cara Frontal Marco</label>
+                    <label>Cara Frontal (Marco)</label>
                     <div class="btn-toggle-group">
-                        <button id="btn-f-m1" class="btn-toggle active" onclick="setFace('marco','lado1')">Lado 1</button>
-                        <button id="btn-f-m2" class="btn-toggle" onclick="setFace('marco','lado2')">Lado 2</button>
+                        <button id="btn-m-l1" class="btn-toggle active" onclick="setFace('marco','lado1')">Lado 1</button>
+                        <button id="btn-m-l2" class="btn-toggle" onclick="setFace('marco','lado2')">Lado 2</button>
                     </div>
                 </div>
             </div>
-
             <div class="grid-inputs">
-                <div class="group"><label>Material Marco</label><select id="ab-mat-marco" onchange="onMatMarcoChange()"></select></div>
-                <div class="group"><label>Material Hoja</label><select id="ab-mat-hoja" onchange="onMatHojaChange()"></select></div>
-            </div>
-
-            <div class="grid-inputs" style="border-top: 1px solid var(--border); padding-top: 15px;">
+                <div class="group"><label>Material Marco</label><select id="ab-mat-marco" onchange="runAb()"></select></div>
+                <div class="group"><label>Material Hoja</label><select id="ab-mat-hoja" onchange="runAb()"></select></div>
                 <div class="group">
+                    <label>Cara Frontal (Hoja)</label>
+                    <div class="btn-toggle-group">
+                        <button id="btn-h-l1" class="btn-toggle active" onclick="setFace('hoja','lado1')">Lado 1</button>
+                        <button id="btn-h-l2" class="btn-toggle" onclick="setFace('hoja','lado2')">Lado 2</button>
+                    </div>
+                </div>
+            </div>
+            <hr style="margin:15px 0; border:0; border-top:1px solid var(--border);">
+            <div class="grid-inputs">
+                <div class="group">
+                    <label>Tipo de Relleno</label>
+                    <div class="btn-toggle-group">
+                        <button id="btn-rel-barr" class="btn-toggle active" onclick="setRelleno('barr')">Barrotes</button>
+                        <button id="btn-rel-cha" class="btn-toggle" onclick="setRelleno('cha')">Chapa</button>
+                    </div>
+                </div>
+                <div id="panel-barr" class="group">
                     <label>Orientación Barrotes</label>
                     <div class="btn-toggle-group">
-                        <button id="btn-b-v" class="btn-toggle active" onclick="setBarrOri('V')">Vertical</button>
-                        <button id="btn-b-h" class="btn-toggle" onclick="setBarrOri('H')">Horizontal</button>
+                        <button id="btn-ori-v" class="btn-toggle active" onclick="setOri('V')">Vertical</button>
+                        <button id="btn-ori-h" class="btn-toggle" onclick="setOri('H')">Horizontal</button>
                     </div>
                 </div>
-                <div class="group"><label>Separación (mm)</label><input type="number" id="ab-barr-sep" value="100" oninput="runAb()"></div>
-                <div class="group"><label>Material Barrote</label><select id="ab-mat-barr" onchange="runAb()"></select></div>
+                <div class="group"><label>Material Relleno</label><select id="ab-mat-relleno" onchange="runAb()"></select></div>
             </div>
-
-            <button class="ok" onclick="guardarProyecto()">💾 Guardar en Historial</button>
+            <button class="ok" onclick="guardarProyecto('abatible')">💾 Guardar Proyecto</button>
         </div>
-
         <div class="card">
             <canvas id="cv" width="800" height="600"></canvas>
-            <div id="ab-res" class="res" style="margin-top:20px"></div>
+            <div id="ab-res" class="res" style="margin-top:15px"></div>
         </div>
     </div>
 
     <div id="v-presupuestos" class="view">
         <div class="card">
-            <h3>Generador de Presupuesto</h3>
+            <h3>Cálculo de Presupuesto Automático</h3>
             <div class="grid-inputs">
-                <div class="group"><label>Margen Ganancia (%)</label><input type="number" id="pre-margen" value="30" oninput="calcularPresupuesto()"></div>
-                <div class="group"><label>Multiplicador Barras</label><input type="number" id="pre-multi" value="1.0" step="0.1" oninput="calcularPresupuesto()"></div>
-                <div class="group"><label>Añadido Fijo (€)</label><input type="number" id="pre-fijo" value="0" oninput="calcularPresupuesto()"></div>
+                <div class="group"><label>Multiplicador Barras (Stock)</label><input type="number" id="pre-mult" value="1.0" step="0.1" oninput="renderPresupuesto()"></div>
+                <div class="group"><label>Margen Beneficio (%)</label><input type="number" id="pre-margen" value="30" oninput="renderPresupuesto()"></div>
+                <div class="group"><label>Mano de Obra / Suma Fija (€)</label><input type="number" id="pre-fijo" value="0" oninput="renderPresupuesto()"></div>
             </div>
-            <div id="pre-detalle"></div>
+            <div id="pre-tabla-cont" class="res" style="background:white; color:black;">
+                Carga un proyecto para ver el desglose de precios...
+            </div>
         </div>
     </div>
 
-    <div id="v-stock-materiales" class="view"><div class="card"><h3>Stock Materiales</h3><div id="list-stockMat"></div></div></div>
-    <div id="v-stock-chapas" class="view"><div class="card"><h3>Stock Chapas</h3><div id="list-stockChapa"></div></div></div>
-    <div id="v-prontuario-materiales" class="view"><div class="card"><div class="toolbar"><h3>Prontuario Materiales</h3><button class="ok" onclick="openModal('pronMat')">➕ Agregar</button></div><div id="list-pronMat"></div></div></div>
-    <div id="v-prontuario-chapas" class="view"><div class="card"><div class="toolbar"><h3>Prontuario Chapas</h3><button class="ok" onclick="openModal('pronChapa')">➕ Agregar</button></div><div id="list-pronChapa"></div></div></div>
-    
-    <div id="v-historial" class="view">
+    <div id="v-pron-mat" class="view">
         <div class="card">
-            <h3>Historial de Proyectos</h3>
-            <div id="historial-lista"></div>
+            <div class="toolbar"><h3>Prontuario de Perfiles</h3><button class="ok" onclick="openModal('pronMat')">➕ Nuevo Perfil</button></div>
+            <div id="list-pronMat"></div>
         </div>
     </div>
+    <div id="v-pron-cha" class="view">
+        <div class="card">
+            <div class="toolbar"><h3>Prontuario de Chapas</h3><button class="ok" onclick="openModal('pronChapa')">➕ Nueva Chapa</button></div>
+            <div id="list-pronChapa"></div>
+        </div>
+    </div>
+    <div id="v-pron-pin" class="view">
+        <div class="card">
+            <div class="toolbar"><h3>Prontuario de Pinturas</h3><button class="ok" onclick="openModal('pronPint')">➕ Nueva Pintura</button></div>
+            <div id="list-pronPint"></div>
+        </div>
+    </div>
+
+    <div id="v-historial" class="view">
+        <div class="card">
+            <h3>Historial de Proyectos Permanente</h3>
+            <div id="hist-lista" style="display:grid; gap:10px;"></div>
+        </div>
+    </div>
+
+    <div id="v-stock-mat" class="view"><div class="card"><h3>Stock de Materiales</h3><div id="list-stockMat"></div></div></div>
+    <div id="v-stock-cha" class="view"><div class="card"><h3>Stock de Chapas</h3><div id="list-stockChapa"></div></div></div>
+    <div id="v-stock-pin" class="view"><div class="card"><h3>Stock de Pinturas</h3><div id="list-stockPint"></div></div></div>
 </div>
 
 <div class="modal-back" id="modalBack">
     <div class="modal">
-        <h3 id="modalTitle">Agregar</h3>
-        <div id="modalFields" class="grid-inputs" style="grid-template-columns: 1fr;"></div>
-        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px">
+        <h3 id="modalTitle">Nuevo Registro</h3>
+        <div id="modalFields" class="grid-inputs" style="grid-template-columns: 1fr; margin-top:15px;"></div>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px;">
             <button class="secondary" onclick="closeModal()">Cancelar</button>
-            <button class="ok" onclick="modalSave()">Guardar</button>
+            <button class="ok" onclick="modalSave()">Guardar en Base de Datos</button>
         </div>
     </div>
 </div>
 <script>
-const STORE_KEYS = {
-    stockMat: "mst_stock_mat", stockChapa: "mst_stock_cha",
-    pronMat: "mst_pron_mat", pronChapa: "mst_pron_cha", hist: "mst_hist_v63"
+// --- CONFIGURACIÓN Y BASES DE DATOS ---
+const KEYS = {
+    pronMat: "mst_p_mat", pronCha: "mst_p_cha", pronPin: "mst_p_pin",
+    stockMat: "mst_s_mat", stockCha: "mst_s_cha", stockPin: "mst_s_pin",
+    hist: "mst_hist_v63"
 };
 
 const CATEGORIES = {
     pronMat: {
-        label: "Material", fields: [
+        fields: [
             {key:"nombre", label:"Nombre Perfil", type:"text"},
-            {key:"lado1", label:"Lado 1 (mm)", type:"number"},
-            {key:"lado2", label:"Lado 2 (mm)", type:"number"},
+            {key:"lado1", label:"Medida Lado 1 (mm)", type:"number"},
+            {key:"lado2", label:"Medida Lado 2 (mm)", type:"number"},
             {key:"espesor", label:"Espesor (mm)", type:"number"},
-            {key:"precio_m", label:"Precio por Metro (€)", type:"number"}
-        ],
-        render: (it) => `<b>${it.nombre}</b> - ${it.lado1}x${it.lado2}x${it.espesor}mm | <span style="color:green">${it.precio_m}€/m</span>`
+            {key:"precio", label:"Precio por Metro (€)", type:"number"}
+        ]
     },
     pronChapa: {
-        label: "Chapa", fields: [
+        fields: [
             {key:"nombre", label:"Tipo Chapa", type:"text"},
             {key:"espesor", label:"Espesor (mm)", type:"number"},
-            {key:"precio_m2", label:"Precio m² (€)", type:"number"}
-        ],
-        render: (it) => `<b>${it.nombre}</b> - ${it.espesor}mm | <span style="color:green">${it.precio_m2}€/m²</span>`
+            {key:"precio", label:"Precio m² (€)", type:"number"}
+        ]
+    },
+    pronPint: {
+        fields: [
+            {key:"nombre", label:"Color/Referencia", type:"text"},
+            {key:"precio", label:"Precio por m² (€)", type:"number"}
+        ]
     }
 };
 
-let data = {
-    pronMat: JSON.parse(localStorage.getItem(STORE_KEYS.pronMat)) || [],
-    pronChapa: JSON.parse(localStorage.getItem(STORE_KEYS.pronChapa)) || [],
-    hist: JSON.parse(localStorage.getItem(STORE_KEYS.hist)) || []
+let db = {};
+Object.keys(KEYS).forEach(k => db[k] = JSON.parse(localStorage.getItem(KEYS[k])) || []);
+
+let prog = { 
+    tipo: 'abatible', faceMarco: 'lado1', faceHoja: 'lado1', 
+    relleno: 'barr', ori: 'V', despiece: [] 
 };
 
-let proyectoActual = { faceMarco: 'lado1', barrOri: 'V' };
-
-function showView(id, el) {
+// --- NAVEGACIÓN Y UI ---
+function showView(id, btn) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    if(el) {
+    if(btn) {
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        el.classList.add('active');
+        btn.classList.add('active');
     }
+    if(id.startsWith('v-pron')) renderList(id.replace('v-','').replace('-',''));
     if(id === 'v-historial') renderHistorial();
-    if(id === 'v-prontuario-materiales') renderCategory('pronMat');
-    if(id === 'v-presupuestos') calcularPresupuesto();
+    if(id === 'v-presupuestos') renderPresupuesto();
 }
 
-function setFace(tipo, face) {
-    proyectoActual.faceMarco = face;
-    document.getElementById('btn-f-m1').classList.toggle('active', face === 'lado1');
-    document.getElementById('btn-f-m2').classList.toggle('active', face === 'lado2');
+function toggleSub(id, el) {
+    el.classList.toggle('open');
+    document.getElementById(id).classList.toggle('open');
+}
+
+// --- LÓGICA DE TRABAJO (ABATIBLES) ---
+function setFace(pieza, lado) {
+    if(pieza === 'marco') prog.faceMarco = lado;
+    else prog.faceHoja = lado;
+    
+    document.querySelectorAll(`[id^="btn-${pieza.charAt(0)}"]`).forEach(b => b.classList.remove('active'));
+    document.getElementById(`btn-${pieza.charAt(0)}-${lado === 'lado1' ? 'l1' : 'l2'}`).classList.add('active');
     runAb();
 }
 
-function setBarrOri(ori) {
-    proyectoActual.barrOri = ori;
-    document.getElementById('btn-b-v').classList.toggle('active', ori === 'V');
-    document.getElementById('btn-b-h').classList.toggle('active', ori === 'H');
+function setOri(o) {
+    prog.ori = o;
+    document.getElementById('btn-ori-v').classList.toggle('active', o === 'V');
+    document.getElementById('btn-ori-h').classList.toggle('active', o === 'H');
     runAb();
 }
 
 function runAb() {
     const W = Number(document.getElementById('ab-w').value);
     const H = Number(document.getElementById('ab-h').value);
-    const matM = data.pronMat[document.getElementById('ab-mat-marco').value];
+    const matM = db.pronMat[document.getElementById('ab-mat-marco').value];
+    const matH = db.pronMat[document.getElementById('ab-mat-hoja').value];
     
-    if(!matM) return;
+    if(!matM || !matH) return;
 
-    // Lógica de cara frontal: si elegimos lado1, el grosor que ocupa en el hueco es el lado1
-    const T1 = proyectoActual.faceMarco === 'lado1' ? matM.lado1 : matM.lado2;
+    // Descuento según cara frontal seleccionada
+    const T1 = prog.faceMarco === 'lado1' ? Number(matM.lado1) : Number(matM.lado2);
+    const T2 = prog.faceHoja === 'lado1' ? Number(matH.lado1) : Number(matH.lado2);
+
+    const hojaW = W - (2 * T1) - 10; // 10mm holgura estándar
+    const hojaH = H - (2 * T1) - 10;
+
+    prog.despiece = [
+        { pieza: "Marco Vertical", cant: 2, largo: H, precio: matM.precio },
+        { pieza: "Marco Horizontal", cant: 2, largo: W - (2*T1), precio: matM.precio },
+        { pieza: "Hoja Vertical", cant: 2, largo: hojaH, precio: matH.precio },
+        { pieza: "Hoja Horizontal", cant: 2, largo: hojaW - (2*T2), precio: matH.precio }
+    ];
+
+    // Mostrar resumen texto
+    let txt = `PUERTA: ${W}x${H}mm\n`;
+    prog.despiece.forEach(p => txt += `${p.cant} x ${Math.round(p.largo)}mm - ${p.pieza}\n`);
+    document.getElementById('ab-res').textContent = txt;
     
-    let despiece = {
-        marco: [
-            { nombre: "Larguero Marco", cant: 2, largo: H, precio: matM.precio_m },
-            { nombre: "Cabezal Marco", cant: 2, largo: W - (2 * T1), precio: matM.precio_m }
-        ],
-        total_m: ((H * 2) + ((W - (2 * T1)) * 2)) / 1000
-    };
-
-    proyectoActual.despiece = despiece;
-    document.getElementById('ab-res').textContent = `Despiece: ${despiece.marco[0].cant} de ${despiece.marco[0].largo}mm y ${despiece.marco[1].cant} de ${despiece.marco[1].largo}mm`;
+    dibujarPuerta(W, H, T1, T2, hojaW, hojaH);
 }
 
-function calcularPresupuesto() {
-    if(!proyectoActual.despiece) return;
-    const mng = 1 + (Number(document.getElementById('pre-margen').value) / 100);
-    const mult = Number(document.getElementById('pre-multi').value);
+// --- PRESUPUESTOS ---
+function renderPresupuesto() {
+    if(!prog.despiece.length) return;
+    
+    const mult = Number(document.getElementById('pre-mult').value);
+    const margen = (Number(document.getElementById('pre-margen').value) / 100) + 1;
     const fijo = Number(document.getElementById('pre-fijo').value);
     
-    let subtotal = 0;
-    let html = `<table><tr><th>Material</th><th>Medida</th><th>Subtotal</th></tr>`;
+    let subtotalMat = 0;
+    let html = `<table><tr><th>Pieza</th><th>Cantidad</th><th>Largo</th><th>Coste</th></tr>`;
     
-    proyectoActual.despiece.marco.forEach(p => {
+    prog.despiece.forEach(p => {
         let coste = (p.largo / 1000) * p.cant * p.precio * mult;
-        subtotal += coste;
-        html += `<tr><td>${p.nombre}</td><td>${p.cant} x ${p.largo}mm</td><td>${coste.toFixed(2)}€</td></tr>`;
+        subtotalMat += coste;
+        html += `<tr><td>${p.pieza}</td><td>${p.cant}</td><td>${Math.round(p.largo)}mm</td><td>${coste.toFixed(2)}€</td></tr>`;
     });
-
-    let total = (subtotal * mng) + fijo;
-    html += `</table><h4 style="text-align:right; margin-top:20px;">Total Presupuesto (con ${((mng-1)*100).toFixed(0)}% beneficio): ${total.toFixed(2)}€</h4>`;
-    document.getElementById('pre-detalle').innerHTML = html;
+    
+    let total = (subtotalMat * margen) + fijo;
+    html += `</table><div style="text-align:right; margin-top:15px;">`;
+    html += `Subtotal Material: ${subtotalMat.toFixed(2)}€<br>`;
+    html += `<b>TOTAL PRESUPUESTO: ${total.toFixed(2)}€</b></div>`;
+    
+    document.getElementById('pre-tabla-cont').innerHTML = html;
 }
 
-function guardarProyecto() {
-    const p = {
-        nombre: document.getElementById('p-nombre').value || "Proyecto Nuevo",
-        cliente: document.getElementById('p-cliente').value || "Genérico",
-        fecha: new Date(),
-        datos: proyectoActual
+// --- HISTORIAL ---
+function guardarProyecto(tipo) {
+    const nombre = document.getElementById('ab-nombre').value || "Proyecto";
+    const proyecto = {
+        id: Date.now(),
+        nombre: nombre,
+        cliente: document.getElementById('ab-cliente').value,
+        tipo: tipo,
+        fecha: new Date().toLocaleString(),
+        prog: JSON.parse(JSON.stringify(prog))
     };
-    data.hist.push(p);
-    localStorage.setItem(STORE_KEYS.hist, JSON.stringify(data.hist));
-    alert("Proyecto guardado permanentemente.");
+    db.hist.push(proyecto);
+    localStorage.setItem(KEYS.hist, JSON.stringify(db.hist));
+    alert("Guardado en el historial");
 }
 
 function renderHistorial() {
-    const cont = document.getElementById('historial-lista');
-    cont.innerHTML = data.hist.map((p, i) => `
-        <div class="card" style="display:flex; justify-content:space-between; align-items:center;">
-            <div><b>${p.nombre}</b> - ${p.cliente} <br><small>${new Date(p.fecha).toLocaleDateString()}</small></div>
-            <div>
-                <button class="ok" onclick="cargarProyecto(${i})">Abrir</button>
-                <button class="danger" onclick="borrarHistorial(${i})">Eliminar</button>
+    const cont = document.getElementById('hist-lista');
+    cont.innerHTML = db.hist.map((p, i) => `
+        <div class="card" style="display:flex; justify-content:space-between; align-items:center; padding:10px 20px;">
+            <div><b>${p.nombre}</b> - ${p.cliente} <small>(${p.fecha})</small></div>
+            <div style="display:flex; gap:5px;">
+                <button class="ok" onclick="cargarProyecto(${i})">✏️ Editar</button>
+                <button class="danger" onclick="eliminarHistorial(${i})">🗑️</button>
             </div>
         </div>
     `).join("");
 }
 
-function borrarHistorial(i) {
-    if(confirm("¿Eliminar?")) { data.hist.splice(i,1); localStorage.setItem(STORE_KEYS.hist, JSON.stringify(data.hist)); renderHistorial(); }
+function eliminarHistorial(i) {
+    if(confirm("¿Eliminar proyecto permanentemente?")) {
+        db.hist.splice(i, 1);
+        localStorage.setItem(KEYS.hist, JSON.stringify(db.hist));
+        renderHistorial();
+    }
 }
 
-// Inicialización de selectores
-function updateSelects() {
-    const opts = data.pronMat.map((m, i) => `<option value="${i}">${m.nombre}</option>`).join("");
-    document.getElementById('ab-mat-marco').innerHTML = opts;
-    document.getElementById('ab-mat-hoja').innerHTML = opts;
-    document.getElementById('ab-mat-barr').innerHTML = opts;
+function cargarProyecto(i) {
+    const p = db.hist[i];
+    prog = p.prog;
+    document.getElementById('ab-w').value = prog.despiece[0]?.largo || 1000;
+    showView('v-abatibles');
+    runAb();
 }
 
-// Funciones CRUD simplificadas para el Prontuario
+// --- GESTIÓN DE PRONTUARIO (MODAL) ---
 let currentCat = "";
-function openModal(cat) { currentCat = cat; document.getElementById('modalBack').classList.add('open'); renderFields(cat); }
-function closeModal() { document.getElementById('modalBack').classList.remove('open'); }
-function renderFields(cat) {
+function openModal(cat) {
+    currentCat = cat;
+    document.getElementById('modalBack').classList.add('open');
     const fields = CATEGORIES[cat].fields;
     document.getElementById('modalFields').innerHTML = fields.map(f => `
-        <div class="group"><label>${f.label}</label><input type="${f.type}" id="f-${f.key}"></div>
+        <div class="group"><label>${f.label}</label><input type="${f.type}" id="mf-${f.key}"></div>
     `).join("");
 }
+
+function closeModal() { document.getElementById('modalBack').classList.remove('open'); }
+
 function modalSave() {
     let obj = {};
-    CATEGORIES[currentCat].fields.forEach(f => { obj[f.key] = document.getElementById(`f-${f.key}`).value; });
-    data[currentCat].push(obj);
-    localStorage.setItem(STORE_KEYS[currentCat], JSON.stringify(data[currentCat]));
+    CATEGORIES[currentCat].fields.forEach(f => obj[f.key] = document.getElementById(`mf-${f.key}`).value);
+    db[currentCat].push(obj);
+    localStorage.setItem(KEYS[currentCat], JSON.stringify(db[currentCat]));
     closeModal();
-    renderCategory(currentCat);
+    renderList(currentCat);
     updateSelects();
 }
-function renderCategory(cat) {
-    document.getElementById(`list-${cat}`).innerHTML = data[cat].map(it => `<div>${CATEGORIES[cat].render(it)}</div>`).join("");
+
+function renderList(cat) {
+    const cont = document.getElementById(`list-${cat}`);
+    cont.innerHTML = db[cat].map((item, i) => `
+        <div style="display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee;">
+            <span>${item.nombre} - ${item.precio}€</span>
+            <button onclick="eliminarItem('${cat}', ${i})" style="color:red; background:none;">✖</button>
+        </div>
+    `).join("");
 }
 
-function toggle(id, el) {
-    const sub = document.getElementById(id);
-    sub.classList.toggle('open');
+function eliminarItem(cat, i) {
+    db[cat].splice(i, 1);
+    localStorage.setItem(KEYS[cat], JSON.stringify(db[cat]));
+    renderList(cat);
+    updateSelects();
+}
+
+function updateSelects() {
+    const mats = db.pronMat.map((m, i) => `<option value="${i}">${m.nombre}</option>`).join("");
+    document.getElementById('ab-mat-marco').innerHTML = mats;
+    document.getElementById('ab-mat-hoja').innerHTML = mats;
+    document.getElementById('ab-mat-relleno').innerHTML = mats;
+}
+
+// --- DIBUJO CANVAS ---
+function dibujarPuerta(W, H, T1, T2, hW, hH) {
+    const c = document.getElementById('cv');
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    
+    const scale = Math.min((c.width-60)/W, (c.height-60)/H);
+    const offX = 30, offY = 30;
+
+    // Marco
+    ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 4;
+    ctx.strokeRect(offX, offY, W*scale, H*scale);
+    
+    // Hoja
+    ctx.strokeStyle = "#2563eb"; ctx.lineWidth = 2;
+    const hOff = (T1 + 5) * scale;
+    ctx.strokeRect(offX + hOff, offY + hOff, hW*scale, hH*scale);
 }
 
 window.onload = () => { updateSelects(); runAb(); };
