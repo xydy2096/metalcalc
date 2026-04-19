@@ -1,3 +1,5 @@
+Aquí tienes el código completo. Copia todo el bloque y guárdalo como mstcalc.html:
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,35 +8,65 @@
 <title>MSTCALC PRO</title>
 
 <style>
-:root { --p:#0f172a; --s:#3b82f6; --bg:#f1f5f9; }
-body{margin:0;display:flex;background:var(--bg);font-family:sans-serif}
+:root { --p:#0f172a; --s:#3b82f6; --bg:#f1f5f9; --danger:#ef4444; --warn:#f59e0b; --ok:#10b981;}
+*{box-sizing:border-box}
+body{margin:0;display:flex;background:var(--bg);font-family:sans-serif;color:#0f172a}
 
 /* SIDEBAR */
 .sidebar{width:300px;background:var(--p);color:white;padding:20px;height:100vh;overflow:auto;}
-.nav-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:5px;background:transparent;border:1px solid transparent}
+.sidebar h2{margin:0 0 12px 0}
+.nav-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:5px;background:transparent;border:1px solid transparent;width:100%;text-align:left;color:white;font-size:0.95rem}
 .nav-item:hover{background:#1e293b}
 .nav-item.active{background:var(--s)}
-.category-title{padding:10px;margin-top:10px;background:#1e293b;border-radius:8px;cursor:pointer;font-size:0.8rem;}
-.submenu{display:none;padding-left:10px}
+.category-title{padding:10px;margin-top:10px;background:#1e293b;border-radius:8px;cursor:pointer;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.category-title .chev{transition:transform .2s}
+.category-title.open .chev{transform:rotate(90deg)}
+.submenu{display:none;padding-left:10px;margin-top:4px}
 .submenu.open{display:block}
 
 /* MAIN */
-.main{flex:1;padding:30px}
+.main{flex:1;padding:30px;overflow:auto;height:100vh}
 .view{display:none}
 .view.active{display:block}
-.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;}
+.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
 .grid{display:grid;grid-template-columns:1fr 480px;gap:20px;}
-input,select{width:100%;padding:10px;margin-top:5px;border:1px solid #ddd;border-radius:6px}
-button{margin-top:10px;padding:10px;cursor:pointer;border:none;border-radius:8px;background:var(--s);color:white}
+input,select{width:100%;padding:10px;margin-top:5px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem}
+button{margin-top:10px;padding:10px 14px;cursor:pointer;border:none;border-radius:8px;background:var(--s);color:white;font-size:0.9rem}
+button:hover{opacity:.92}
 button.secondary{background:#64748b}
+button.danger{background:var(--danger)}
+button.warn{background:var(--warn)}
+button.ok{background:var(--ok)}
 .res{background:#111;color:#0f0;padding:15px;border-radius:10px;font-family:monospace;min-height:60px}
 canvas{width:100%;background:#000;}
+
+/* LIST WITH ACTIONS */
 .list{display:flex;flex-direction:column;gap:8px}
-.item{padding:8px;background:#f8fafc;border-radius:6px;border:1px solid #e5e7eb}
-.canvasWrap{display:flex;flex-direction:column;gap:8px}
+.item{padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.item .info{flex:1;min-width:0}
+.item .actions{display:flex;gap:6px;flex-shrink:0}
+.item .actions button{margin-top:0;padding:6px 10px;font-size:0.8rem}
+.empty{padding:14px;text-align:center;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px}
+
+/* TOOLBAR */
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar h3{margin:0}
+.toolbar .tools{display:flex;gap:8px;flex-wrap:wrap}
+.toolbar .tools button{margin-top:0}
+.badge{display:inline-block;padding:2px 8px;background:#e2e8f0;color:#334155;border-radius:999px;font-size:0.75rem;margin-left:8px;vertical-align:middle}
+
+/* MODAL */
+.modal-back{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-back.open{display:flex}
+.modal{background:white;border-radius:12px;padding:22px;width:100%;max-width:460px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 12px 0}
+.modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal label{font-size:0.85rem;color:#334155;margin-top:8px;display:block}
+
 @media (max-width: 900px){
-  .sidebar{width:100%; height:auto; display:flex; overflow:auto; }
-  .main{padding:16px}
+  body{flex-direction:column}
+  .sidebar{width:100%; height:auto; }
+  .main{padding:16px;height:auto}
   .grid{grid-template-columns:1fr}
 }
 </style>
@@ -43,410 +75,484 @@ canvas{width:100%;background:#000;}
 <body>
 
 <div class="sidebar" aria-label="Menú lateral">
+  <h2>MSTCALC</h2>
 
-<h2>MSTCALC</h2>
+  <button class="nav-item active" data-testid="nav-proyecto" onclick="showView('v-datos',this)">Proyecto</button>
+  <button class="nav-item" data-testid="nav-historial" onclick="showView('v-historial',this)">Historial</button>
 
-<button class="nav-item active" onclick="showView('v-datos',this)" aria-label="Proyecto">Proyecto</button>
-<button class="nav-item" onclick="showView('v-historial',this)" aria-label="Historial">Historial</button>
+  <div class="category-title open" data-testid="cat-trabajos" onclick="toggle('trabajos',this)">Trabajos <span class="chev">›</span></div>
+  <div id="trabajos" class="submenu open">
 
-<div class="category-title" onclick="toggle('trabajos')">Trabajos</div>
-<div id="trabajos" class="submenu open">
+    <div class="category-title open" data-testid="cat-puertas" onclick="toggle('puertas',this)">Puertas <span class="chev">›</span></div>
+    <div id="puertas" class="submenu open">
+      <button class="nav-item" data-testid="nav-abatibles" onclick="showView('v-abatibles',this)">Abatibles</button>
+      <button class="nav-item" data-testid="nav-correderas" onclick="showView('v-correderas',this)">Correderas</button>
+      <button class="nav-item" data-testid="nav-auto" onclick="showView('v-auto',this)">Autoportantes</button>
+    </div>
 
-  <div class="category-title" onclick="toggle('puertas')">Puertas</div>
-  <div id="puertas" class="submenu open">
-    <button class="nav-item" onclick="showView('v-abatibles',this)" aria-label="Abatibles">Abatibles</button>
-    <button class="nav-item" onclick="showView('v-correderas',this)" aria-label="Correderas">Correderas</button>
-    <button class="nav-item" onclick="showView('v-auto',this)" aria-label="Autoportantes">Autoportantes</button>
+    <div class="category-title open" data-testid="cat-estructuras" onclick="toggle('estructuras',this)">Estructuras <span class="chev">›</span></div>
+    <div id="estructuras" class="submenu open">
+      <button class="nav-item" data-testid="nav-barandillas" onclick="showView('v-barandillas',this)">Barandillas</button>
+      <button class="nav-item" data-testid="nav-vallas" onclick="showView('v-vallas',this)">Vallas</button>
+    </div>
   </div>
 
-  <div class="category-title" onclick="toggle('estructuras')">Estructuras</div>
-  <div id="estructuras" class="submenu open">
-    <button class="nav-item" onclick="showView('v-barandillas',this)" aria-label="Barandillas">Barandillas</button>
-    <button class="nav-item" onclick="showView('v-vallas',this)" aria-label="Vallas">Vallas</button>
+  <!-- STOCK (inventario editable) -->
+  <div class="category-title" data-testid="cat-stock" onclick="toggle('stock',this)">Stock <span class="chev">›</span></div>
+  <div id="stock" class="submenu">
+    <button class="nav-item" data-testid="nav-stock-materiales" onclick="showView('v-stock-materiales',this)">Materiales</button>
+    <button class="nav-item" data-testid="nav-stock-pinturas" onclick="showView('v-stock-pinturas',this)">Pinturas</button>
   </div>
 
-</div>
-
-<div class="category-title" onclick="toggle('stock')">Stock</div>
-<div id="stock" class="submenu">
-  <!-- Submenus para Pinturas y Prontuario -->
-  <button class="nav-item" onclick="showView('v-stock-pinturas',this)" aria-label="Pinturas">Pinturas</button>
-
-  <div class="category-title" onclick="toggle('prontuario')">Prontuario</div>
+  <!-- PRONTUARIO (catálogo de referencia, independiente) -->
+  <div class="category-title" data-testid="cat-prontuario" onclick="toggle('prontuario',this)">Prontuario <span class="chev">›</span></div>
   <div id="prontuario" class="submenu">
-    <div class="category-title" onclick="toggle('prontuario-materiales')">Materiales</div>
-    <div id="prontuario-materiales" class="submenu">
-      <button class="nav-item" onclick="showView('v-stock-materiales',this)" aria-label="Materiales">Materiales</button>
-    </div>
-    <div class="category-title" onclick="toggle('prontuario-pinturas')">Pinturas</div>
-    <div id="prontuario-pinturas" class="submenu">
-      <button class="nav-item" onclick="showView('v-stock-pinturas-prontuario',this)" aria-label="Pinturas prontuario">Pinturas</button>
-    </div>
+    <button class="nav-item" data-testid="nav-prontuario-materiales" onclick="showView('v-prontuario-materiales',this)">Materiales</button>
+    <button class="nav-item" data-testid="nav-prontuario-pinturas" onclick="showView('v-prontuario-pinturas',this)">Pinturas</button>
   </div>
-
-</div>
-
 </div>
 
 <div class="main">
 
-<!-- PROYECTO -->
-<div id="v-datos" class="view active" role="region" aria-label="Proyecto">
-  <div class="card">
-    <h3>Proyecto</h3>
-    <input id="p-nombre" placeholder="Nombre" aria-label="Nombre del proyecto">
-    <input id="p-cliente" placeholder="Cliente" aria-label="Cliente del proyecto">
-    <button onclick="guardarProyecto()">💾 Guardar Proyecto</button>
-  </div>
-</div>
-
-<!-- ABATIBLE -->
-<div id="v-abatibles" class="view" role="region" aria-label="Abatibles">
-  <div class="grid">
+  <!-- PROYECTO -->
+  <div id="v-datos" class="view active" role="region" aria-label="Proyecto">
     <div class="card">
-      <label>Ancho (W)</label>
-      <input id="ab-w" value="3000" oninput="runAb()" aria-label="Ancho">
-      <label>Alto (H)</label>
-      <input id="ab-h" value="2000" oninput="runAb()" aria-label="Alto">
-      <label>Número de piezas (n)</label>
-      <select id="ab-n" onchange="runAb()" aria-label="Número de piezas">
-        <option value="1">1</option>
-        <option value="2" selected>2</option>
-      </select>
-    </div>
-    <div>
-      <canvas id="cv" width="400" height="300" aria-label="Vista previa" role="img"></canvas>
-      <div id="ab-res" class="res" aria-live="polite"></div>
+      <h3>Proyecto</h3>
+      <input id="p-nombre" placeholder="Nombre" data-testid="p-nombre">
+      <input id="p-cliente" placeholder="Cliente" data-testid="p-cliente">
+      <button onclick="guardarProyecto()" data-testid="btn-guardar-proyecto">💾 Guardar Proyecto</button>
     </div>
   </div>
-</div>
 
-<!-- CORTES Y OTROS VISTA DE HISTORIA PREVIA -->
-<div id="v-historial" class="view" role="region" aria-label="Historial">
-  <div class="card">
-    <h3>Historial</h3>
-    <div id="historial-lista" class="list"></div>
-  </div>
-</div>
-
-<!-- STOCK -->
-<div id="v-stock" class="view" role="region" aria-label="Stock general">
-  <div class="card grid" style="grid-template-columns:1fr 1fr; gap:20px;">
-    <div>
-      <h3>Stock</h3>
-      <input id="st-pieza" placeholder="Pieza" aria-label="Pieza">
-      <input id="st-largo" placeholder="Largo (mm)" aria-label="Largo">
-      <input id="st-zona" placeholder="Zona (A1, B2...)" aria-label="Zona">
-      <button onclick="addStock()">Añadir</button>
-      <div id="lista-stock" class="list" style="margin-top:10px"></div>
-    </div>
-    <div class="canvasWrap" aria-label="Pruebas de renderizado">
-      <div class="card" style="padding:12px;">
-        <div class="tip" style="font-size:0.9rem;color:#555">Notas rápidas de stock</div>
+  <!-- ABATIBLE -->
+  <div id="v-abatibles" class="view" role="region" aria-label="Abatibles">
+    <div class="grid">
+      <div class="card">
+        <label>Ancho (W)</label>
+        <input id="ab-w" value="3000" oninput="runAb()">
+        <label>Alto (H)</label>
+        <input id="ab-h" value="2000" oninput="runAb()">
+        <label>Número de piezas (n)</label>
+        <select id="ab-n" onchange="runAb()">
+          <option value="1">1</option>
+          <option value="2" selected>2</option>
+        </select>
       </div>
-      <div id="stock-visual" class="card" style="min-height:60px;">
-        <!-- Espacio para posibles visuales de stock -->
+      <div>
+        <canvas id="cv" width="400" height="300"></canvas>
+        <div id="ab-res" class="res"></div>
       </div>
     </div>
   </div>
 
-  <!-- Sección extendida de prontuario -->
-  <div class="card" style="margin-top:14px;">
-    <h3>Prontuario - Materiales y Pinturas</h3>
-    <div id="prontuario-detalles" class="list">
-      <!--dinámico: se pueden agregar entradas si se desea en futuras mejoras-->
-      <div class="item">Materiales listos para entrega: 0</div>
-      <div class="item">Pinturas disponibles: 0</div>
+  <!-- HISTORIAL -->
+  <div id="v-historial" class="view" role="region" aria-label="Historial">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Historial</h3>
+      </div>
+      <div id="historial-lista" class="list"></div>
     </div>
   </div>
+
+  <!-- STOCK: MATERIALES -->
+  <div id="v-stock-materiales" class="view" role="region" aria-label="Stock - Materiales">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Stock · Materiales <span id="count-stock-mat" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" data-testid="btn-add-stock-mat" onclick="openModal('stockMat')">➕ Agregar</button>
+          <button class="warn" data-testid="btn-edit-stock-mat" onclick="promptEdit('stockMat')">✏️ Editar</button>
+          <button class="danger" data-testid="btn-del-stock-mat" onclick="promptDelete('stockMat')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-stockMat" class="list"></div>
+    </div>
+  </div>
+
+  <!-- STOCK: PINTURAS -->
+  <div id="v-stock-pinturas" class="view" role="region" aria-label="Stock - Pinturas">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Stock · Pinturas <span id="count-stock-pint" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" data-testid="btn-add-stock-pint" onclick="openModal('stockPint')">➕ Agregar</button>
+          <button class="warn" data-testid="btn-edit-stock-pint" onclick="promptEdit('stockPint')">✏️ Editar</button>
+          <button class="danger" data-testid="btn-del-stock-pint" onclick="promptDelete('stockPint')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-stockPint" class="list"></div>
+    </div>
+  </div>
+
+  <!-- PRONTUARIO: MATERIALES -->
+  <div id="v-prontuario-materiales" class="view" role="region" aria-label="Prontuario - Materiales">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Prontuario · Materiales <span id="count-pron-mat" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" data-testid="btn-add-pron-mat" onclick="openModal('pronMat')">➕ Agregar</button>
+          <button class="warn" data-testid="btn-edit-pron-mat" onclick="promptEdit('pronMat')">✏️ Editar</button>
+          <button class="danger" data-testid="btn-del-pron-mat" onclick="promptDelete('pronMat')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-pronMat" class="list"></div>
+    </div>
+  </div>
+
+  <!-- PRONTUARIO: PINTURAS -->
+  <div id="v-prontuario-pinturas" class="view" role="region" aria-label="Prontuario - Pinturas">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Prontuario · Pinturas <span id="count-pron-pint" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" data-testid="btn-add-pron-pint" onclick="openModal('pronPint')">➕ Agregar</button>
+          <button class="warn" data-testid="btn-edit-pron-pint" onclick="promptEdit('pronPint')">✏️ Editar</button>
+          <button class="danger" data-testid="btn-del-pron-pint" onclick="promptDelete('pronPint')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-pronPint" class="list"></div>
+    </div>
+  </div>
+
 </div>
 
-<!-- VISTA de Pinturas (Pinturas segregadas bajo Pinturas) -->
-<div id="v-stock-pinturas" class="view" role="region" aria-label="Stock Pinturas">
-  <div class="card">
-    <h3>Pinturas</h3>
-    <input id="st-pintura" placeholder="Nombre pintura" aria-label="Pintura nombre">
-    <input id="st-pintura-codigo" placeholder="Código" aria-label="Código pintura">
-    <button onclick="addPintura()">Añadir Pintura</button>
+<!-- MODAL GENÉRICO -->
+<div class="modal-back" id="modalBack" onclick="closeModalOnBack(event)">
+  <div class="modal" id="modal">
+    <h3 id="modalTitle">Agregar</h3>
+    <div id="modalFields"></div>
+    <div class="row">
+      <button class="secondary" onclick="closeModal()" data-testid="modal-cancel">Cancelar</button>
+      <button class="ok" onclick="modalSave()" data-testid="modal-save">Guardar</button>
+    </div>
   </div>
-  <div class="card">
-    <div id="lista-pinturas" class="list"></div>
-  </div>
-</div>
-
-<div id="v-stock-pinturas-prontuario" class="view" role="region" aria-label="Pinturas Prontuario">
-  <div class="card">
-    <h3>Pinturas - Prontuario</h3>
-    <div id="lista-pinturas-prontuario" class="list"></div>
-  </div>
-</div>
-
-<div id="v-stock-materiales" class="view" role="region" aria-label="Materiales Stock">
-  <div class="card">
-    <h3>Materiales</h3>
-    <input id="st-material-nombre" placeholder="Nombre material" aria-label="Nombre material">
-    <input id="st-material-cantidad" placeholder="Cantidad" aria-label="Cantidad">
-    <button onclick="addMaterial()">Añadir Material</button>
-  </div>
-  <div class="card">
-    <div id="lista-materiales" class="list"></div>
-  </div>
-</div>
-
 </div>
 
 <script>
-/* ===== BASE ===== */
-let historial = JSON.parse(localStorage.getItem("mst_hist")) || []
-let stock = JSON.parse(localStorage.getItem("mst_stock")) || []
-let pinturas = JSON.parse(localStorage.getItem("mst_pinturas")) || []
-let materiales = JSON.parse(localStorage.getItem("mst_materiales")) || []
+/* =========================================================
+   DATOS Y CONFIGURACIÓN DE CATEGORÍAS
+   Stock  = inventario editable
+   Prontuario = catálogo de referencia (independiente)
+   ========================================================= */
+const STORE_KEYS = {
+  stockMat:  "mst_stock_materiales",
+  stockPint: "mst_stock_pinturas",
+  pronMat:   "mst_prontuario_materiales",
+  pronPint:  "mst_prontuario_pinturas",
+  hist:      "mst_hist"
+}
 
+/* Definición de campos por categoría (para modal y render) */
+const CATEGORIES = {
+  stockMat: {
+    label:"Material (Stock)",
+    listId:"list-stockMat",
+    countId:"count-stock-mat",
+    fields:[
+      {key:"nombre", label:"Nombre", type:"text", required:true},
+      {key:"cantidad", label:"Cantidad", type:"number", required:true, min:0},
+      {key:"zona", label:"Zona (A1, B2...)", type:"text"}
+    ],
+    render:(it)=>`<b>${escapeHtml(it.nombre)}</b> — ${it.cantidad} ud${it.zona?` · Zona ${escapeHtml(it.zona)}`:""}`
+  },
+  stockPint: {
+    label:"Pintura (Stock)",
+    listId:"list-stockPint",
+    countId:"count-stock-pint",
+    fields:[
+      {key:"nombre", label:"Nombre pintura", type:"text", required:true},
+      {key:"codigo", label:"Código", type:"text"},
+      {key:"cantidad", label:"Cantidad (L)", type:"number", min:0}
+    ],
+    render:(it)=>`<b>${escapeHtml(it.nombre)}</b>${it.codigo?` · ${escapeHtml(it.codigo)}`:""}${it.cantidad!=null&&it.cantidad!==""?` · ${it.cantidad} L`:""}`
+  },
+  pronMat: {
+    label:"Material (Prontuario)",
+    listId:"list-pronMat",
+    countId:"count-pron-mat",
+    fields:[
+      {key:"nombre", label:"Nombre", type:"text", required:true},
+      {key:"tipo", label:"Tipo / Perfil", type:"text"},
+      {key:"unidad", label:"Unidad (mm, m, kg…)", type:"text"},
+      {key:"notas", label:"Notas", type:"text"}
+    ],
+    render:(it)=>`<b>${escapeHtml(it.nombre)}</b>${it.tipo?` · ${escapeHtml(it.tipo)}`:""}${it.unidad?` [${escapeHtml(it.unidad)}]`:""}${it.notas?` — ${escapeHtml(it.notas)}`:""}`
+  },
+  pronPint: {
+    label:"Pintura (Prontuario)",
+    listId:"list-pronPint",
+    countId:"count-pron-pint",
+    fields:[
+      {key:"nombre", label:"Nombre pintura", type:"text", required:true},
+      {key:"codigo", label:"Código RAL / referencia", type:"text"},
+      {key:"acabado", label:"Acabado (mate, satinado…)", type:"text"},
+      {key:"notas", label:"Notas", type:"text"}
+    ],
+    render:(it)=>`<b>${escapeHtml(it.nombre)}</b>${it.codigo?` · ${escapeHtml(it.codigo)}`:""}${it.acabado?` · ${escapeHtml(it.acabado)}`:""}${it.notas?` — ${escapeHtml(it.notas)}`:""}`
+  }
+}
+
+/* Carga inicial desde localStorage con compatibilidad hacia atrás */
+function loadData(cat){
+  try { return JSON.parse(localStorage.getItem(STORE_KEYS[cat])) || [] }
+  catch { return [] }
+}
+function saveData(cat, arr){
+  localStorage.setItem(STORE_KEYS[cat], JSON.stringify(arr))
+}
+
+// Migración amable de datos antiguos (una sola vez)
+;(function migrate(){
+  if(!localStorage.getItem(STORE_KEYS.stockMat)){
+    const legacy = JSON.parse(localStorage.getItem("mst_materiales")||"[]")
+    if(legacy.length) saveData("stockMat", legacy.map(m=>({nombre:m.nombre, cantidad:m.cantidad, zona:""})))
+  }
+  if(!localStorage.getItem(STORE_KEYS.stockPint)){
+    const legacy = JSON.parse(localStorage.getItem("mst_pinturas")||"[]")
+    if(legacy.length) saveData("stockPint", legacy.map(p=>({nombre:p.nombre, codigo:p.codigo||"", cantidad:""})))
+  }
+  if(!localStorage.getItem(STORE_KEYS.stockMat) || JSON.parse(localStorage.getItem(STORE_KEYS.stockMat)||"[]").length===0){
+    const legacyStock = JSON.parse(localStorage.getItem("mst_stock")||"[]")
+    if(legacyStock.length){
+      const existing = loadData("stockMat")
+      const merged = existing.concat(legacyStock.map(s=>({nombre:s.pieza, cantidad:s.largo, zona:s.zona})))
+      saveData("stockMat", merged)
+    }
+  }
+})()
+
+const data = {
+  stockMat: loadData("stockMat"),
+  stockPint: loadData("stockPint"),
+  pronMat: loadData("pronMat"),
+  pronPint: loadData("pronPint")
+}
+let historial = JSON.parse(localStorage.getItem(STORE_KEYS.hist)) || []
 let proyectoActual = {}
 
-/* ===== UTILIDADES UI ===== */
-function toggle(id){
-  const el = document.getElementById(id)
-  if(!el) return
-  el.classList.toggle('open')
+/* =========================================================
+   UI: TOGGLE / NAVEGACIÓN
+   ========================================================= */
+function toggle(id, el){
+  const sub = document.getElementById(id)
+  if(!sub) return
+  sub.classList.toggle('open')
+  if(el) el.classList.toggle('open')
 }
 
-function showView(id,el){
+function showView(id, el){
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
-
-  document.getElementById(id).classList.add('active')
+  const view = document.getElementById(id)
+  if(view) view.classList.add('active')
   if(el) el.classList.add('active')
 
-  // Cargas específicas por vistas
   if(id==="v-historial") renderHistorial()
-  if(id==="v-stock" || id==="v-stock-pinturas" || id==="v-stock-materiales" || id==="v-stock-pinturas-prontuario") renderStock()
-  if(id==="v-stock-pinturas" || id==="v-stock-pinturas-prontuario") renderPinturas()
-  if(id==="v-stock-materiales") renderMateriales()
-  if(id==="v-stock") renderStock()
-  if(id==="v-datos"){} // no-op
-  if(id==="v-abatibles"){ /* ya dibuja en runAb */ }
-
-  // Opcional: dibujar historial al abrir
-  if(id==="v-historial") renderHistorial()
+  if(id==="v-stock-materiales")       renderCategory("stockMat")
+  if(id==="v-stock-pinturas")         renderCategory("stockPint")
+  if(id==="v-prontuario-materiales")  renderCategory("pronMat")
+  if(id==="v-prontuario-pinturas")    renderCategory("pronPint")
 }
 
-/* ===== STOCK ===== */
-function addStock(){
-  const pieza = (document.getElementById("st-pieza")?.value || "").trim()
-  const largo = Number(document.getElementById("st-largo").value)
-  const zona = (document.getElementById("st-zona")?.value || "").trim()
+/* =========================================================
+   CRUD GENÉRICO POR CATEGORÍA
+   ========================================================= */
+function escapeHtml(s){
+  if(s==null) return ""
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))
+}
 
-  if(!pieza || !largo || isNaN(largo) || largo <= 0 || !zona){
-    alert("Completa correctamente Pieza, Largo (>0) y Zona.")
+function renderCategory(cat){
+  const cfg = CATEGORIES[cat]
+  const cont = document.getElementById(cfg.listId)
+  const count = document.getElementById(cfg.countId)
+  if(!cont) return
+  const items = data[cat]
+  if(count) count.textContent = items.length
+  if(!items.length){
+    cont.innerHTML = `<div class="empty">Sin entradas. Pulsa “Agregar” para crear la primera.</div>`
     return
   }
-
-  stock.push({pieza,largo,zona})
-  localStorage.setItem("mst_stock", JSON.stringify(stock))
-  renderStock()
-  // Actualizar prontuario
-  renderProntuarioTotals()
+  cont.innerHTML = items.map((it,i)=>`
+    <div class="item" data-testid="item-${cat}-${i}">
+      <div class="info">${cfg.render(it)}</div>
+      <div class="actions">
+        <button class="warn" data-testid="edit-${cat}-${i}" onclick="openModal('${cat}',${i})">Editar</button>
+        <button class="danger" data-testid="del-${cat}-${i}" onclick="deleteItem('${cat}',${i})">Eliminar</button>
+      </div>
+    </div>`).join("")
 }
 
-function renderStock(){
-  const cont = document.getElementById("lista-stock")
-  if(!cont) return
-  cont.innerHTML = stock.map(s=>
-    `<div class="item">${s.pieza} - ${s.largo}mm (Zona ${s.zona})</div>`
-  ).join("")
-  // Actualizar sección de stock en prontuario si aplica
-  renderProntuarioTotals()
+/* ========= MODAL GENÉRICO (Agregar / Editar) ========= */
+let modalState = { cat:null, index:null }
+
+function openModal(cat, index=null){
+  const cfg = CATEGORIES[cat]
+  if(!cfg) return
+  modalState = { cat, index }
+  document.getElementById("modalTitle").textContent = (index===null?"Agregar ":"Editar ") + cfg.label
+  const fieldsHtml = cfg.fields.map(f=>{
+    const val = index!=null ? (data[cat][index]?.[f.key] ?? "") : ""
+    return `
+      <label>${f.label}${f.required?" *":""}</label>
+      <input data-field="${f.key}" type="${f.type||'text'}" ${f.min!=null?`min="${f.min}"`:""} value="${escapeHtml(val)}" data-testid="modal-field-${f.key}">
+    `
+  }).join("")
+  document.getElementById("modalFields").innerHTML = fieldsHtml
+  document.getElementById("modalBack").classList.add("open")
+  setTimeout(()=>{ const first=document.querySelector("#modalFields input"); if(first) first.focus() },50)
 }
 
-function comprobarStock(despiece){
-  let avisos=[]
-  despiece.forEach(p=>{
-    let m = stock.find(s=>s.pieza===p.pieza && s.largo>=p.largo)
-    if(m){
-      avisos.push(`✔ Usar ${m.pieza} ${m.largo}mm en zona ${m.zona}`)
+function closeModal(){
+  document.getElementById("modalBack").classList.remove("open")
+  modalState = { cat:null, index:null }
+}
+function closeModalOnBack(e){
+  if(e.target.id==="modalBack") closeModal()
+}
+
+function modalSave(){
+  const { cat, index } = modalState
+  if(!cat) return
+  const cfg = CATEGORIES[cat]
+  const obj = {}
+  for(const f of cfg.fields){
+    const input = document.querySelector(`#modalFields input[data-field="${f.key}"]`)
+    let v = input ? input.value.trim() : ""
+    if(f.required && !v){ alert(`El campo "${f.label}" es obligatorio`); input?.focus(); return }
+    if(f.type==="number" && v!==""){
+      const n = Number(v)
+      if(!isFinite(n)){ alert(`"${f.label}" debe ser numérico`); return }
+      v = n
     }
-  })
-  return avisos
-}
-
-/* ===== PINTURAS Y MATERIALES (MEGAGE MODULAR) ===== */
-function addPintura(){
-  const nombre = (document.getElementById("st-pintura")?.value || "").trim()
-  const codigo = (document.getElementById("st-pintura-codigo")?.value || "").trim()
-  if(!nombre){ alert("Ingresa un nombre para la pintura"); return }
-  const entry = {nombre, codigo}
-  pinturas.push(entry)
-  localStorage.setItem("mst_pinturas", JSON.stringify(pinturas))
-  renderPinturas()
-}
-
-function renderPinturas(){
-  const cont = document.getElementById("lista-pinturas")
-  if(!cont) return
-  cont.innerHTML = pinturas.map(p=>`<div class="item">${p.nombre} ${p.codigo?`- ${p.codigo}`:""}</div>`).join("")
-}
-
-function renderPinturasProntuario(){
-  const cont = document.getElementById("lista-pinturas-prontuario")
-  if(!cont) return
-  cont.innerHTML = pinturas.length
-    ? pinturas.map(p=>`<div class="item">${p.nombre} ${p.codigo?`- ${p.codigo}`:""}</div>`).join("")
-    : `<div class="item">Sin pinturas en prontuario</div>`
-}
-
-function addMaterial(){
-  const nombre = (document.getElementById("st-material-nombre")?.value || "").trim()
-  const cantidad = Number(document.getElementById("st-material-cantidad").value)
-  if(!nombre || !isFinite(cantidad) || cantidad<=0){
-    alert("Ingresa nombre y cantidad válidos para el material.")
-    return
+    obj[f.key] = v
   }
-  const entry = {nombre, cantidad}
-  materiales.push(entry)
-  localStorage.setItem("mst_materiales", JSON.stringify(materiales))
-  renderMateriales()
+  if(index===null) data[cat].push(obj)
+  else data[cat][index] = obj
+  saveData(cat, data[cat])
+  renderCategory(cat)
+  closeModal()
 }
 
-function renderMateriales(){
-  const cont = document.getElementById("lista-materiales")
-  if(!cont) return
-  cont.innerHTML = materiales.map(m=>`<div class="item">${m.nombre} - ${m.cantidad}</div>`).join("")
+function deleteItem(cat, index){
+  if(!confirm("¿Eliminar esta entrada?")) return
+  data[cat].splice(index,1)
+  saveData(cat, data[cat])
+  renderCategory(cat)
 }
 
-function renderMaterialesTotals(){
-  // placeholder para ampliar si se quiere mostrar totales
+/* Botones "Editar" / "Eliminar" superiores (atajo: pide índice) */
+function promptEdit(cat){
+  const items = data[cat]
+  if(!items.length){ alert("No hay entradas para editar."); return }
+  const idx = askIndex(items, "editar")
+  if(idx!=null) openModal(cat, idx)
+}
+function promptDelete(cat){
+  const items = data[cat]
+  if(!items.length){ alert("No hay entradas para eliminar."); return }
+  const idx = askIndex(items, "eliminar")
+  if(idx!=null) deleteItem(cat, idx)
+}
+function askIndex(items, verbo){
+  const list = items.map((it,i)=>`${i+1}. ${it.nombre||"(sin nombre)"}`).join("\n")
+  const raw = prompt(`Indica el nº a ${verbo}:\n\n${list}`)
+  if(raw===null) return null
+  const n = parseInt(raw,10)
+  if(!isFinite(n) || n<1 || n>items.length){ alert("Número inválido"); return null }
+  return n-1
 }
 
-/* Prontuario totals (mock) */
-function renderProntuarioTotals(){
-  const cont = document.getElementById("prontuario-detalles")
-  if(!cont) return
-  const totalMat = materiales.length
-  const totalPint = pinturas.length
-  cont.innerHTML = `
-    <div class="item">Materiales listados: ${totalMat}</div>
-    <div class="item">Pinturas disponibles: ${totalPint}</div>
-  `
-}
-function renderPinturasProntuarioTotals(){
-  renderPinturasProntuario()
-  renderProntuarioTotals()
-}
-
-/* ===== CALCULO ===== */
+/* =========================================================
+   ABATIBLES (se mantiene la lógica existente)
+   ========================================================= */
 function runAb(){
   const W = Number(document.getElementById("ab-w").value)
   const H = Number(document.getElementById("ab-h").value)
   const n = Number(document.getElementById("ab-n").value)
-
-  const canvas = document.getElementById("cv")
-  if(!canvas) return
-  const ctx = canvas.getContext("2d")
-
-  if(!isFinite(W) || !isFinite(H) || !isFinite(n) || W <= 0 || H <= 0 || n <= 0){
-    document.getElementById("ab-res").innerHTML = "Entradas inválidas"
-    return
-  }
-
+  const res = document.getElementById("ab-res")
+  if(!isFinite(W)||!isFinite(H)||!isFinite(n)||W<=0||H<=0||n<=0){ res.innerHTML="Entradas inválidas"; return }
   const hoja = W / n
   const despiece = [
-    {pieza:"Vertical",cantidad:n*2,largo:H},
-    {pieza:"Horizontal",cantidad:n*2,largo:hoja}
+    {pieza:"Vertical", cantidad:n*2, largo:H},
+    {pieza:"Horizontal", cantidad:n*2, largo:hoja}
   ]
-
-  let html = despiece.map(p=>
-    `${p.pieza} → ${p.cantidad} x ${p.largo}`
-  ).join("<br>")
-
+  let html = despiece.map(p=>`${p.pieza} → ${p.cantidad} x ${p.largo}`).join("<br>")
   const avisos = comprobarStock(despiece)
-
-  if(avisos.length){
-    html += "<br><br><b>STOCK:</b><br>" + avisos.join("<br>")
-  }
-
-  document.getElementById("ab-res").innerHTML = html
-
-  proyectoActual = {
-    tipo:"abatible",
-    datos:{W,H,n},
-    despiece
-  }
-
+  if(avisos.length) html += "<br><br><b>STOCK:</b><br>" + avisos.join("<br>")
+  res.innerHTML = html
+  proyectoActual = { tipo:"abatible", datos:{W,H,n}, despiece }
   dibujar(W,H,n)
-
-  // Opcional: actualizar prontuario
-  renderProntuarioTotals()
 }
 
-/* ===== DIBUJO ===== */
+function comprobarStock(despiece){
+  // Para coincidencias usamos el inventario de Stock · Materiales (nombre + cantidad suficiente)
+  const inventario = data.stockMat
+  const avisos = []
+  despiece.forEach(p=>{
+    const m = inventario.find(s=> (s.nombre||"").toLowerCase()===p.pieza.toLowerCase() && Number(s.cantidad)>=p.largo)
+    if(m) avisos.push(`✔ Usar ${m.nombre} (${m.cantidad})${m.zona?` en zona ${m.zona}`:""}`)
+  })
+  return avisos
+}
+
 function dibujar(W,H,n){
   const canvas = document.getElementById("cv")
   if(!canvas) return
   const ctx = canvas.getContext("2d")
-
   ctx.clearRect(0,0,400,300)
-
   ctx.strokeStyle="white"
   ctx.strokeRect(50,60,300,180)
-
-  if(n==2){
-    ctx.beginPath()
-    ctx.moveTo(200,60)
-    ctx.lineTo(200,240)
-    ctx.stroke()
-  }
+  if(n==2){ ctx.beginPath(); ctx.moveTo(200,60); ctx.lineTo(200,240); ctx.stroke() }
 }
 
-/* ===== GUARDAR ===== */
+/* =========================================================
+   PROYECTO / HISTORIAL
+   ========================================================= */
 function guardarProyecto(){
   const pNombre = document.getElementById("p-nombre").value
   const pCliente = document.getElementById("p-cliente").value
-
   proyectoActual.nombre = pNombre
   proyectoActual.cliente = pCliente
   proyectoActual.fecha = new Date().toISOString()
-
   historial.push({...proyectoActual})
-
-  localStorage.setItem("mst_hist",JSON.stringify(historial))
-
-  /* FIREBASE SEGURO */
+  localStorage.setItem(STORE_KEYS.hist, JSON.stringify(historial))
   if(window.firebase){
-    try{
-      firebase.firestore().collection("trabajos").add(proyectoActual)
-    } catch(e){
-      console.warn("Firebase no disponible:", e)
-    }
+    try{ firebase.firestore().collection("trabajos").add(proyectoActual) }
+    catch(e){ console.warn("Firebase no disponible:", e) }
   }
-
   alert("Guardado OK")
-  // Limpiar inputs opcional
-  // document.getElementById("p-nombre").value = ""
-  // document.getElementById("p-cliente").value = ""
 }
 
-/* ===== HISTORIAL ===== */
 function renderHistorial(){
   const cont = document.getElementById("historial-lista")
   if(!cont) return
-  cont.innerHTML =
-  historial.map(p=>
-    `<div><b>${p.nombre || "(sin nombre)"}</b> (${p.tipo})${p.fecha?` - ${new Date(p.fecha).toLocaleString()}`:""}</div>`
+  if(!historial.length){ cont.innerHTML = `<div class="empty">Aún no hay proyectos guardados.</div>`; return }
+  cont.innerHTML = historial.map(p=>
+    `<div class="item"><div class="info"><b>${escapeHtml(p.nombre||"(sin nombre)")}</b> (${escapeHtml(p.tipo||"-")})${p.fecha?` — ${new Date(p.fecha).toLocaleString()}`:""}</div></div>`
   ).join("")
 }
 
-/* ===== INIT/RENDER INICIAL ===== */
+/* =========================================================
+   INIT
+   ========================================================= */
 window.onload = function(){
-  // Configurar estado inicial
   runAb()
   renderHistorial()
-  renderStock()
-  renderPinturas()
-  renderMateriales()
-  renderProntuarioTotals()
-  // Carga de vistas por defecto si se desea
-  // showView('v-datos',null)
+  renderCategory("stockMat")
+  renderCategory("stockPint")
+  renderCategory("pronMat")
+  renderCategory("pronPint")
+
+  // Cerrar modal con ESC
+  document.addEventListener("keydown", e=>{
+    if(e.key==="Escape") closeModal()
+    if(e.key==="Enter" && document.getElementById("modalBack").classList.contains("open")){
+      // Guarda al pulsar Enter dentro del modal
+      if(document.activeElement && document.activeElement.tagName==="INPUT") modalSave()
+    }
+  })
 }
 </script>
 </body>
