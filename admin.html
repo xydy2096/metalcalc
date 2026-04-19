@@ -131,8 +131,10 @@ document.getElementById(id).classList.toggle('open')
 }
 
 function showView(id,el){
+
 document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
 document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+
 document.getElementById(id).classList.add('active')
 if(el) el.classList.add('active')
 
@@ -142,35 +144,56 @@ if(id==="v-stock") renderStock()
 
 /* ===== STOCK ===== */
 function addStock(){
+
 let pieza = document.getElementById("st-pieza").value
 let largo = +document.getElementById("st-largo").value
 let zona = document.getElementById("st-zona").value
 
+if(!pieza || !largo || !zona) return
+
 stock.push({pieza,largo,zona})
+
 localStorage.setItem("mst_stock", JSON.stringify(stock))
+
 renderStock()
 }
 
 function renderStock(){
-document.getElementById("lista-stock").innerHTML =
-stock.map(s=>`<div>${s.pieza} - ${s.largo}mm (Zona ${s.zona})</div>`).join("")
+
+let cont = document.getElementById("lista-stock")
+
+if(!cont) return
+
+cont.innerHTML = stock.map(s=>
+`<div>${s.pieza} - ${s.largo}mm (Zona ${s.zona})</div>`
+).join("")
 }
 
 function comprobarStock(despiece){
+
 let avisos=[]
+
 despiece.forEach(p=>{
+
 let m = stock.find(s=>s.pieza===p.pieza && s.largo>=p.largo)
-if(m) avisos.push(`✔ Usar ${m.pieza} ${m.largo}mm en zona ${m.zona}`)
+
+if(m){
+avisos.push(`✔ Usar ${m.pieza} ${m.largo}mm en zona ${m.zona}`)
+}
+
 })
+
 return avisos
 }
 
 /* ===== CALCULO ===== */
 function runAb(){
 
-let W = +ab-w.value
-let H = +ab-h.value
-let n = +ab-n.value
+let W = +document.getElementById("ab-w").value
+let H = +document.getElementById("ab-h").value
+let n = +document.getElementById("ab-n").value
+
+if(!W || !H || !n) return
 
 let hoja = W/n
 
@@ -179,7 +202,9 @@ let despiece=[
 {pieza:"Horizontal",cantidad:n*2,largo:hoja}
 ]
 
-let html = despiece.map(p=>`${p.pieza} → ${p.cantidad} x ${p.largo}`).join("<br>")
+let html = despiece.map(p=>
+`${p.pieza} → ${p.cantidad} x ${p.largo}`
+).join("<br>")
 
 let avisos = comprobarStock(despiece)
 
@@ -187,16 +212,25 @@ if(avisos.length){
 html += "<br><br><b>STOCK:</b><br>" + avisos.join("<br>")
 }
 
-ab-res.innerHTML = html
+document.getElementById("ab-res").innerHTML = html
 
-proyectoActual = {tipo:"abatible",datos:{W,H,n},despiece}
+proyectoActual = {
+tipo:"abatible",
+datos:{W,H,n},
+despiece
+}
 
 dibujar(W,H,n)
 }
 
 /* ===== DIBUJO ===== */
 function dibujar(W,H,n){
-let ctx=cv.getContext("2d")
+
+let canvas = document.getElementById("cv")
+if(!canvas) return
+
+let ctx = canvas.getContext("2d")
+
 ctx.clearRect(0,0,400,300)
 
 ctx.strokeStyle="white"
@@ -213,39 +247,40 @@ ctx.stroke()
 /* ===== GUARDAR ===== */
 function guardarProyecto(){
 
-proyectoActual.nombre=p-nombre.value
-proyectoActual.cliente=p-cliente.value
-proyectoActual.fecha=new Date().toLocaleString()
+proyectoActual.nombre = document.getElementById("p-nombre").value
+proyectoActual.cliente = document.getElementById("p-cliente").value
+proyectoActual.fecha = new Date().toLocaleString()
 
 historial.push({...proyectoActual})
+
 localStorage.setItem("mst_hist",JSON.stringify(historial))
 
+/* FIREBASE SEGURO */
+if(window.firebase){
 firebase.firestore().collection("trabajos").add(proyectoActual)
+}
 
 alert("Guardado OK")
 }
 
 /* ===== HISTORIAL ===== */
 function renderHistorial(){
-historial-lista.innerHTML =
-historial.map(p=>`<div><b>${p.nombre}</b> (${p.tipo})</div>`).join("")
+
+let cont = document.getElementById("historial-lista")
+
+if(!cont) return
+
+cont.innerHTML =
+historial.map(p=>
+`<div><b>${p.nombre}</b> (${p.tipo})</div>`
+).join("")
 }
 
 /* INIT */
+window.onload = function(){
 runAb()
+}
 
 </script>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-
-<script>
-firebase.initializeApp({
-apiKey: "AIza...",
-authDomain: "mstcalc.firebaseapp.com",
-projectId: "mstcalc"
-});
-</script>
-
 </body>
 </html>
