@@ -1,5 +1,8 @@
 <script>
 
+/* ===== ESPERAR A QUE CARGUE TODO ===== */
+window.onload = function(){
+
 /* ===== BASE ===== */
 let historial = JSON.parse(localStorage.getItem("mst_hist")) || []
 let stock = JSON.parse(localStorage.getItem("mst_stock")) || []
@@ -7,15 +10,18 @@ let stock = JSON.parse(localStorage.getItem("mst_stock")) || []
 let proyectoActual = {}
 
 /* ===== MENU ===== */
-function toggle(id){
+window.toggle = function(id){
 document.getElementById(id).classList.toggle('open')
 }
 
-function showView(id,el){
+window.showView = function(id,el){
+
 document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
 document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
 
-document.getElementById(id).classList.add('active')
+let vista = document.getElementById(id)
+if(vista) vista.classList.add('active')
+
 if(el) el.classList.add('active')
 
 if(id==="v-historial") renderHistorial()
@@ -23,11 +29,13 @@ if(id==="v-stock") renderStock()
 }
 
 /* ===== STOCK ===== */
-function addStock(){
+window.addStock = function(){
 
-let pieza = document.getElementById("st-pieza").value
-let largo = +document.getElementById("st-largo").value
-let zona = document.getElementById("st-zona").value
+let pieza = document.getElementById("st-pieza")?.value
+let largo = +document.getElementById("st-largo")?.value
+let zona = document.getElementById("st-zona")?.value
+
+if(!pieza || !largo || !zona) return
 
 stock.push({pieza,largo,zona})
 
@@ -39,7 +47,6 @@ renderStock()
 function renderStock(){
 
 let cont = document.getElementById("lista-stock")
-
 if(!cont) return
 
 cont.innerHTML = stock.map(s=>`
@@ -65,11 +72,13 @@ return avisos
 }
 
 /* ===== CALCULO ABATIBLE ===== */
-function runAb(){
+window.runAb = function(){
 
-let W = +document.getElementById('ab-w').value
-let H = +document.getElementById('ab-h').value
-let n = +document.getElementById('ab-n').value
+let W = +document.getElementById('ab-w')?.value
+let H = +document.getElementById('ab-h')?.value
+let n = +document.getElementById('ab-n')?.value
+
+if(!W || !H || !n) return
 
 let hoja = W / n
 
@@ -88,7 +97,8 @@ if(avisos.length){
 html += "<br><br><b>STOCK:</b><br>" + avisos.join("<br>")
 }
 
-document.getElementById("ab-res").innerHTML = html
+let res = document.getElementById("ab-res")
+if(res) res.innerHTML = html
 
 proyectoActual = {
 tipo:"abatible",
@@ -103,6 +113,8 @@ dibujar(W,H,n)
 function dibujar(W,H,n){
 
 let canvas = document.getElementById("cv")
+if(!canvas) return
+
 let ctx = canvas.getContext("2d")
 
 ctx.clearRect(0,0,400,300)
@@ -119,18 +131,20 @@ ctx.stroke()
 }
 
 /* ===== GUARDAR ===== */
-function guardarProyecto(){
+window.guardarProyecto = function(){
 
-proyectoActual.nombre = document.getElementById("p-nombre").value
-proyectoActual.cliente = document.getElementById("p-cliente").value
+proyectoActual.nombre = document.getElementById("p-nombre")?.value
+proyectoActual.cliente = document.getElementById("p-cliente")?.value
 proyectoActual.fecha = new Date().toLocaleString()
 
 historial.push({...proyectoActual})
 
 localStorage.setItem("mst_hist", JSON.stringify(historial))
 
-// FIREBASE
+/* FIREBASE SEGURO */
+if(window.firebase){
 firebase.firestore().collection("trabajos").add(proyectoActual)
+}
 
 alert("Proyecto guardado correctamente")
 }
@@ -139,7 +153,6 @@ alert("Proyecto guardado correctamente")
 function renderHistorial(){
 
 let cont = document.getElementById("historial-lista")
-
 if(!cont) return
 
 cont.innerHTML = historial.map(p=>`
@@ -151,7 +164,8 @@ ${p.cliente}<br>
 `).join("")
 }
 
-/* INIT */
+/* ===== INIT ===== */
 runAb()
 
+}
 </script>
