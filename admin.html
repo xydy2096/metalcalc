@@ -1,1161 +1,1161 @@
-1|<!DOCTYPE html>
-2|<html lang="es">
-3|<head>
-4|<meta charset="UTF-8">
-5|<meta name="viewport" content="width=device-width, initial-scale=1.0">
-6|<title>MSTCALC PRO</title>
-7|
-8|<style>
-9|:root { --p:#0f172a; --s:#3b82f6; --bg:#f1f5f9; --danger:#ef4444; --warn:#f59e0b; --ok:#10b981;}
-10|*{box-sizing:border-box}
-11|body{margin:0;display:flex;background:var(--bg);font-family:sans-serif;color:#0f172a}
-12|
-13|/* SIDEBAR */
-14|.sidebar{width:300px;background:var(--p);color:white;padding:20px;height:100vh;overflow:auto;}
-15|.sidebar h2{margin:0 0 12px 0}
-16|.nav-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:5px;background:transparent;border:1px solid transparent;width:100%;text-align:left;color:white;font-size:0.95rem}
-17|.nav-item:hover{background:#1e293b}
-18|.nav-item.active{background:var(--s)}
-19|.category-title{padding:10px;margin-top:10px;background:#1e293b;border-radius:8px;cursor:pointer;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;user-select:none}
-20|.category-title .chev{transition:transform .2s}
-21|.category-title.open .chev{transform:rotate(90deg)}
-22|.submenu{display:none;padding-left:10px;margin-top:4px}
-23|.submenu.open{display:block}
-24|
-25|/* MAIN */
-26|.main{flex:1;padding:30px;overflow:auto;height:100vh}
-27|.view{display:none}
-28|.view.active{display:block}
-29|.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
-30|.grid{display:grid;grid-template-columns:1fr 480px;gap:20px;}
-31|input,select,textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;font-family:inherit}
-32|button{margin-top:10px;padding:10px 14px;cursor:pointer;border:none;border-radius:8px;background:var(--s);color:white;font-size:0.9rem}
-33|button:hover{opacity:.92}
-34|button.secondary{background:#64748b}
-35|button.danger{background:var(--danger)}
-36|button.warn{background:var(--warn)}
-37|button.ok{background:var(--ok)}
-38|.res{background:#111;color:#0f0;padding:15px;border-radius:10px;font-family:monospace;min-height:60px;white-space:pre-wrap;font-size:0.85rem;line-height:1.45}
-39|canvas{width:100%;background:#fff;border:1px solid #e5e7eb;border-radius:8px}
-40|
-41|/* LIST WITH ACTIONS */
-42|.list{display:flex;flex-direction:column;gap:8px}
-43|.item{padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;gap:10px}
-44|.item .info{flex:1;min-width:0;font-size:0.9rem}
-45|.item .actions{display:flex;gap:6px;flex-shrink:0}
-46|.item .actions button{margin-top:0;padding:6px 10px;font-size:0.8rem}
-47|.empty{padding:14px;text-align:center;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px}
-48|
-49|/* TOOLBAR */
-50|.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
-51|.toolbar h3{margin:0}
-52|.toolbar .tools{display:flex;gap:8px;flex-wrap:wrap}
-53|.toolbar .tools button{margin-top:0}
-54|.badge{display:inline-block;padding:2px 8px;background:#e2e8f0;color:#334155;border-radius:999px;font-size:0.75rem;margin-left:8px;vertical-align:middle}
-55|
-56|/* FORM LAYOUT */
-57|.section{margin-bottom:18px;padding-bottom:12px;border-bottom:1px dashed #e2e8f0}
-58|.section:last-child{border-bottom:none}
-59|.section h4{margin:0 0 10px 0;font-size:0.95rem;color:#334155;display:flex;align-items:center;gap:8px}
-60|.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-61|.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
-62|label{font-size:0.82rem;color:#475569;display:block;margin-top:6px}
-63|.inline{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:0.88rem}
-64|.inline input[type=checkbox]{width:auto;margin:0}
-65|.radio-group{display:flex;gap:12px;margin-top:6px}
-66|.radio-group label{display:flex;align-items:center;gap:4px;margin:0;font-size:0.88rem;cursor:pointer}
-67|.radio-group input{width:auto;margin:0}
-68|.hint{font-size:0.78rem;color:#64748b;margin-top:4px}
-69|
-70|/* TRAMOS */
-71|.tramo{background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-top:8px}
-72|.tramo .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-73|.tramo .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:0.85rem;font-weight:600}
-74|.tramo button{margin-top:0;padding:4px 8px;font-size:0.75rem}
-75|
-76|/* MODAL */
-77|.modal-back{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;align-items:center;justify-content:center;padding:16px}
-78|.modal-back.open{display:flex}
-79|.modal{background:white;border-radius:12px;padding:22px;width:100%;max-width:460px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
-80|.modal h3{margin:0 0 12px 0}
-81|.modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
-82|.modal label{font-size:0.85rem;color:#334155;margin-top:8px;display:block}
-83|
-84|@media (max-width: 1100px){
-85|  .grid{grid-template-columns:1fr}
-86|}
-87|@media (max-width: 900px){
-88|  body{flex-direction:column}
-89|  .sidebar{width:100%; height:auto; }
-90|  .main{padding:16px;height:auto}
-91|  .row4{grid-template-columns:1fr 1fr}
-92|}
-93|</style>
-94|</head>
-95|
-96|<body>
-97|
-98|<div class="sidebar" aria-label="Menú lateral">
-99|  <h2>MSTCALC</h2>
-100|
-101|  <button class="nav-item active" onclick="showView('v-datos',this)">Proyecto</button>
-102|  <button class="nav-item" onclick="showView('v-historial',this)">Historial</button>
-103|
-104|  <div class="category-title open" onclick="toggle('trabajos',this)">Trabajos <span class="chev">›</span></div>
-105|  <div id="trabajos" class="submenu open">
-106|    <div class="category-title open" onclick="toggle('puertas',this)">Puertas <span class="chev">›</span></div>
-107|    <div id="puertas" class="submenu open">
-108|      <button class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</button>
-109|      <button class="nav-item" onclick="showView('v-correderas',this)">Correderas</button>
-110|      <button class="nav-item" onclick="showView('v-auto',this)">Autoportantes</button>
-111|    </div>
-112|    <div class="category-title open" onclick="toggle('estructuras',this)">Estructuras <span class="chev">›</span></div>
-113|    <div id="estructuras" class="submenu open">
-114|      <button class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</button>
-115|      <button class="nav-item" onclick="showView('v-vallas',this)">Vallas</button>
-116|    </div>
-117|  </div>
-118|
-119|  <div class="category-title" onclick="toggle('stock',this)">Stock <span class="chev">›</span></div>
-120|  <div id="stock" class="submenu">
-121|    <button class="nav-item" onclick="showView('v-stock-materiales',this)">Materiales</button>
-122|    <button class="nav-item" onclick="showView('v-stock-pinturas',this)">Pinturas</button>
-123|    <button class="nav-item" onclick="showView('v-stock-chapas',this)">Chapas</button>
-124|  </div>
-125|
-126|  <div class="category-title" onclick="toggle('prontuario',this)">Prontuario <span class="chev">›</span></div>
-127|  <div id="prontuario" class="submenu">
-128|    <button class="nav-item" onclick="showView('v-prontuario-materiales',this)">Materiales</button>
-129|    <button class="nav-item" onclick="showView('v-prontuario-pinturas',this)">Pinturas</button>
-130|    <button class="nav-item" onclick="showView('v-prontuario-chapas',this)">Chapas</button>
-131|  </div>
-132|</div>
-133|
-134|<div class="main">
-135|
-136|  <!-- PROYECTO -->
-137|  <div id="v-datos" class="view active">
-138|    <div class="card">
-139|      <h3>Proyecto</h3>
-140|      <input id="p-nombre" placeholder="Nombre">
-141|      <input id="p-cliente" placeholder="Cliente">
-142|      <button onclick="guardarProyecto()">💾 Guardar Proyecto</button>
-143|    </div>
-144|  </div>
-145|
-146|  <!-- ABATIBLE (rediseñada) -->
-147|  <div id="v-abatibles" class="view">
-148|    <div class="grid">
-149|      <div class="card">
-150|        <h3 style="margin-top:0">Puerta Abatible</h3>
-151|
-152|        <!-- DIMENSIONES -->
-153|        <div class="section">
-154|          <h4>📐 Dimensiones exteriores del marco</h4>
-155|          <div class="row2">
-156|            <div><label>Ancho W (mm)</label><input id="ab-w" value="1000" oninput="runAb()"></div>
-157|            <div><label>Alto H (mm)</label><input id="ab-h" value="2100" oninput="runAb()"></div>
-158|          </div>
-159|        </div>
-160|
-161|        <!-- MATERIAL MARCO -->
-162|        <div class="section">
-163|          <h4>🔩 Material del marco</h4>
-164|          <select id="ab-mat-marco" onchange="onMatMarcoChange()"></select>
-165|          <div class="hint" id="ab-mat-marco-info">—</div>
-166|          <label>Tipo de corte</label>
-167|          <div class="radio-group">
-168|            <label><input type="radio" name="corte-marco" value="45" onchange="runAb()"> Inglete 45°</label>
-169|            <label><input type="radio" name="corte-marco" value="90" onchange="runAb()"> Escuadra 90°</label>
-170|          </div>
-171|        </div>
-172|
-173|        <!-- HOLGURAS -->
-174|        <div class="section">
-175|          <h4>↔️ Holguras entre marco y hoja (mm)</h4>
-176|          <div class="row4">
-177|            <div><label>Sup.</label><input id="ab-gap-sup" value="5" oninput="runAb()"></div>
-178|            <div><label>Inf.</label><input id="ab-gap-inf" value="5" oninput="runAb()"></div>
-179|            <div><label>Izq.</label><input id="ab-gap-izq" value="4" oninput="runAb()"></div>
-180|            <div><label>Der.</label><input id="ab-gap-der" value="4" oninput="runAb()"></div>
-181|          </div>
-182|        </div>
-183|
-184|        <!-- MATERIAL HOJA -->
-185|        <div class="section">
-186|          <h4>🚪 Material de la hoja</h4>
-187|          <div class="inline"><input type="checkbox" id="ab-hoja-igual" checked onchange="toggleHojaMat()"> <span>Mismo perfil que el marco</span></div>
-188|          <select id="ab-mat-hoja" onchange="onMatHojaChange()" disabled></select>
-189|          <div class="hint" id="ab-mat-hoja-info">—</div>
-190|          <label>Tipo de corte hoja</label>
-191|          <div class="radio-group">
-192|            <label><input type="radio" name="corte-hoja" value="45" onchange="runAb()"> Inglete 45°</label>
-193|            <label><input type="radio" name="corte-hoja" value="90" onchange="runAb()"> Escuadra 90°</label>
-194|          </div>
-195|        </div>
-196|
-197|        <!-- CHAPA -->
-198|        <div class="section">
-199|          <h4>🟫 Chapa (forrado)</h4>
-200|          <div class="inline"><input type="checkbox" id="ab-chapa-on" onchange="toggleChapa()"> <span>La puerta lleva chapa</span></div>
-201|          <div id="ab-chapa-block" style="display:none">
-202|            <label>Chapa (Prontuario)</label>
-203|            <select id="ab-mat-chapa" onchange="runAb()"></select>
-204|            <label>Modo</label>
-205|            <div class="radio-group">
-206|              <label><input type="radio" name="chapa-modo" value="completa" checked onchange="toggleChapaModo()"> Completa</label>
-207|              <label><input type="radio" name="chapa-modo" value="tramos" onchange="toggleChapaModo()"> Por tramos</label>
-208|            </div>
-209|            <div id="ab-chapa-tramos" style="display:none;margin-top:8px">
-210|              <button class="ok" onclick="addTramo()">+ Añadir tramo</button>
-211|              <div id="tramos-list"></div>
-212|            </div>
-213|          </div>
-214|        </div>
-215|
-216|        <!-- BARROTES -->
-217|        <div class="section">
-218|          <h4>┃ Barrotes</h4>
-219|          <div class="inline"><input type="checkbox" id="ab-barr-on" onchange="toggleBarr()"> <span>La puerta lleva barrotes</span></div>
-220|          <div id="ab-barr-block" style="display:none">
-221|            <label>Material (Prontuario)</label>
-222|            <select id="ab-mat-barr" onchange="runAb()"></select>
-223|            <label>Orientación</label>
-224|            <div class="radio-group">
-225|              <label><input type="radio" name="barr-ori" value="V" checked onchange="runAb()"> Verticales</label>
-226|              <label><input type="radio" name="barr-ori" value="H" onchange="runAb()"> Horizontales</label>
-227|            </div>
-228|            <label>Separación objetivo (mm)</label>
-229|            <input id="ab-barr-sep" value="100" oninput="runAb()">
-230|            <div class="hint" id="ab-barr-info">—</div>
-231|          </div>
-232|        </div>
-233|
-234|        <!-- CERRADURA -->
-235|        <div class="section">
-236|          <h4>🔒 Cerradura</h4>
-237|          <div class="row2">
-238|            <div>
-239|              <label>Lado</label>
-240|              <select id="ab-cerr-lado" onchange="runAb()">
-241|                <option value="izq">Izquierda</option>
-242|                <option value="der" selected>Derecha</option>
-243|              </select>
-244|            </div>
-245|            <div><label>Altura desde suelo (mm)</label><input id="ab-cerr-alt" value="1050" oninput="runAb()"></div>
-246|          </div>
-247|        </div>
-248|
-249|        <button onclick="runAb()">🔄 Recalcular</button>
-250|        <button class="secondary" onclick="enviarOperario()" title="Próxima fase">📤 Enviar al operario</button>
-251|      </div>
-252|
-253|      <div>
-254|        <div class="card" style="padding:12px;margin-bottom:10px">
-255|          <canvas id="cv" width="520" height="640"></canvas>
-256|        </div>
-257|        <div id="ab-res" class="res"></div>
-258|      </div>
-259|    </div>
-260|  </div>
-261|
-262|  <!-- HISTORIAL -->
-263|  <div id="v-historial" class="view">
-264|    <div class="card">
-265|      <div class="toolbar"><h3>Historial</h3></div>
-266|      <div id="historial-lista" class="list"></div>
-267|    </div>
-268|  </div>
-269|
-270|  <!-- STOCK: MATERIALES -->
-271|  <div id="v-stock-materiales" class="view">
-272|    <div class="card">
-273|      <div class="toolbar">
-274|        <h3>Stock · Materiales <span id="count-stock-mat" class="badge">0</span></h3>
-275|        <div class="tools">
-276|          <button class="ok" onclick="openModal('stockMat')">➕ Agregar</button>
-277|          <button class="warn" onclick="promptEdit('stockMat')">✏️ Editar</button>
-278|          <button class="danger" onclick="promptDelete('stockMat')">🗑 Eliminar</button>
-279|        </div>
-280|      </div>
-281|      <div id="list-stockMat" class="list"></div>
-282|    </div>
-283|  </div>
-284|
-285|  <!-- STOCK: PINTURAS -->
-286|  <div id="v-stock-pinturas" class="view">
-287|    <div class="card">
-288|      <div class="toolbar">
-289|        <h3>Stock · Pinturas <span id="count-stock-pint" class="badge">0</span></h3>
-290|        <div class="tools">
-291|          <button class="ok" onclick="openModal('stockPint')">➕ Agregar</button>
-292|          <button class="warn" onclick="promptEdit('stockPint')">✏️ Editar</button>
-293|          <button class="danger" onclick="promptDelete('stockPint')">🗑 Eliminar</button>
-294|        </div>
-295|      </div>
-296|      <div id="list-stockPint" class="list"></div>
-297|    </div>
-298|  </div>
-299|
-300|  <!-- STOCK: CHAPAS -->
-301|  <div id="v-stock-chapas" class="view">
-302|    <div class="card">
-303|      <div class="toolbar">
-304|        <h3>Stock · Chapas <span id="count-stock-chapa" class="badge">0</span></h3>
-305|        <div class="tools">
-306|          <button class="ok" onclick="openModal('stockChapa')">➕ Agregar</button>
-307|          <button class="warn" onclick="promptEdit('stockChapa')">✏️ Editar</button>
-308|          <button class="danger" onclick="promptDelete('stockChapa')">🗑 Eliminar</button>
-309|        </div>
-310|      </div>
-311|      <div id="list-stockChapa" class="list"></div>
-312|    </div>
-313|  </div>
-314|
-315|  <!-- PRONTUARIO: MATERIALES -->
-316|  <div id="v-prontuario-materiales" class="view">
-317|    <div class="card">
-318|      <div class="toolbar">
-319|        <h3>Prontuario · Materiales <span id="count-pron-mat" class="badge">0</span></h3>
-320|        <div class="tools">
-321|          <button class="ok" onclick="openModal('pronMat')">➕ Agregar</button>
-322|          <button class="warn" onclick="promptEdit('pronMat')">✏️ Editar</button>
-323|          <button class="danger" onclick="promptDelete('pronMat')">🗑 Eliminar</button>
-324|        </div>
-325|      </div>
-326|      <div id="list-pronMat" class="list"></div>
-327|    </div>
-328|  </div>
-329|
-330|  <!-- PRONTUARIO: PINTURAS -->
-331|  <div id="v-prontuario-pinturas" class="view">
-332|    <div class="card">
-333|      <div class="toolbar">
-334|        <h3>Prontuario · Pinturas <span id="count-pron-pint" class="badge">0</span></h3>
-335|        <div class="tools">
-336|          <button class="ok" onclick="openModal('pronPint')">➕ Agregar</button>
-337|          <button class="warn" onclick="promptEdit('pronPint')">✏️ Editar</button>
-338|          <button class="danger" onclick="promptDelete('pronPint')">🗑 Eliminar</button>
-339|        </div>
-340|      </div>
-341|      <div id="list-pronPint" class="list"></div>
-342|    </div>
-343|  </div>
-344|
-345|  <!-- PRONTUARIO: CHAPAS -->
-346|  <div id="v-prontuario-chapas" class="view">
-347|    <div class="card">
-348|      <div class="toolbar">
-349|        <h3>Prontuario · Chapas <span id="count-pron-chapa" class="badge">0</span></h3>
-350|        <div class="tools">
-351|          <button class="ok" onclick="openModal('pronChapa')">➕ Agregar</button>
-352|          <button class="warn" onclick="promptEdit('pronChapa')">✏️ Editar</button>
-353|          <button class="danger" onclick="promptDelete('pronChapa')">🗑 Eliminar</button>
-354|        </div>
-355|      </div>
-356|      <div id="list-pronChapa" class="list"></div>
-357|    </div>
-358|  </div>
-359|
-360|</div>
-361|
-362|<!-- MODAL GENÉRICO -->
-363|<div class="modal-back" id="modalBack" onclick="closeModalOnBack(event)">
-364|  <div class="modal" id="modal">
-365|    <h3 id="modalTitle">Agregar</h3>
-366|    <div id="modalFields"></div>
-367|    <div class="row">
-368|      <button class="secondary" onclick="closeModal()">Cancelar</button>
-369|      <button class="ok" onclick="modalSave()">Guardar</button>
-370|    </div>
-371|  </div>
-372|</div>
-373|
-374|<script>
-375|/* =========================================================
-376|   DATOS / CATEGORÍAS
-377|   ========================================================= */
-378|const STORE_KEYS = {
-379|  stockMat:   "mst_stock_materiales",
-380|  stockPint:  "mst_stock_pinturas",
-381|  stockChapa: "mst_stock_chapas",
-382|  pronMat:    "mst_prontuario_materiales",
-383|  pronPint:   "mst_prontuario_pinturas",
-384|  pronChapa:  "mst_prontuario_chapas",
-385|  hist:       "mst_hist"
-386|}
-387|
-388|const CATEGORIES = {
-389|  stockMat: {
-390|    label:"Material (Stock)", listId:"list-stockMat", countId:"count-stock-mat",
-391|    fields:[
-392|      {key:"nombre", label:"Nombre / Referencia", type:"text", required:true},
-393|      {key:"longitud", label:"Longitud de la pieza (mm)", type:"number", required:true, min:0},
-394|      {key:"cantidad", label:"Cantidad (nº piezas)", type:"number", required:true, min:0},
-395|      {key:"cantilever", label:"Cantilever / Zona", type:"text"}
-396|    ],
-397|    render:(it)=>`<b>${esc(it.nombre)}</b> — ${it.cantidad} ud × ${it.longitud} mm${it.cantilever?` · 📍 ${esc(it.cantilever)}`:""}`
-398|  },
-399|  stockPint: {
-400|    label:"Pintura (Stock)", listId:"list-stockPint", countId:"count-stock-pint",
-401|    fields:[
-402|      {key:"nombre", label:"Nombre pintura", type:"text", required:true},
-403|      {key:"codigo", label:"Código", type:"text"},
-404|      {key:"cantidad", label:"Cantidad (L)", type:"number", min:0}
-405|    ],
-406|    render:(it)=>`<b>${esc(it.nombre)}</b>${it.codigo?` · ${esc(it.codigo)}`:""}${it.cantidad!=null&&it.cantidad!==""?` · ${it.cantidad} L`:""}`
-407|  },
-408|  stockChapa: {
-409|    label:"Chapa (Stock)", listId:"list-stockChapa", countId:"count-stock-chapa",
-410|    fields:[
-411|      {key:"nombre", label:"Nombre", type:"text", required:true},
-412|      {key:"tipo", label:"Tipo (lisa, lagrimada, perforada…)", type:"text"},
-413|      {key:"espesor", label:"Espesor (mm)", type:"number", required:true, min:0},
-414|      {key:"ancho", label:"Ancho (mm)", type:"number"},
-415|      {key:"largo", label:"Largo (mm)", type:"number"},
-416|      {key:"cantidad", label:"Cantidad (ud)", type:"number", min:0},
-417|      {key:"cantilever", label:"Cantilever / Zona", type:"text"}
-418|    ],
-419|    render:(it)=>`<b>${esc(it.nombre)}</b>${it.tipo?` · ${esc(it.tipo)}`:""} · e=${it.espesor}mm${it.ancho&&it.largo?` · ${it.ancho}×${it.largo}`:""}${it.cantidad?` · ${it.cantidad} ud`:""}${it.cantilever?` · 📍 ${esc(it.cantilever)}`:""}`
-420|  },
-421|  pronMat: {
-422|    label:"Material (Prontuario)", listId:"list-pronMat", countId:"count-pron-mat",
-423|    fields:[
-424|      {key:"nombre", label:"Nombre", type:"text", required:true},
-425|      {key:"tipo", label:"Tipo / Perfil", type:"text"},
-426|      {key:"lado1", label:"Lado 1 / cara (mm)", type:"number", min:0},
-427|      {key:"lado2", label:"Lado 2 / cara (mm)", type:"number", min:0},
-428|      {key:"espesor", label:"Espesor (mm)", type:"number", min:0},
-429|      {key:"longitud_barra", label:"Longitud barra (mm) — 6000 / 12000 / personalizado", type:"number", min:0},
-430|      {key:"precio", label:"Precio por barra (€)", type:"number", min:0},
-431|      {key:"notas", label:"Notas", type:"text"}
-432|    ],
-433|    render:(it)=>`<b>${esc(it.nombre)}</b>${it.tipo?` · ${esc(it.tipo)}`:""}${it.lado1?` · ${it.lado1}×${it.lado2||it.lado1}×${it.espesor||"?"}mm`:""}${it.longitud_barra?` · barra ${it.longitud_barra}mm`:""}${it.precio?` · <b>${it.precio}€</b>/barra`:""}${it.notas?` — ${esc(it.notas)}`:""}`
-434|  },
-435|  pronPint: {
-436|    label:"Pintura (Prontuario)", listId:"list-pronPint", countId:"count-pron-pint",
-437|    fields:[
-438|      {key:"nombre", label:"Nombre pintura", type:"text", required:true},
-439|      {key:"codigo", label:"Código RAL / referencia", type:"text"},
-440|      {key:"acabado", label:"Acabado (mate, satinado…)", type:"text"},
-441|      {key:"notas", label:"Notas", type:"text"}
-442|    ],
-443|    render:(it)=>`<b>${esc(it.nombre)}</b>${it.codigo?` · ${esc(it.codigo)}`:""}${it.acabado?` · ${esc(it.acabado)}`:""}${it.notas?` — ${esc(it.notas)}`:""}`
-444|  },
-445|  pronChapa: {
-446|    label:"Chapa (Prontuario)", listId:"list-pronChapa", countId:"count-pron-chapa",
-447|    fields:[
-448|      {key:"nombre", label:"Nombre", type:"text", required:true},
-449|      {key:"tipo", label:"Tipo (lisa, lagrimada, perforada…)", type:"text"},
-450|      {key:"espesor", label:"Espesor (mm)", type:"number", required:true, min:0},
-451|      {key:"ancho", label:"Ancho estándar (mm)", type:"number"},
-452|      {key:"largo", label:"Largo estándar (mm)", type:"number"},
-453|      {key:"precio", label:"Precio por plancha (€)", type:"number", min:0},
-454|      {key:"notas", label:"Notas", type:"text"}
-455|    ],
-456|    render:(it)=>`<b>${esc(it.nombre)}</b>${it.tipo?` · ${esc(it.tipo)}`:""} · e=${it.espesor}mm${it.ancho&&it.largo?` · ${it.ancho}×${it.largo}`:""}${it.precio?` · <b>${it.precio}€</b>/plancha`:""}${it.notas?` — ${esc(it.notas)}`:""}`
-457|  }
-458|}
-459|
-460|function esc(s){
-461|  if(s==null) return ""
-462|  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))
-463|}
-464|function loadData(cat){ try { return JSON.parse(localStorage.getItem(STORE_KEYS[cat])) || [] } catch { return [] } }
-465|function saveData(cat, arr){ localStorage.setItem(STORE_KEYS[cat], JSON.stringify(arr)) }
-466|
-467|const data = {
-468|  stockMat: loadData("stockMat"),
-469|  stockPint: loadData("stockPint"),
-470|  stockChapa: loadData("stockChapa"),
-471|  pronMat: loadData("pronMat"),
-472|  pronPint: loadData("pronPint"),
-473|  pronChapa: loadData("pronChapa")
-474|}
-475|let historial = JSON.parse(localStorage.getItem(STORE_KEYS.hist)) || []
-476|let proyectoActual = {}
-477|
-478|/* =========================================================
-479|   NAV
-480|   ========================================================= */
-481|function toggle(id, el){
-482|  const sub = document.getElementById(id)
-483|  if(!sub) return
-484|  sub.classList.toggle('open')
-485|  if(el) el.classList.toggle('open')
-486|}
-487|function showView(id, el){
-488|  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
-489|  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
-490|  const view = document.getElementById(id)
-491|  if(view) view.classList.add('active')
-492|  if(el) el.classList.add('active')
-493|
-494|  if(id==="v-historial") renderHistorial()
-495|  if(id==="v-stock-materiales")       renderCategory("stockMat")
-496|  if(id==="v-stock-pinturas")         renderCategory("stockPint")
-497|  if(id==="v-stock-chapas")           renderCategory("stockChapa")
-498|  if(id==="v-prontuario-materiales")  renderCategory("pronMat")
-499|  if(id==="v-prontuario-pinturas")    renderCategory("pronPint")
-500|  if(id==="v-prontuario-chapas")      renderCategory("pronChapa")
-501|  if(id==="v-abatibles"){ refreshMateriales(); runAb() }
-502|}
-503|
-504|/* =========================================================
-505|   CRUD GENÉRICO
-506|   ========================================================= */
-507|function renderCategory(cat){
-508|  const cfg = CATEGORIES[cat]
-509|  const cont = document.getElementById(cfg.listId)
-510|  const count = document.getElementById(cfg.countId)
-511|  if(!cont) return
-512|  const items = data[cat]
-513|  if(count) count.textContent = items.length
-514|  if(!items.length){
-515|    cont.innerHTML = `<div class="empty">Sin entradas. Pulsa "Agregar" para crear la primera.</div>`
-516|    return
-517|  }
-518|  cont.innerHTML = items.map((it,i)=>`
-519|    <div class="item">
-520|      <div class="info">${cfg.render(it)}</div>
-521|      <div class="actions">
-522|        <button class="warn" onclick="openModal('${cat}',${i})">Editar</button>
-523|        <button class="danger" onclick="deleteItem('${cat}',${i})">Eliminar</button>
-524|      </div>
-525|    </div>`).join("")
-526|}
-527|
-528|let modalState = { cat:null, index:null }
-529|function openModal(cat, index=null){
-530|  const cfg = CATEGORIES[cat]
-531|  if(!cfg) return
-532|  modalState = { cat, index:(typeof index==="number"?index:null) }
-533|  document.getElementById("modalTitle").textContent = (modalState.index===null?"Agregar ":"Editar ") + cfg.label
-534|  const fieldsHtml = cfg.fields.map(f=>{
-535|    const val = modalState.index!=null ? (data[cat][modalState.index]?.[f.key] ?? "") : ""
-536|    return `<label>${f.label}${f.required?" *":""}</label><input data-field="${f.key}" type="${f.type||'text'}" ${f.min!=null?`min="${f.min}"`:""} value="${esc(val)}">`
-537|  }).join("")
-538|  document.getElementById("modalFields").innerHTML = fieldsHtml
-539|  document.getElementById("modalBack").classList.add("open")
-540|  setTimeout(()=>{ const first=document.querySelector("#modalFields input"); if(first) first.focus() },50)
-541|}
-542|function closeModal(){ document.getElementById("modalBack").classList.remove("open"); modalState = { cat:null, index:null } }
-543|function closeModalOnBack(e){ if(e.target.id==="modalBack") closeModal() }
-544|function modalSave(){
-545|  const { cat, index } = modalState
-546|  if(!cat) return
-547|  const cfg = CATEGORIES[cat]
-548|  const obj = {}
-549|  for(const f of cfg.fields){
-550|    const input = document.querySelector(`#modalFields input[data-field="${f.key}"]`)
-551|    let v = input ? input.value.trim() : ""
-552|    if(f.required && !v){ alert(`El campo "${f.label}" es obligatorio`); input?.focus(); return }
-553|    if(f.type==="number" && v!==""){
-554|      const n = Number(v)
-555|      if(!isFinite(n)){ alert(`"${f.label}" debe ser numérico`); return }
-556|      v = n
-557|    }
-558|    obj[f.key] = v
-559|  }
-560|  if(index===null) data[cat].push(obj)
-561|  else data[cat][index] = obj
-562|  saveData(cat, data[cat])
-563|  renderCategory(cat)
-564|  closeModal()
-565|}
-566|function deleteItem(cat, index){
-567|  const it = data[cat][index]
-568|  const nombre = it?.nombre || "esta entrada"
-569|  if(!confirm(`¿Está seguro que desea eliminar "${nombre}"?\n\nEsta acción no se puede deshacer.`)) return
-570|  data[cat].splice(index,1)
-571|  saveData(cat, data[cat])
-572|  renderCategory(cat)
-573|}
-574|function promptEdit(cat){
-575|  const items = data[cat]
-576|  if(!items.length){ alert("No hay entradas."); return }
-577|  const idx = askIndex(items, "editar"); if(idx!=null) openModal(cat, idx)
-578|}
-579|function promptDelete(cat){
-580|  const items = data[cat]
-581|  if(!items.length){ alert("No hay entradas."); return }
-582|  const idx = askIndex(items, "eliminar"); if(idx!=null) deleteItem(cat, idx)
-583|}
-584|function askIndex(items, verbo){
-585|  const list = items.map((it,i)=>`${i+1}. ${it.nombre||"(sin nombre)"}`).join("\n")
-586|  const raw = prompt(`Indica el nº a ${verbo}:\n\n${list}`)
-587|  if(raw===null) return null
-588|  const n = parseInt(raw,10)
-589|  if(!isFinite(n) || n<1 || n>items.length){ alert("Número inválido"); return null }
-590|  return n-1
-591|}
-592|
-593|/* =========================================================
-594|   ABATIBLES - LÓGICA
-595|   ========================================================= */
-596|function parseProfile(item){
-597|  if(!item) return null
-598|  // Campos directos (nuevos)
-599|  let l1 = Number(item.lado1)||null
-600|  let l2 = Number(item.lado2)||null
-601|  let es = Number(item.espesor)||null
-602|  // Fallback: regex en notas "lado1=40mm, lado2=40mm, espesor=2mm"
-603|  if(!l1 || !l2 || !es){
-604|    const notas = String(item.notas||"")
-605|    const m1 = /lado1\s*=\s*(\d+(?:[.,]\d+)?)/i.exec(notas)
-606|    const m2 = /lado2\s*=\s*(\d+(?:[.,]\d+)?)/i.exec(notas)
-607|    const me = /espesor\s*=\s*(\d+(?:[.,]\d+)?)/i.exec(notas)
-608|    if(!l1 && m1) l1 = parseFloat(m1[1].replace(",","."))
-609|    if(!l2 && m2) l2 = parseFloat(m2[1].replace(",","."))
-610|    if(!es && me) es = parseFloat(me[1].replace(",","."))
-611|  }
-612|  // Fallback: regex en el nombre "Tubo cuadrado 40x40x2"
-613|  if(!l1 || !l2 || !es){
-614|    const m = /(\d+)\s*[xX×]\s*(\d+)\s*[xX×]\s*(\d+(?:[.,]\d+)?)/.exec(String(item.nombre||""))
-615|    if(m){
-616|      if(!l1) l1=+m[1]; if(!l2) l2=+m[2]; if(!es) es=parseFloat(m[3].replace(",","."))
-617|    }
-618|  }
-619|  return { lado1:l1, lado2:l2, espesor:es, tipo:String(item.tipo||item.nombre||"").toLowerCase(), nombre:item.nombre||"" }
-620|}
-621|
-622|function refreshMateriales(){
-623|  // Cargar en los select los materiales del prontuario
-624|  const selMarco = document.getElementById("ab-mat-marco")
-625|  const selHoja  = document.getElementById("ab-mat-hoja")
-626|  const selChapa = document.getElementById("ab-mat-chapa")
-627|  const selBarr  = document.getElementById("ab-mat-barr")
-628|  if(!selMarco) return
-629|  const mats = data.pronMat
-630|  const optsMat = mats.length
-631|    ? mats.map((m,i)=>`<option value="${i}">${esc(m.nombre)}</option>`).join("")
-632|    : `<option value="">(Añade materiales al Prontuario)</option>`
-633|  // conservar selección previa si existe
-634|  const prev = { marco:selMarco.value, hoja:selHoja.value, barr:selBarr.value }
-635|  selMarco.innerHTML = optsMat
-636|  selHoja.innerHTML  = optsMat
-637|  selBarr.innerHTML  = optsMat
-638|  if(prev.marco && selMarco.querySelector(`option[value="${prev.marco}"]`)) selMarco.value = prev.marco
-639|  if(prev.hoja  && selHoja.querySelector(`option[value="${prev.hoja}"]`))   selHoja.value  = prev.hoja
-640|  if(prev.barr  && selBarr.querySelector(`option[value="${prev.barr}"]`))   selBarr.value  = prev.barr
-641|
-642|  const chapas = data.pronChapa
-643|  selChapa.innerHTML = chapas.length
-644|    ? chapas.map((c,i)=>`<option value="${i}">${esc(c.nombre)}</option>`).join("")
-645|    : `<option value="">(Añade chapas al Prontuario)</option>`
-646|
-647|  onMatMarcoChange()
-648|  onMatHojaChange()
-649|  autoSugerirCorte()
-650|}
-651|
-652|function autoSugerirCorte(){
-653|  // Sugerir 45° si es tubo cuadrado/rectangular, 90° en el resto. Sólo si no hay nada marcado.
-654|  const mk = data.pronMat[+document.getElementById("ab-mat-marco").value]
-655|  const tipo = String(mk?.tipo||mk?.nombre||"").toLowerCase()
-656|  const sug = /tubo\s*(cuadrado|rectangular)/.test(tipo) ? "45" : "90"
-657|  const marcoRadios = document.querySelectorAll('input[name="corte-marco"]')
-658|  if(![...marcoRadios].some(r=>r.checked)){
-659|    const r = document.querySelector(`input[name="corte-marco"][value="${sug}"]`); if(r) r.checked = true
-660|  }
-661|  const hojaRadios = document.querySelectorAll('input[name="corte-hoja"]')
-662|  if(![...hojaRadios].some(r=>r.checked)){
-663|    const r = document.querySelector(`input[name="corte-hoja"][value="${sug}"]`); if(r) r.checked = true
-664|  }
-665|}
-666|
-667|function onMatMarcoChange(){
-668|  const it = data.pronMat[+document.getElementById("ab-mat-marco").value]
-669|  const p = parseProfile(it)
-670|  document.getElementById("ab-mat-marco-info").textContent = p && p.lado1 ? `Perfil: ${p.lado1}×${p.lado2||p.lado1}×${p.espesor||"?"} mm` : "—"
-671|  if(document.getElementById("ab-hoja-igual").checked){
-672|    document.getElementById("ab-mat-hoja").value = document.getElementById("ab-mat-marco").value
-673|    onMatHojaChange()
-674|  }
-675|  runAb()
-676|}
-677|function onMatHojaChange(){
-678|  const it = data.pronMat[+document.getElementById("ab-mat-hoja").value]
-679|  const p = parseProfile(it)
-680|  document.getElementById("ab-mat-hoja-info").textContent = p && p.lado1 ? `Perfil: ${p.lado1}×${p.lado2||p.lado1}×${p.espesor||"?"} mm` : "—"
-681|  runAb()
-682|}
-683|function toggleHojaMat(){
-684|  const igual = document.getElementById("ab-hoja-igual").checked
-685|  const selH = document.getElementById("ab-mat-hoja")
-686|  selH.disabled = igual
-687|  if(igual){ selH.value = document.getElementById("ab-mat-marco").value; onMatHojaChange() }
-688|  runAb()
-689|}
-690|function toggleChapa(){
-691|  document.getElementById("ab-chapa-block").style.display = document.getElementById("ab-chapa-on").checked ? "block" : "none"
-692|  runAb()
-693|}
-694|function toggleChapaModo(){
-695|  const modo = document.querySelector('input[name="chapa-modo"]:checked').value
-696|  document.getElementById("ab-chapa-tramos").style.display = modo==="tramos" ? "block" : "none"
-697|  runAb()
-698|}
-699|function toggleBarr(){
-700|  document.getElementById("ab-barr-block").style.display = document.getElementById("ab-barr-on").checked ? "block" : "none"
-701|  runAb()
-702|}
-703|
-704|/* Tramos de chapa */
-705|let tramos = []
-706|function addTramo(){
-707|  tramos.push({ orient:"H", ref:"abajo", desde:0, alto:400, ancho:0 })
-708|  renderTramos(); runAb()
-709|}
-710|function removeTramo(i){ tramos.splice(i,1); renderTramos(); runAb() }
-711|function updTramo(i,key,val){
-712|  tramos[i][key] = (key==="orient"||key==="ref") ? val : (val===""?"":Number(val))
-713|  runAb()
-714|}
-715|function renderTramos(){
-716|  const cont = document.getElementById("tramos-list")
-717|  cont.innerHTML = tramos.map((t,i)=>`
-718|    <div class="tramo">
-719|      <div class="head">
-720|        <span>Tramo ${i+1}</span>
-721|        <button class="danger" onclick="removeTramo(${i})">Eliminar</button>
-722|      </div>
-723|      <div class="row2">
-724|        <div>
-725|          <label>Orientación</label>
-726|          <select onchange="updTramo(${i},'orient',this.value)">
-727|            <option value="H" ${t.orient==="H"?"selected":""}>Horizontal (franja)</option>
-728|            <option value="V" ${t.orient==="V"?"selected":""}>Vertical (tira)</option>
-729|          </select>
-730|        </div>
-731|        <div>
-732|          <label>Referencia</label>
-733|          <select onchange="updTramo(${i},'ref',this.value)">
-734|            ${t.orient==="H"
-735|              ? `<option value="abajo" ${t.ref==="abajo"?"selected":""}>Desde abajo</option>
-736|                 <option value="arriba" ${t.ref==="arriba"?"selected":""}>Desde arriba</option>`
-737|              : `<option value="cerradura" ${t.ref==="cerradura"?"selected":""}>Desde lado cerradura</option>
-738|                 <option value="contrario" ${t.ref==="contrario"?"selected":""}>Desde lado contrario</option>`}
-739|          </select>
-740|        </div>
-741|      </div>
-742|      <div class="row3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px">
-743|        <div><label>Desde (mm)</label><input type="number" value="${t.desde}" oninput="updTramo(${i},'desde',this.value)"></div>
-744|        <div><label>${t.orient==="H"?"Alto":"Ancho"} tramo (mm)</label><input type="number" value="${t.orient==="H"?t.alto:t.ancho}" oninput="updTramo(${i},'${t.orient==="H"?"alto":"ancho"}',this.value)"></div>
-745|        <div><label>${t.orient==="H"?"Ancho (0=todo)":"Alto (0=todo)"}</label><input type="number" value="${t.orient==="H"?t.ancho:t.alto}" oninput="updTramo(${i},'${t.orient==="H"?"ancho":"alto"}',this.value)"></div>
-746|      </div>
-747|    </div>
-748|  `).join("")
-749|}
-750|
-751|/* =========================================================
-752|   CÁLCULO
-753|   ========================================================= */
-754|let lastCalc = null
-755|
-756|function runAb(){
-757|  const W = +document.getElementById("ab-w").value
-758|  const H = +document.getElementById("ab-h").value
-759|  const res = document.getElementById("ab-res")
-760|  if(!isFinite(W)||!isFinite(H)||W<=0||H<=0){ res.textContent="Introduce W y H válidos (>0)"; return }
-761|
-762|  const gapSup = +document.getElementById("ab-gap-sup").value || 0
-763|  const gapInf = +document.getElementById("ab-gap-inf").value || 0
-764|  const gapIzq = +document.getElementById("ab-gap-izq").value || 0
-765|  const gapDer = +document.getElementById("ab-gap-der").value || 0
-766|
-767|  const matMarco = data.pronMat[+document.getElementById("ab-mat-marco").value]
-768|  const pM = parseProfile(matMarco)
-769|  if(!pM || !pM.lado1){ res.textContent="Selecciona un material de marco válido del Prontuario"; dibujarVacio(); return }
-770|  const T1 = pM.lado1
-771|
-772|  const igualHoja = document.getElementById("ab-hoja-igual").checked
-773|  const matHoja = igualHoja ? matMarco : data.pronMat[+document.getElementById("ab-mat-hoja").value]
-774|  const pH = parseProfile(matHoja)
-775|  const T2 = pH?.lado1 || T1
-776|
-777|  const corteMarco = (document.querySelector('input[name="corte-marco"]:checked')||{}).value || "45"
-778|  const corteHoja  = (document.querySelector('input[name="corte-hoja"]:checked')||{}).value  || "45"
-779|
-780|  /* ---- MARCO ---- */
-781|  const marco = []
-782|  if(corteMarco==="45"){
-783|    marco.push({pieza:"Marco · Horizontal SUP", cantidad:1, largo:W, corte:"45°/45° inglete"})
-784|    marco.push({pieza:"Marco · Horizontal INF", cantidad:1, largo:W, corte:"45°/45° inglete"})
-785|    marco.push({pieza:"Marco · Vertical IZQ",   cantidad:1, largo:H, corte:"45°/45° inglete"})
-786|    marco.push({pieza:"Marco · Vertical DER",   cantidad:1, largo:H, corte:"45°/45° inglete"})
-787|  } else {
-788|    // verticales pasantes
-789|    marco.push({pieza:"Marco · Vertical IZQ",   cantidad:1, largo:H,        corte:"90° (pasante)"})
-790|    marco.push({pieza:"Marco · Vertical DER",   cantidad:1, largo:H,        corte:"90° (pasante)"})
-791|    marco.push({pieza:"Marco · Horizontal SUP", cantidad:1, largo:W-2*T1,   corte:"90° (entre verticales)"})
-792|    marco.push({pieza:"Marco · Horizontal INF", cantidad:1, largo:W-2*T1,   corte:"90° (entre verticales)"})
-793|  }
-794|
-795|  /* ---- HOJA ---- */
-796|  // Hueco interior del marco = W - 2T1 × H - 2T1
-797|  // Hoja exterior = hueco - gaps
-798|  const hojaW = W - 2*T1 - gapIzq - gapDer
-799|  const hojaH = H - 2*T1 - gapSup - gapInf
-800|  if(hojaW<=0 || hojaH<=0){ res.textContent="Gaps demasiado grandes para las dimensiones dadas."; dibujarVacio(); return }
-801|
-802|  const hoja = []
-803|  if(corteHoja==="45"){
-804|    hoja.push({pieza:"Hoja · Horizontal SUP", cantidad:1, largo:hojaW, corte:"45°/45° inglete"})
-805|    hoja.push({pieza:"Hoja · Horizontal INF", cantidad:1, largo:hojaW, corte:"45°/45° inglete"})
-806|    hoja.push({pieza:"Hoja · Vertical IZQ",   cantidad:1, largo:hojaH, corte:"45°/45° inglete"})
-807|    hoja.push({pieza:"Hoja · Vertical DER",   cantidad:1, largo:hojaH, corte:"45°/45° inglete"})
-808|  } else {
-809|    hoja.push({pieza:"Hoja · Vertical IZQ",   cantidad:1, largo:hojaH,        corte:"90° (pasante)"})
-810|    hoja.push({pieza:"Hoja · Vertical DER",   cantidad:1, largo:hojaH,        corte:"90° (pasante)"})
-811|    hoja.push({pieza:"Hoja · Horizontal SUP", cantidad:1, largo:hojaW-2*T2,   corte:"90° (entre verticales)"})
-812|    hoja.push({pieza:"Hoja · Horizontal INF", cantidad:1, largo:hojaW-2*T2,   corte:"90° (entre verticales)"})
-813|  }
-814|
-815|  // Interior de la hoja (donde van chapa y barrotes)
-816|  const intW = hojaW - 2*T2
-817|  const intH = hojaH - 2*T2
-818|
-819|  /* ---- BARROTES ---- */
-820|  const barr = []
-821|  let barrInfo = "—"
-822|  const barrOn = document.getElementById("ab-barr-on").checked
-823|  let barrCalc = null
-824|  if(barrOn){
-825|    const matBarr = data.pronMat[+document.getElementById("ab-mat-barr").value]
-826|    const pB = parseProfile(matBarr)
-827|    const ori = (document.querySelector('input[name="barr-ori"]:checked')||{}).value || "V"
-828|    const sepObj = +document.getElementById("ab-barr-sep").value || 100
-829|    const dispo = ori==="V" ? intW : intH
-830|    const longBarr = ori==="V" ? intH : intW
-831|    if(dispo>0 && sepObj>0){
-832|      // N+1 gaps entre bordes. N+1 = round(dispo/sepObj)
-833|      const gaps = Math.max(1, Math.round(dispo/sepObj))
-834|      const N = Math.max(0, gaps - 1) // barras entre bordes
-835|      const sepReal = dispo/gaps
-836|      const dif = sepReal - sepObj
-837|      const tipoB = matBarr ? matBarr.nombre : "(sin material)"
-838|      barrInfo = `N = ${N} barrotes · separación real = ${sepReal.toFixed(1)} mm (objetivo ${sepObj}). ${Math.abs(dif)<0.5?"Exacto con el objetivo.":`Sugerencia: ajusta a ${sepReal.toFixed(1)} mm para distribución uniforme.`}`
-839|      if(N>0) barr.push({pieza:`Barrote ${ori==="V"?"vertical":"horizontal"} · ${tipoB}`, cantidad:N, largo:longBarr, corte:"90°"})
-840|      barrCalc = { ori, N, sepReal, longBarr, dispo }
-841|    }
-842|  }
-843|
-844|  /* ---- CHAPA ---- */
-845|  const chapaList = []
-846|  const chapaOn = document.getElementById("ab-chapa-on").checked
-847|  let chapaInfo = "—"
-848|  let chapaRects = [] // para dibujo (relativo a hoja interior: {x,y,w,h})
-849|  if(chapaOn){
-850|    const modo = (document.querySelector('input[name="chapa-modo"]:checked')||{}).value || "completa"
-851|    const matChapa = data.pronChapa[+document.getElementById("ab-mat-chapa").value]
-852|    const chName = matChapa ? `${matChapa.nombre} (e=${matChapa.espesor}mm)` : "(sin material)"
-853|    const ladoCerr = document.getElementById("ab-cerr-lado").value // izq/der
-854|
-855|    if(modo==="completa"){
-856|      chapaList.push({pieza:`Chapa completa · ${chName}`, cantidad:1, largo:`${intW} × ${intH}`, corte:"Recorte rect."})
-857|      chapaRects.push({x:0,y:0,w:intW,h:intH})
-858|      chapaInfo = `Chapa completa: ${intW} × ${intH} mm`
-859|    } else {
-860|      let recortes = 0
-861|      tramos.forEach((t,idx)=>{
-862|        let x=0,y=0,w=intW,h=intH
-863|        if(t.orient==="H"){
-864|          const altoT = +t.alto || 0
-865|          const anchoT = (+t.ancho||0)===0 ? intW : +t.ancho
-866|          const desde = +t.desde || 0
-867|          h = altoT
-868|          w = anchoT
-869|          if(t.ref==="abajo"){ y = intH - desde - altoT }
-870|          else               { y = desde }
-871|          x = 0
-872|        } else {
-873|          const anchoT = +t.ancho || 0
-874|          const altoT = (+t.alto||0)===0 ? intH : +t.alto
-875|          const desde = +t.desde || 0
-876|          w = anchoT
-877|          h = altoT
-878|          if(t.ref==="cerradura"){
-879|            if(ladoCerr==="der") x = intW - desde - anchoT
-880|            else                 x = desde
-881|          } else {
-882|            if(ladoCerr==="der") x = desde
-883|            else                 x = intW - desde - anchoT
-884|          }
-885|          y = 0
-886|        }
-887|        // Clamp al interior de la hoja (no puede salirse)
-888|        const origW=w, origH=h, origX=x, origY=y
-889|        if(x < 0){ w += x; x = 0 }
-890|        if(y < 0){ h += y; y = 0 }
-891|        if(x + w > intW) w = intW - x
-892|        if(y + h > intH) h = intH - y
-893|        if(w<=0 || h<=0){
-894|          chapaList.push({pieza:`⚠ Tramo ${idx+1} FUERA de la hoja (ignorado)`, cantidad:0, largo:"-", corte:"revisar medidas"})
-895|          return
-896|        }
-897|        if(origW!==w || origH!==h || origX!==x || origY!==y) recortes++
-898|        chapaList.push({pieza:`Chapa tramo ${idx+1} · ${chName}`, cantidad:1, largo:`${Math.round(w)} × ${Math.round(h)}`, corte:`${t.orient==="H"?"Horizontal":"Vertical"} · ref ${t.ref}`})
-899|        chapaRects.push({x,y,w,h})
-900|      })
-901|      chapaInfo = `${tramos.length} tramo(s)${recortes?` · ${recortes} recortado(s) al hueco de la hoja`:""}`
-902|    }
-903|  }
-904|
-905|  /* ---- CERRADURA ---- */
-906|  const cerrAlt = +document.getElementById("ab-cerr-alt").value || 1050
-907|  const cerrLado = document.getElementById("ab-cerr-lado").value
-908|
-909|  /* ---- OUTPUT TEXTO ---- */
-910|  document.getElementById("ab-barr-info").textContent = barrInfo
-911|
-912|  const fmt = arr => arr.map(p=>` ${p.cantidad} × ${typeof p.largo==="number"?Math.round(p.largo):p.largo} mm   │ ${p.pieza}   [${p.corte}]`).join("\n")
-913|  let txt = ""
-914|  txt += `PUERTA ABATIBLE — ${W} × ${H} mm\n`
-915|  txt += `Marco: ${matMarco.nombre} · corte ${corteMarco}°\n`
-916|  txt += `Hoja:  ${matHoja ? matHoja.nombre : "(mismo que marco)"} · corte ${corteHoja}°\n`
-917|  txt += `Gaps: sup ${gapSup}  inf ${gapInf}  izq ${gapIzq}  der ${gapDer}\n`
-918|  txt += `Hueco marco (interior): ${W-2*T1} × ${H-2*T1} mm\n`
-919|  txt += `Hoja (exterior): ${hojaW} × ${hojaH} mm · interior: ${intW} × ${intH} mm\n`
-920|  txt += `Cerradura: lado ${cerrLado==="izq"?"izquierdo":"derecho"} a ${cerrAlt} mm del suelo\n\n`
-921|  txt += `— CORTES MARCO —\n${fmt(marco)}\n\n— CORTES HOJA —\n${fmt(hoja)}\n`
-922|  if(barr.length) txt += `\n— BARROTES —\n${fmt(barr)}\n`
-923|  if(chapaList.length) txt += `\n— CHAPA —\n${fmt(chapaList)}\n`
-924|
-925|  res.textContent = txt
-926|
-927|  lastCalc = { W,H, T1,T2, hojaW,hojaH, intW,intH, barr, barrCalc, chapaRects, cerrAlt, cerrLado, corteMarco, corteHoja, matMarco, matHoja }
-928|  proyectoActual = { tipo:"abatible", datos:{W,H,gapSup,gapInf,gapIzq,gapDer,corteMarco,corteHoja}, marco, hoja, barr, chapa:chapaList, cerradura:{lado:cerrLado,alt:cerrAlt} }
-929|
-930|  dibujar(lastCalc)
-931|}
-932|
-933|/* =========================================================
-934|   DIBUJO
-935|   ========================================================= */
-936|function dibujarVacio(){
-937|  const c = document.getElementById("cv"); if(!c) return
-938|  const ctx = c.getContext("2d")
-939|  ctx.clearRect(0,0,c.width,c.height)
-940|  ctx.fillStyle="#64748b"; ctx.font="14px sans-serif"; ctx.textAlign="center"
-941|  ctx.fillText("Selecciona material e introduce medidas…", c.width/2, c.height/2)
-942|}
-943|
-944|function dibujar(calc){
-945|  const c = document.getElementById("cv"); if(!c) return
-946|  const ctx = c.getContext("2d")
-947|  const CW = c.width, CH = c.height
-948|  ctx.clearRect(0,0,CW,CH)
-949|
-950|  const pad = 40
-951|  const W = calc.W, H = calc.H
-952|  const scale = Math.min((CW-2*pad)/W, (CH-2*pad-40)/H)  // -40 reservar para cotas
-953|  const dx = (CW - W*scale)/2
-954|  const dy = pad + 10
-955|
-956|  const sx = v => dx + v*scale
-957|  const sy = v => dy + v*scale
-958|
-959|  // Marco exterior
-960|  ctx.lineWidth = 2
-961|  ctx.strokeStyle = "#0f172a"
-962|  ctx.fillStyle = "#e2e8f0"
-963|  ctx.fillRect(sx(0), sy(0), W*scale, H*scale)
-964|  ctx.strokeRect(sx(0), sy(0), W*scale, H*scale)
-965|
-966|  // Hueco interior del marco
-967|  const T1 = calc.T1
-968|  ctx.fillStyle = "#fff"
-969|  ctx.fillRect(sx(T1), sy(T1), (W-2*T1)*scale, (H-2*T1)*scale)
-970|  ctx.strokeStyle = "#475569"; ctx.lineWidth = 1
-971|  ctx.strokeRect(sx(T1), sy(T1), (W-2*T1)*scale, (H-2*T1)*scale)
-972|
-973|  // Cortes de marco
-974|  if(calc.corteMarco==="45"){
-975|    ctx.strokeStyle = "#94a3b8"
-976|    ctx.beginPath()
-977|    ctx.moveTo(sx(0),sy(0)); ctx.lineTo(sx(T1),sy(T1))
-978|    ctx.moveTo(sx(W),sy(0)); ctx.lineTo(sx(W-T1),sy(T1))
-979|    ctx.moveTo(sx(0),sy(H)); ctx.lineTo(sx(T1),sy(H-T1))
-980|    ctx.moveTo(sx(W),sy(H)); ctx.lineTo(sx(W-T1),sy(H-T1))
-981|    ctx.stroke()
-982|  }
-983|
-984|  // Hoja
-985|  const gapIzq = +document.getElementById("ab-gap-izq").value||0
-986|  const gapSup = +document.getElementById("ab-gap-sup").value||0
-987|  const hojaW = calc.hojaW, hojaH = calc.hojaH
-988|  const hx = T1 + gapIzq
-989|  const hy = T1 + gapSup
-990|  ctx.lineWidth = 2
-991|  ctx.strokeStyle = "#1d4ed8"
-992|  ctx.fillStyle = "#dbeafe"
-993|  ctx.fillRect(sx(hx), sy(hy), hojaW*scale, hojaH*scale)
-994|  ctx.strokeRect(sx(hx), sy(hy), hojaW*scale, hojaH*scale)
-995|
-996|  // Hueco interior de la hoja
-997|  const T2 = calc.T2
-998|  ctx.fillStyle = "#fff"
-999|  ctx.fillRect(sx(hx+T2), sy(hy+T2), calc.intW*scale, calc.intH*scale)
-1000|  ctx.strokeStyle = "#1d4ed8"; ctx.lineWidth = 1
-1001|  ctx.strokeRect(sx(hx+T2), sy(hy+T2), calc.intW*scale, calc.intH*scale)
-1002|
-1003|  if(calc.corteHoja==="45"){
-1004|    ctx.strokeStyle = "#60a5fa"
-1005|    ctx.beginPath()
-1006|    ctx.moveTo(sx(hx),sy(hy)); ctx.lineTo(sx(hx+T2),sy(hy+T2))
-1007|    ctx.moveTo(sx(hx+hojaW),sy(hy)); ctx.lineTo(sx(hx+hojaW-T2),sy(hy+T2))
-1008|    ctx.moveTo(sx(hx),sy(hy+hojaH)); ctx.lineTo(sx(hx+T2),sy(hy+hojaH-T2))
-1009|    ctx.moveTo(sx(hx+hojaW),sy(hy+hojaH)); ctx.lineTo(sx(hx+hojaW-T2),sy(hy+hojaH-T2))
-1010|    ctx.stroke()
-1011|  }
-1012|
-1013|  // Chapa (relativa a hoja interior = hx+T2, hy+T2)
-1014|  const iox = hx+T2, ioy = hy+T2
-1015|  if(calc.chapaRects && calc.chapaRects.length){
-1016|    ctx.fillStyle = "rgba(245, 158, 11, 0.35)"
-1017|    ctx.strokeStyle = "#b45309"
-1018|    ctx.lineWidth = 1
-1019|    calc.chapaRects.forEach(r=>{
-1020|      ctx.fillRect(sx(iox+r.x), sy(ioy+r.y), r.w*scale, r.h*scale)
-1021|      ctx.strokeRect(sx(iox+r.x), sy(ioy+r.y), r.w*scale, r.h*scale)
-1022|    })
-1023|  }
-1024|
-1025|  // Barrotes
-1026|  if(calc.barrCalc && calc.barrCalc.N>0){
-1027|    ctx.strokeStyle = "#166534"
-1028|    ctx.lineWidth = 2
-1029|    const {ori, N, sepReal} = calc.barrCalc
-1030|    for(let i=1; i<=N; i++){
-1031|      const off = i*sepReal
-1032|      if(ori==="V"){
-1033|        ctx.beginPath()
-1034|        ctx.moveTo(sx(iox+off), sy(ioy))
-1035|        ctx.lineTo(sx(iox+off), sy(ioy+calc.intH))
-1036|        ctx.stroke()
-1037|      } else {
-1038|        ctx.beginPath()
-1039|        ctx.moveTo(sx(iox),            sy(ioy+off))
-1040|        ctx.lineTo(sx(iox+calc.intW),  sy(ioy+off))
-1041|        ctx.stroke()
-1042|      }
-1043|    }
-1044|  }
-1045|
-1046|  // Cerradura: círculo con "L"
-1047|  const cerrLado = calc.cerrLado
-1048|  const cerrAlt  = calc.cerrAlt
-1049|  // posición: sobre la hoja, en el lateral interior (vertical), a altura cerrAlt desde el SUELO
-1050|  // la puerta va desde y=0 (arriba) a y=H (abajo). "Suelo" = y=H. Altura desde suelo = H - cerrAlt
-1051|  const cy = Math.max(0, Math.min(H, H - cerrAlt))
-1052|  const cx = cerrLado==="izq" ? (hx + T2 + 15) : (hx + hojaW - T2 - 15)
-1053|  ctx.fillStyle = "#dc2626"
-1054|  ctx.beginPath(); ctx.arc(sx(cx), sy(cy), 6, 0, Math.PI*2); ctx.fill()
-1055|  ctx.fillStyle="#fff"; ctx.font="bold 9px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"
-1056|  ctx.fillText("L", sx(cx), sy(cy))
-1057|
-1058|  // Cotas
-1059|  ctx.fillStyle = "#0f172a"; ctx.font = "11px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"
-1060|  ctx.fillText(`W = ${W} mm`, sx(W/2), sy(H)+18)
-1061|  ctx.save(); ctx.translate(sx(0)-8, sy(H/2)); ctx.rotate(-Math.PI/2)
-1062|  ctx.fillText(`H = ${H} mm`, 0, 0); ctx.restore()
-1063|
-1064|  // Leyenda
-1065|  ctx.textAlign="left"; ctx.font = "10px sans-serif"; ctx.fillStyle = "#475569"
-1066|  let ly = CH - 8
-1067|  ctx.fillStyle="#e2e8f0"; ctx.fillRect(10, ly-10, 10, 10); ctx.strokeStyle="#0f172a"; ctx.strokeRect(10, ly-10, 10, 10)
-1068|  ctx.fillStyle="#475569"; ctx.fillText("Marco", 25, ly-2)
-1069|  ctx.fillStyle="#dbeafe"; ctx.fillRect(75, ly-10, 10, 10); ctx.strokeStyle="#1d4ed8"; ctx.strokeRect(75, ly-10, 10, 10)
-1070|  ctx.fillStyle="#475569"; ctx.fillText("Hoja", 90, ly-2)
-1071|  ctx.fillStyle="rgba(245,158,11,.35)"; ctx.fillRect(130, ly-10, 10, 10); ctx.strokeStyle="#b45309"; ctx.strokeRect(130, ly-10, 10, 10)
-1072|  ctx.fillStyle="#475569"; ctx.fillText("Chapa", 145, ly-2)
-1073|  ctx.strokeStyle="#166534"; ctx.beginPath(); ctx.moveTo(185, ly-5); ctx.lineTo(195, ly-5); ctx.stroke()
-1074|  ctx.fillStyle="#475569"; ctx.fillText("Barrotes", 200, ly-2)
-1075|  ctx.fillStyle="#dc2626"; ctx.beginPath(); ctx.arc(255, ly-5, 4, 0, Math.PI*2); ctx.fill()
-1076|  ctx.fillStyle="#475569"; ctx.fillText("Cerradura", 264, ly-2)
-1077|}
-1078|
-1079|/* =========================================================
-1080|   GUARDAR / HISTORIAL / OPERARIO
-1081|   ========================================================= */
-1082|function guardarProyecto(){
-1083|  const pNombre = document.getElementById("p-nombre").value
-1084|  const pCliente = document.getElementById("p-cliente").value
-1085|  proyectoActual.nombre = pNombre
-1086|  proyectoActual.cliente = pCliente
-1087|  proyectoActual.fecha = new Date().toISOString()
-1088|  historial.push({...proyectoActual})
-1089|  localStorage.setItem(STORE_KEYS.hist, JSON.stringify(historial))
-1090|  alert("Guardado OK")
-1091|}
-1092|
-1093|function renderHistorial(){
-1094|  const cont = document.getElementById("historial-lista")
-1095|  if(!cont) return
-1096|  if(!historial.length){ cont.innerHTML = `<div class="empty">Aún no hay proyectos guardados.</div>`; return }
-1097|  cont.innerHTML = historial.map((p,i)=>
-1098|    `<div class="item">
-1099|      <div class="info"><b>${esc(p.nombre||"(sin nombre)")}</b>${p.cliente?` · ${esc(p.cliente)}`:""} (${esc(p.tipo||"-")})${p.fecha?` — ${new Date(p.fecha).toLocaleString()}`:""}</div>
-1100|      <div class="actions">
-1101|        <button class="warn" onclick="editarHistorial(${i})">Editar</button>
-1102|        <button class="danger" onclick="eliminarHistorial(${i})">Eliminar</button>
-1103|      </div>
-1104|    </div>`
-1105|  ).join("")
-1106|}
-1107|
-1108|function editarHistorial(i){
-1109|  const p = historial[i]
-1110|  if(!p) return
-1111|  if(!confirm(`¿Está seguro que desea editar el proyecto "${p.nombre||"(sin nombre)"}"?`)) return
-1112|  const nuevoNombre = prompt("Nombre del proyecto:", p.nombre||"")
-1113|  if(nuevoNombre===null) return
-1114|  const nuevoCliente = prompt("Cliente:", p.cliente||"")
-1115|  if(nuevoCliente===null) return
-1116|  historial[i].nombre = nuevoNombre
-1117|  historial[i].cliente = nuevoCliente
-1118|  historial[i].fecha_modificacion = new Date().toISOString()
-1119|  localStorage.setItem(STORE_KEYS.hist, JSON.stringify(historial))
-1120|  renderHistorial()
-1121|}
-1122|
-1123|function eliminarHistorial(i){
-1124|  const p = historial[i]
-1125|  if(!p) return
-1126|  if(!confirm(`¿Está seguro que desea eliminar el proyecto "${p.nombre||"(sin nombre)"}"?\n\nEsta acción no se puede deshacer.`)) return
-1127|  historial.splice(i,1)
-1128|  localStorage.setItem(STORE_KEYS.hist, JSON.stringify(historial))
-1129|  renderHistorial()
-1130|}
-1131|
-1132|function enviarOperario(){
-1133|  alert("📤 Función de envío al operario pendiente de conectar en la siguiente fase.\n\nEl proyecto actual ya está calculado y se puede guardar en el Historial con el botón 'Guardar Proyecto'.")
-1134|}
-1135|
-1136|/* =========================================================
-1137|   INIT
-1138|   ========================================================= */
-1139|window.onload = function(){
-1140|  renderHistorial()
-1141|  renderCategory("stockMat")
-1142|  renderCategory("stockPint")
-1143|  renderCategory("stockChapa")
-1144|  renderCategory("pronMat")
-1145|  renderCategory("pronPint")
-1146|  renderCategory("pronChapa")
-1147|  refreshMateriales()
-1148|  runAb()
-1149|
-1150|  document.addEventListener("keydown", e=>{
-1151|    if(e.key==="Escape") closeModal()
-1152|    if(e.key==="Enter" && document.getElementById("modalBack").classList.contains("open")){
-1153|      if(document.activeElement && document.activeElement.tagName==="INPUT") modalSave()
-1154|    }
-1155|  })
-1156|}
-1157|</script>
-1158|</body>
-1159|</html>
-1160|
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSTCALC PRO</title>
+
+<style>
+:root { --p:#0f172a; --s:#3b82f6; --bg:#f1f5f9; --danger:#ef4444; --warn:#f59e0b; --ok:#10b981;}
+*{box-sizing:border-box}
+body{margin:0;display:flex;background:var(--bg);font-family:sans-serif;color:#0f172a}
+
+/* SIDEBAR */
+.sidebar{width:300px;background:var(--p);color:white;padding:20px;height:100vh;overflow:auto;}
+.sidebar h2{margin:0 0 12px 0}
+.nav-item{padding:12px;border-radius:8px;cursor:pointer;margin-bottom:5px;background:transparent;border:1px solid transparent;width:100%;text-align:left;color:white;font-size:0.95rem}
+.nav-item:hover{background:#1e293b}
+.nav-item.active{background:var(--s)}
+.category-title{padding:10px;margin-top:10px;background:#1e293b;border-radius:8px;cursor:pointer;font-size:0.8rem;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.category-title .chev{transition:transform .2s}
+.category-title.open .chev{transform:rotate(90deg)}
+.submenu{display:none;padding-left:10px;margin-top:4px}
+.submenu.open{display:block}
+
+/* MAIN */
+.main{flex:1;padding:30px;overflow:auto;height:100vh}
+.view{display:none}
+.view.active{display:block}
+.card{background:white;padding:20px;border-radius:12px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.grid{display:grid;grid-template-columns:1fr 480px;gap:20px;}
+input,select,textarea{width:100%;padding:10px;margin-top:5px;border:1px solid #ddd;border-radius:6px;font-size:0.95rem;font-family:inherit}
+button{margin-top:10px;padding:10px 14px;cursor:pointer;border:none;border-radius:8px;background:var(--s);color:white;font-size:0.9rem}
+button:hover{opacity:.92}
+button.secondary{background:#64748b}
+button.danger{background:var(--danger)}
+button.warn{background:var(--warn)}
+button.ok{background:var(--ok)}
+.res{background:#111;color:#0f0;padding:15px;border-radius:10px;font-family:monospace;min-height:60px;white-space:pre-wrap;font-size:0.85rem;line-height:1.45}
+canvas{width:100%;background:#fff;border:1px solid #e5e7eb;border-radius:8px}
+
+/* LIST WITH ACTIONS */
+.list{display:flex;flex-direction:column;gap:8px}
+.item{padding:10px 12px;background:#f8fafc;border-radius:6px;border:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.item .info{flex:1;min-width:0;font-size:0.9rem}
+.item .actions{display:flex;gap:6px;flex-shrink:0}
+.item .actions button{margin-top:0;padding:6px 10px;font-size:0.8rem}
+.empty{padding:14px;text-align:center;color:#64748b;background:#f8fafc;border:1px dashed #cbd5e1;border-radius:8px}
+
+/* TOOLBAR */
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.toolbar h3{margin:0}
+.toolbar .tools{display:flex;gap:8px;flex-wrap:wrap}
+.toolbar .tools button{margin-top:0}
+.badge{display:inline-block;padding:2px 8px;background:#e2e8f0;color:#334155;border-radius:999px;font-size:0.75rem;margin-left:8px;vertical-align:middle}
+
+/* FORM LAYOUT */
+.section{margin-bottom:18px;padding-bottom:12px;border-bottom:1px dashed #e2e8f0}
+.section:last-child{border-bottom:none}
+.section h4{margin:0 0 10px 0;font-size:0.95rem;color:#334155;display:flex;align-items:center;gap:8px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+label{font-size:0.82rem;color:#475569;display:block;margin-top:6px}
+.inline{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:0.88rem}
+.inline input[type=checkbox]{width:auto;margin:0}
+.radio-group{display:flex;gap:12px;margin-top:6px}
+.radio-group label{display:flex;align-items:center;gap:4px;margin:0;font-size:0.88rem;cursor:pointer}
+.radio-group input{width:auto;margin:0}
+.hint{font-size:0.78rem;color:#64748b;margin-top:4px}
+
+/* TRAMOS */
+.tramo{background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-top:8px}
+.tramo .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tramo .head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:0.85rem;font-weight:600}
+.tramo button{margin-top:0;padding:4px 8px;font-size:0.75rem}
+
+/* MODAL */
+.modal-back{display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-back.open{display:flex}
+.modal{background:white;border-radius:12px;padding:22px;width:100%;max-width:460px;box-shadow:0 10px 40px rgba(0,0,0,.25)}
+.modal h3{margin:0 0 12px 0}
+.modal .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.modal label{font-size:0.85rem;color:#334155;margin-top:8px;display:block}
+
+@media (max-width: 1100px){
+  .grid{grid-template-columns:1fr}
+}
+@media (max-width: 900px){
+  body{flex-direction:column}
+  .sidebar{width:100%; height:auto; }
+  .main{padding:16px;height:auto}
+  .row4{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+
+<body>
+
+<div class="sidebar" aria-label="Menú lateral">
+  <h2>MSTCALC</h2>
+
+  <button class="nav-item active" onclick="showView('v-datos',this)">Proyecto</button>
+  <button class="nav-item" onclick="showView('v-historial',this)">Historial</button>
+
+  <div class="category-title open" onclick="toggle('trabajos',this)">Trabajos <span class="chev">›</span></div>
+  <div id="trabajos" class="submenu open">
+    <div class="category-title open" onclick="toggle('puertas',this)">Puertas <span class="chev">›</span></div>
+    <div id="puertas" class="submenu open">
+      <button class="nav-item" onclick="showView('v-abatibles',this)">Abatibles</button>
+      <button class="nav-item" onclick="showView('v-correderas',this)">Correderas</button>
+      <button class="nav-item" onclick="showView('v-auto',this)">Autoportantes</button>
+    </div>
+    <div class="category-title open" onclick="toggle('estructuras',this)">Estructuras <span class="chev">›</span></div>
+    <div id="estructuras" class="submenu open">
+      <button class="nav-item" onclick="showView('v-barandillas',this)">Barandillas</button>
+      <button class="nav-item" onclick="showView('v-vallas',this)">Vallas</button>
+    </div>
+  </div>
+
+  <div class="category-title" onclick="toggle('stock',this)">Stock <span class="chev">›</span></div>
+  <div id="stock" class="submenu">
+    <button class="nav-item" onclick="showView('v-stock-materiales',this)">Materiales</button>
+    <button class="nav-item" onclick="showView('v-stock-pinturas',this)">Pinturas</button>
+    <button class="nav-item" onclick="showView('v-stock-chapas',this)">Chapas</button>
+  </div>
+
+  <div class="category-title" onclick="toggle('prontuario',this)">Prontuario <span class="chev">›</span></div>
+  <div id="prontuario" class="submenu">
+    <button class="nav-item" onclick="showView('v-prontuario-materiales',this)">Materiales</button>
+    <button class="nav-item" onclick="showView('v-prontuario-pinturas',this)">Pinturas</button>
+    <button class="nav-item" onclick="showView('v-prontuario-chapas',this)">Chapas</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- PROYECTO -->
+  <div id="v-datos" class="view active">
+    <div class="card">
+      <h3>Proyecto</h3>
+      <input id="p-nombre" placeholder="Nombre">
+      <input id="p-cliente" placeholder="Cliente">
+      <button onclick="guardarProyecto()">💾 Guardar Proyecto</button>
+    </div>
+  </div>
+
+  <!-- ABATIBLE (rediseñada) -->
+  <div id="v-abatibles" class="view">
+    <div class="grid">
+      <div class="card">
+        <h3 style="margin-top:0">Puerta Abatible</h3>
+
+        <!-- DIMENSIONES -->
+        <div class="section">
+          <h4>📐 Dimensiones exteriores del marco</h4>
+          <div class="row2">
+            <div><label>Ancho W (mm)</label><input id="ab-w" value="1000" oninput="runAb()"></div>
+            <div><label>Alto H (mm)</label><input id="ab-h" value="2100" oninput="runAb()"></div>
+          </div>
+        </div>
+
+        <!-- MATERIAL MARCO -->
+        <div class="section">
+          <h4>🔩 Material del marco</h4>
+          <select id="ab-mat-marco" onchange="onMatMarcoChange()"></select>
+          <div class="hint" id="ab-mat-marco-info">—</div>
+          <label>Tipo de corte</label>
+          <div class="radio-group">
+            <label><input type="radio" name="corte-marco" value="45" onchange="runAb()"> Inglete 45°</label>
+            <label><input type="radio" name="corte-marco" value="90" onchange="runAb()"> Escuadra 90°</label>
+          </div>
+        </div>
+
+        <!-- HOLGURAS -->
+        <div class="section">
+          <h4>↔️ Holguras entre marco y hoja (mm)</h4>
+          <div class="row4">
+            <div><label>Sup.</label><input id="ab-gap-sup" value="5" oninput="runAb()"></div>
+            <div><label>Inf.</label><input id="ab-gap-inf" value="5" oninput="runAb()"></div>
+            <div><label>Izq.</label><input id="ab-gap-izq" value="4" oninput="runAb()"></div>
+            <div><label>Der.</label><input id="ab-gap-der" value="4" oninput="runAb()"></div>
+          </div>
+        </div>
+
+        <!-- MATERIAL HOJA -->
+        <div class="section">
+          <h4>🚪 Material de la hoja</h4>
+          <div class="inline"><input type="checkbox" id="ab-hoja-igual" checked onchange="toggleHojaMat()"> <span>Mismo perfil que el marco</span></div>
+          <select id="ab-mat-hoja" onchange="onMatHojaChange()" disabled></select>
+          <div class="hint" id="ab-mat-hoja-info">—</div>
+          <label>Tipo de corte hoja</label>
+          <div class="radio-group">
+            <label><input type="radio" name="corte-hoja" value="45" onchange="runAb()"> Inglete 45°</label>
+            <label><input type="radio" name="corte-hoja" value="90" onchange="runAb()"> Escuadra 90°</label>
+          </div>
+        </div>
+
+        <!-- CHAPA -->
+        <div class="section">
+          <h4>🟫 Chapa (forrado)</h4>
+          <div class="inline"><input type="checkbox" id="ab-chapa-on" onchange="toggleChapa()"> <span>La puerta lleva chapa</span></div>
+          <div id="ab-chapa-block" style="display:none">
+            <label>Chapa (Prontuario)</label>
+            <select id="ab-mat-chapa" onchange="runAb()"></select>
+            <label>Modo</label>
+            <div class="radio-group">
+              <label><input type="radio" name="chapa-modo" value="completa" checked onchange="toggleChapaModo()"> Completa</label>
+              <label><input type="radio" name="chapa-modo" value="tramos" onchange="toggleChapaModo()"> Por tramos</label>
+            </div>
+            <div id="ab-chapa-tramos" style="display:none;margin-top:8px">
+              <button class="ok" onclick="addTramo()">+ Añadir tramo</button>
+              <div id="tramos-list"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BARROTES -->
+        <div class="section">
+          <h4>┃ Barrotes</h4>
+          <div class="inline"><input type="checkbox" id="ab-barr-on" onchange="toggleBarr()"> <span>La puerta lleva barrotes</span></div>
+          <div id="ab-barr-block" style="display:none">
+            <label>Material (Prontuario)</label>
+            <select id="ab-mat-barr" onchange="runAb()"></select>
+            <label>Orientación</label>
+            <div class="radio-group">
+              <label><input type="radio" name="barr-ori" value="V" checked onchange="runAb()"> Verticales</label>
+              <label><input type="radio" name="barr-ori" value="H" onchange="runAb()"> Horizontales</label>
+            </div>
+            <label>Separación objetivo (mm)</label>
+            <input id="ab-barr-sep" value="100" oninput="runAb()">
+            <div class="hint" id="ab-barr-info">—</div>
+          </div>
+        </div>
+
+        <!-- CERRADURA -->
+        <div class="section">
+          <h4>🔒 Cerradura</h4>
+          <div class="row2">
+            <div>
+              <label>Lado</label>
+              <select id="ab-cerr-lado" onchange="runAb()">
+                <option value="izq">Izquierda</option>
+                <option value="der" selected>Derecha</option>
+              </select>
+            </div>
+            <div><label>Altura desde suelo (mm)</label><input id="ab-cerr-alt" value="1050" oninput="runAb()"></div>
+          </div>
+        </div>
+
+        <button onclick="runAb()">🔄 Recalcular</button>
+        <button class="secondary" onclick="enviarOperario()" title="Próxima fase">📤 Enviar al operario</button>
+      </div>
+
+      <div>
+        <div class="card" style="padding:12px;margin-bottom:10px">
+          <canvas id="cv" width="520" height="640"></canvas>
+        </div>
+        <div id="ab-res" class="res"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div id="v-historial" class="view">
+    <div class="card">
+      <div class="toolbar"><h3>Historial</h3></div>
+      <div id="historial-lista" class="list"></div>
+    </div>
+  </div>
+
+  <!-- STOCK: MATERIALES -->
+  <div id="v-stock-materiales" class="view">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Stock · Materiales <span id="count-stock-mat" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" onclick="openModal('stockMat')">➕ Agregar</button>
+          <button class="warn" onclick="promptEdit('stockMat')">✏️ Editar</button>
+          <button class="danger" onclick="promptDelete('stockMat')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-stockMat" class="list"></div>
+    </div>
+  </div>
+
+  <!-- STOCK: PINTURAS -->
+  <div id="v-stock-pinturas" class="view">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Stock · Pinturas <span id="count-stock-pint" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" onclick="openModal('stockPint')">➕ Agregar</button>
+          <button class="warn" onclick="promptEdit('stockPint')">✏️ Editar</button>
+          <button class="danger" onclick="promptDelete('stockPint')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-stockPint" class="list"></div>
+    </div>
+  </div>
+
+  <!-- STOCK: CHAPAS -->
+  <div id="v-stock-chapas" class="view">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Stock · Chapas <span id="count-stock-chapa" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" onclick="openModal('stockChapa')">➕ Agregar</button>
+          <button class="warn" onclick="promptEdit('stockChapa')">✏️ Editar</button>
+          <button class="danger" onclick="promptDelete('stockChapa')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-stockChapa" class="list"></div>
+    </div>
+  </div>
+
+  <!-- PRONTUARIO: MATERIALES -->
+  <div id="v-prontuario-materiales" class="view">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Prontuario · Materiales <span id="count-pron-mat" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" onclick="openModal('pronMat')">➕ Agregar</button>
+          <button class="warn" onclick="promptEdit('pronMat')">✏️ Editar</button>
+          <button class="danger" onclick="promptDelete('pronMat')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-pronMat" class="list"></div>
+    </div>
+  </div>
+
+  <!-- PRONTUARIO: PINTURAS -->
+  <div id="v-prontuario-pinturas" class="view">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Prontuario · Pinturas <span id="count-pron-pint" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" onclick="openModal('pronPint')">➕ Agregar</button>
+          <button class="warn" onclick="promptEdit('pronPint')">✏️ Editar</button>
+          <button class="danger" onclick="promptDelete('pronPint')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-pronPint" class="list"></div>
+    </div>
+  </div>
+
+  <!-- PRONTUARIO: CHAPAS -->
+  <div id="v-prontuario-chapas" class="view">
+    <div class="card">
+      <div class="toolbar">
+        <h3>Prontuario · Chapas <span id="count-pron-chapa" class="badge">0</span></h3>
+        <div class="tools">
+          <button class="ok" onclick="openModal('pronChapa')">➕ Agregar</button>
+          <button class="warn" onclick="promptEdit('pronChapa')">✏️ Editar</button>
+          <button class="danger" onclick="promptDelete('pronChapa')">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div id="list-pronChapa" class="list"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL GENÉRICO -->
+<div class="modal-back" id="modalBack" onclick="closeModalOnBack(event)">
+  <div class="modal" id="modal">
+    <h3 id="modalTitle">Agregar</h3>
+    <div id="modalFields"></div>
+    <div class="row">
+      <button class="secondary" onclick="closeModal()">Cancelar</button>
+      <button class="ok" onclick="modalSave()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   DATOS / CATEGORÍAS
+   ========================================================= */
+const STORE_KEYS = {
+  stockMat:   "mst_stock_materiales",
+  stockPint:  "mst_stock_pinturas",
+  stockChapa: "mst_stock_chapas",
+  pronMat:    "mst_prontuario_materiales",
+  pronPint:   "mst_prontuario_pinturas",
+  pronChapa:  "mst_prontuario_chapas",
+  hist:       "mst_hist"
+}
+
+const CATEGORIES = {
+  stockMat: {
+    label:"Material (Stock)", listId:"list-stockMat", countId:"count-stock-mat",
+    fields:[
+      {key:"nombre", label:"Nombre / Referencia", type:"text", required:true},
+      {key:"longitud", label:"Longitud de la pieza (mm)", type:"number", required:true, min:0},
+      {key:"cantidad", label:"Cantidad (nº piezas)", type:"number", required:true, min:0},
+      {key:"cantilever", label:"Cantilever / Zona", type:"text"}
+    ],
+    render:(it)=>`<b>${esc(it.nombre)}</b> — ${it.cantidad} ud × ${it.longitud} mm${it.cantilever?` · 📍 ${esc(it.cantilever)}`:""}`
+  },
+  stockPint: {
+    label:"Pintura (Stock)", listId:"list-stockPint", countId:"count-stock-pint",
+    fields:[
+      {key:"nombre", label:"Nombre pintura", type:"text", required:true},
+      {key:"codigo", label:"Código", type:"text"},
+      {key:"cantidad", label:"Cantidad (L)", type:"number", min:0}
+    ],
+    render:(it)=>`<b>${esc(it.nombre)}</b>${it.codigo?` · ${esc(it.codigo)}`:""}${it.cantidad!=null&&it.cantidad!==""?` · ${it.cantidad} L`:""}`
+  },
+  stockChapa: {
+    label:"Chapa (Stock)", listId:"list-stockChapa", countId:"count-stock-chapa",
+    fields:[
+      {key:"nombre", label:"Nombre", type:"text", required:true},
+      {key:"tipo", label:"Tipo (lisa, lagrimada, perforada…)", type:"text"},
+      {key:"espesor", label:"Espesor (mm)", type:"number", required:true, min:0},
+      {key:"ancho", label:"Ancho (mm)", type:"number"},
+      {key:"largo", label:"Largo (mm)", type:"number"},
+      {key:"cantidad", label:"Cantidad (ud)", type:"number", min:0},
+      {key:"cantilever", label:"Cantilever / Zona", type:"text"}
+    ],
+    render:(it)=>`<b>${esc(it.nombre)}</b>${it.tipo?` · ${esc(it.tipo)}`:""} · e=${it.espesor}mm${it.ancho&&it.largo?` · ${it.ancho}×${it.largo}`:""}${it.cantidad?` · ${it.cantidad} ud`:""}${it.cantilever?` · 📍 ${esc(it.cantilever)}`:""}`
+  },
+  pronMat: {
+    label:"Material (Prontuario)", listId:"list-pronMat", countId:"count-pron-mat",
+    fields:[
+      {key:"nombre", label:"Nombre", type:"text", required:true},
+      {key:"tipo", label:"Tipo / Perfil", type:"text"},
+      {key:"lado1", label:"Lado 1 / cara (mm)", type:"number", min:0},
+      {key:"lado2", label:"Lado 2 / cara (mm)", type:"number", min:0},
+      {key:"espesor", label:"Espesor (mm)", type:"number", min:0},
+      {key:"longitud_barra", label:"Longitud barra (mm) — 6000 / 12000 / personalizado", type:"number", min:0},
+      {key:"precio", label:"Precio por barra (€)", type:"number", min:0},
+      {key:"notas", label:"Notas", type:"text"}
+    ],
+    render:(it)=>`<b>${esc(it.nombre)}</b>${it.tipo?` · ${esc(it.tipo)}`:""}${it.lado1?` · ${it.lado1}×${it.lado2||it.lado1}×${it.espesor||"?"}mm`:""}${it.longitud_barra?` · barra ${it.longitud_barra}mm`:""}${it.precio?` · <b>${it.precio}€</b>/barra`:""}${it.notas?` — ${esc(it.notas)}`:""}`
+  },
+  pronPint: {
+    label:"Pintura (Prontuario)", listId:"list-pronPint", countId:"count-pron-pint",
+    fields:[
+      {key:"nombre", label:"Nombre pintura", type:"text", required:true},
+      {key:"codigo", label:"Código RAL / referencia", type:"text"},
+      {key:"acabado", label:"Acabado (mate, satinado…)", type:"text"},
+      {key:"notas", label:"Notas", type:"text"}
+    ],
+    render:(it)=>`<b>${esc(it.nombre)}</b>${it.codigo?` · ${esc(it.codigo)}`:""}${it.acabado?` · ${esc(it.acabado)}`:""}${it.notas?` — ${esc(it.notas)}`:""}`
+  },
+  pronChapa: {
+    label:"Chapa (Prontuario)", listId:"list-pronChapa", countId:"count-pron-chapa",
+    fields:[
+      {key:"nombre", label:"Nombre", type:"text", required:true},
+      {key:"tipo", label:"Tipo (lisa, lagrimada, perforada…)", type:"text"},
+      {key:"espesor", label:"Espesor (mm)", type:"number", required:true, min:0},
+      {key:"ancho", label:"Ancho estándar (mm)", type:"number"},
+      {key:"largo", label:"Largo estándar (mm)", type:"number"},
+      {key:"precio", label:"Precio por plancha (€)", type:"number", min:0},
+      {key:"notas", label:"Notas", type:"text"}
+    ],
+    render:(it)=>`<b>${esc(it.nombre)}</b>${it.tipo?` · ${esc(it.tipo)}`:""} · e=${it.espesor}mm${it.ancho&&it.largo?` · ${it.ancho}×${it.largo}`:""}${it.precio?` · <b>${it.precio}€</b>/plancha`:""}${it.notas?` — ${esc(it.notas)}`:""}`
+  }
+}
+
+function esc(s){
+  if(s==null) return ""
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))
+}
+function loadData(cat){ try { return JSON.parse(localStorage.getItem(STORE_KEYS[cat])) || [] } catch { return [] } }
+function saveData(cat, arr){ localStorage.setItem(STORE_KEYS[cat], JSON.stringify(arr)) }
+
+const data = {
+  stockMat: loadData("stockMat"),
+  stockPint: loadData("stockPint"),
+  stockChapa: loadData("stockChapa"),
+  pronMat: loadData("pronMat"),
+  pronPint: loadData("pronPint"),
+  pronChapa: loadData("pronChapa")
+}
+let historial = JSON.parse(localStorage.getItem(STORE_KEYS.hist)) || []
+let proyectoActual = {}
+
+/* =========================================================
+   NAV
+   ========================================================= */
+function toggle(id, el){
+  const sub = document.getElementById(id)
+  if(!sub) return
+  sub.classList.toggle('open')
+  if(el) el.classList.toggle('open')
+}
+function showView(id, el){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+  const view = document.getElementById(id)
+  if(view) view.classList.add('active')
+  if(el) el.classList.add('active')
+
+  if(id==="v-historial") renderHistorial()
+  if(id==="v-stock-materiales")       renderCategory("stockMat")
+  if(id==="v-stock-pinturas")         renderCategory("stockPint")
+  if(id==="v-stock-chapas")           renderCategory("stockChapa")
+  if(id==="v-prontuario-materiales")  renderCategory("pronMat")
+  if(id==="v-prontuario-pinturas")    renderCategory("pronPint")
+  if(id==="v-prontuario-chapas")      renderCategory("pronChapa")
+  if(id==="v-abatibles"){ refreshMateriales(); runAb() }
+}
+
+/* =========================================================
+   CRUD GENÉRICO
+   ========================================================= */
+function renderCategory(cat){
+  const cfg = CATEGORIES[cat]
+  const cont = document.getElementById(cfg.listId)
+  const count = document.getElementById(cfg.countId)
+  if(!cont) return
+  const items = data[cat]
+  if(count) count.textContent = items.length
+  if(!items.length){
+    cont.innerHTML = `<div class="empty">Sin entradas. Pulsa "Agregar" para crear la primera.</div>`
+    return
+  }
+  cont.innerHTML = items.map((it,i)=>`
+    <div class="item">
+      <div class="info">${cfg.render(it)}</div>
+      <div class="actions">
+        <button class="warn" onclick="openModal('${cat}',${i})">Editar</button>
+        <button class="danger" onclick="deleteItem('${cat}',${i})">Eliminar</button>
+      </div>
+    </div>`).join("")
+}
+
+let modalState = { cat:null, index:null }
+function openModal(cat, index=null){
+  const cfg = CATEGORIES[cat]
+  if(!cfg) return
+  modalState = { cat, index:(typeof index==="number"?index:null) }
+  document.getElementById("modalTitle").textContent = (modalState.index===null?"Agregar ":"Editar ") + cfg.label
+  const fieldsHtml = cfg.fields.map(f=>{
+    const val = modalState.index!=null ? (data[cat][modalState.index]?.[f.key] ?? "") : ""
+    return `<label>${f.label}${f.required?" *":""}</label><input data-field="${f.key}" type="${f.type||'text'}" ${f.min!=null?`min="${f.min}"`:""} value="${esc(val)}">`
+  }).join("")
+  document.getElementById("modalFields").innerHTML = fieldsHtml
+  document.getElementById("modalBack").classList.add("open")
+  setTimeout(()=>{ const first=document.querySelector("#modalFields input"); if(first) first.focus() },50)
+}
+function closeModal(){ document.getElementById("modalBack").classList.remove("open"); modalState = { cat:null, index:null } }
+function closeModalOnBack(e){ if(e.target.id==="modalBack") closeModal() }
+function modalSave(){
+  const { cat, index } = modalState
+  if(!cat) return
+  const cfg = CATEGORIES[cat]
+  const obj = {}
+  for(const f of cfg.fields){
+    const input = document.querySelector(`#modalFields input[data-field="${f.key}"]`)
+    let v = input ? input.value.trim() : ""
+    if(f.required && !v){ alert(`El campo "${f.label}" es obligatorio`); input?.focus(); return }
+    if(f.type==="number" && v!==""){
+      const n = Number(v)
+      if(!isFinite(n)){ alert(`"${f.label}" debe ser numérico`); return }
+      v = n
+    }
+    obj[f.key] = v
+  }
+  if(index===null) data[cat].push(obj)
+  else data[cat][index] = obj
+  saveData(cat, data[cat])
+  renderCategory(cat)
+  closeModal()
+}
+function deleteItem(cat, index){
+  const it = data[cat][index]
+  const nombre = it?.nombre || "esta entrada"
+  if(!confirm(`¿Está seguro que desea eliminar "${nombre}"?\n\nEsta acción no se puede deshacer.`)) return
+  data[cat].splice(index,1)
+  saveData(cat, data[cat])
+  renderCategory(cat)
+}
+function promptEdit(cat){
+  const items = data[cat]
+  if(!items.length){ alert("No hay entradas."); return }
+  const idx = askIndex(items, "editar"); if(idx!=null) openModal(cat, idx)
+}
+function promptDelete(cat){
+  const items = data[cat]
+  if(!items.length){ alert("No hay entradas."); return }
+  const idx = askIndex(items, "eliminar"); if(idx!=null) deleteItem(cat, idx)
+}
+function askIndex(items, verbo){
+  const list = items.map((it,i)=>`${i+1}. ${it.nombre||"(sin nombre)"}`).join("\n")
+  const raw = prompt(`Indica el nº a ${verbo}:\n\n${list}`)
+  if(raw===null) return null
+  const n = parseInt(raw,10)
+  if(!isFinite(n) || n<1 || n>items.length){ alert("Número inválido"); return null }
+  return n-1
+}
+
+/* =========================================================
+   ABATIBLES - LÓGICA
+   ========================================================= */
+function parseProfile(item){
+  if(!item) return null
+  // Campos directos (nuevos)
+  let l1 = Number(item.lado1)||null
+  let l2 = Number(item.lado2)||null
+  let es = Number(item.espesor)||null
+  // Fallback: regex en notas "lado1=40mm, lado2=40mm, espesor=2mm"
+  if(!l1 || !l2 || !es){
+    const notas = String(item.notas||"")
+    const m1 = /lado1\s*=\s*(\d+(?:[.,]\d+)?)/i.exec(notas)
+    const m2 = /lado2\s*=\s*(\d+(?:[.,]\d+)?)/i.exec(notas)
+    const me = /espesor\s*=\s*(\d+(?:[.,]\d+)?)/i.exec(notas)
+    if(!l1 && m1) l1 = parseFloat(m1[1].replace(",","."))
+    if(!l2 && m2) l2 = parseFloat(m2[1].replace(",","."))
+    if(!es && me) es = parseFloat(me[1].replace(",","."))
+  }
+  // Fallback: regex en el nombre "Tubo cuadrado 40x40x2"
+  if(!l1 || !l2 || !es){
+    const m = /(\d+)\s*[xX×]\s*(\d+)\s*[xX×]\s*(\d+(?:[.,]\d+)?)/.exec(String(item.nombre||""))
+    if(m){
+      if(!l1) l1=+m[1]; if(!l2) l2=+m[2]; if(!es) es=parseFloat(m[3].replace(",","."))
+    }
+  }
+  return { lado1:l1, lado2:l2, espesor:es, tipo:String(item.tipo||item.nombre||"").toLowerCase(), nombre:item.nombre||"" }
+}
+
+function refreshMateriales(){
+  // Cargar en los select los materiales del prontuario
+  const selMarco = document.getElementById("ab-mat-marco")
+  const selHoja  = document.getElementById("ab-mat-hoja")
+  const selChapa = document.getElementById("ab-mat-chapa")
+  const selBarr  = document.getElementById("ab-mat-barr")
+  if(!selMarco) return
+  const mats = data.pronMat
+  const optsMat = mats.length
+    ? mats.map((m,i)=>`<option value="${i}">${esc(m.nombre)}</option>`).join("")
+    : `<option value="">(Añade materiales al Prontuario)</option>`
+  // conservar selección previa si existe
+  const prev = { marco:selMarco.value, hoja:selHoja.value, barr:selBarr.value }
+  selMarco.innerHTML = optsMat
+  selHoja.innerHTML  = optsMat
+  selBarr.innerHTML  = optsMat
+  if(prev.marco && selMarco.querySelector(`option[value="${prev.marco}"]`)) selMarco.value = prev.marco
+  if(prev.hoja  && selHoja.querySelector(`option[value="${prev.hoja}"]`))   selHoja.value  = prev.hoja
+  if(prev.barr  && selBarr.querySelector(`option[value="${prev.barr}"]`))   selBarr.value  = prev.barr
+
+  const chapas = data.pronChapa
+  selChapa.innerHTML = chapas.length
+    ? chapas.map((c,i)=>`<option value="${i}">${esc(c.nombre)}</option>`).join("")
+    : `<option value="">(Añade chapas al Prontuario)</option>`
+
+  onMatMarcoChange()
+  onMatHojaChange()
+  autoSugerirCorte()
+}
+
+function autoSugerirCorte(){
+  // Sugerir 45° si es tubo cuadrado/rectangular, 90° en el resto. Sólo si no hay nada marcado.
+  const mk = data.pronMat[+document.getElementById("ab-mat-marco").value]
+  const tipo = String(mk?.tipo||mk?.nombre||"").toLowerCase()
+  const sug = /tubo\s*(cuadrado|rectangular)/.test(tipo) ? "45" : "90"
+  const marcoRadios = document.querySelectorAll('input[name="corte-marco"]')
+  if(![...marcoRadios].some(r=>r.checked)){
+    const r = document.querySelector(`input[name="corte-marco"][value="${sug}"]`); if(r) r.checked = true
+  }
+  const hojaRadios = document.querySelectorAll('input[name="corte-hoja"]')
+  if(![...hojaRadios].some(r=>r.checked)){
+    const r = document.querySelector(`input[name="corte-hoja"][value="${sug}"]`); if(r) r.checked = true
+  }
+}
+
+function onMatMarcoChange(){
+  const it = data.pronMat[+document.getElementById("ab-mat-marco").value]
+  const p = parseProfile(it)
+  document.getElementById("ab-mat-marco-info").textContent = p && p.lado1 ? `Perfil: ${p.lado1}×${p.lado2||p.lado1}×${p.espesor||"?"} mm` : "—"
+  if(document.getElementById("ab-hoja-igual").checked){
+    document.getElementById("ab-mat-hoja").value = document.getElementById("ab-mat-marco").value
+    onMatHojaChange()
+  }
+  runAb()
+}
+function onMatHojaChange(){
+  const it = data.pronMat[+document.getElementById("ab-mat-hoja").value]
+  const p = parseProfile(it)
+  document.getElementById("ab-mat-hoja-info").textContent = p && p.lado1 ? `Perfil: ${p.lado1}×${p.lado2||p.lado1}×${p.espesor||"?"} mm` : "—"
+  runAb()
+}
+function toggleHojaMat(){
+  const igual = document.getElementById("ab-hoja-igual").checked
+  const selH = document.getElementById("ab-mat-hoja")
+  selH.disabled = igual
+  if(igual){ selH.value = document.getElementById("ab-mat-marco").value; onMatHojaChange() }
+  runAb()
+}
+function toggleChapa(){
+  document.getElementById("ab-chapa-block").style.display = document.getElementById("ab-chapa-on").checked ? "block" : "none"
+  runAb()
+}
+function toggleChapaModo(){
+  const modo = document.querySelector('input[name="chapa-modo"]:checked').value
+  document.getElementById("ab-chapa-tramos").style.display = modo==="tramos" ? "block" : "none"
+  runAb()
+}
+function toggleBarr(){
+  document.getElementById("ab-barr-block").style.display = document.getElementById("ab-barr-on").checked ? "block" : "none"
+  runAb()
+}
+
+/* Tramos de chapa */
+let tramos = []
+function addTramo(){
+  tramos.push({ orient:"H", ref:"abajo", desde:0, alto:400, ancho:0 })
+  renderTramos(); runAb()
+}
+function removeTramo(i){ tramos.splice(i,1); renderTramos(); runAb() }
+function updTramo(i,key,val){
+  tramos[i][key] = (key==="orient"||key==="ref") ? val : (val===""?"":Number(val))
+  runAb()
+}
+function renderTramos(){
+  const cont = document.getElementById("tramos-list")
+  cont.innerHTML = tramos.map((t,i)=>`
+    <div class="tramo">
+      <div class="head">
+        <span>Tramo ${i+1}</span>
+        <button class="danger" onclick="removeTramo(${i})">Eliminar</button>
+      </div>
+      <div class="row2">
+        <div>
+          <label>Orientación</label>
+          <select onchange="updTramo(${i},'orient',this.value)">
+            <option value="H" ${t.orient==="H"?"selected":""}>Horizontal (franja)</option>
+            <option value="V" ${t.orient==="V"?"selected":""}>Vertical (tira)</option>
+          </select>
+        </div>
+        <div>
+          <label>Referencia</label>
+          <select onchange="updTramo(${i},'ref',this.value)">
+            ${t.orient==="H"
+              ? `<option value="abajo" ${t.ref==="abajo"?"selected":""}>Desde abajo</option>
+                 <option value="arriba" ${t.ref==="arriba"?"selected":""}>Desde arriba</option>`
+              : `<option value="cerradura" ${t.ref==="cerradura"?"selected":""}>Desde lado cerradura</option>
+                 <option value="contrario" ${t.ref==="contrario"?"selected":""}>Desde lado contrario</option>`}
+          </select>
+        </div>
+      </div>
+      <div class="row3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:6px">
+        <div><label>Desde (mm)</label><input type="number" value="${t.desde}" oninput="updTramo(${i},'desde',this.value)"></div>
+        <div><label>${t.orient==="H"?"Alto":"Ancho"} tramo (mm)</label><input type="number" value="${t.orient==="H"?t.alto:t.ancho}" oninput="updTramo(${i},'${t.orient==="H"?"alto":"ancho"}',this.value)"></div>
+        <div><label>${t.orient==="H"?"Ancho (0=todo)":"Alto (0=todo)"}</label><input type="number" value="${t.orient==="H"?t.ancho:t.alto}" oninput="updTramo(${i},'${t.orient==="H"?"ancho":"alto"}',this.value)"></div>
+      </div>
+    </div>
+  `).join("")
+}
+
+/* =========================================================
+   CÁLCULO
+   ========================================================= */
+let lastCalc = null
+
+function runAb(){
+  const W = +document.getElementById("ab-w").value
+  const H = +document.getElementById("ab-h").value
+  const res = document.getElementById("ab-res")
+  if(!isFinite(W)||!isFinite(H)||W<=0||H<=0){ res.textContent="Introduce W y H válidos (>0)"; return }
+
+  const gapSup = +document.getElementById("ab-gap-sup").value || 0
+  const gapInf = +document.getElementById("ab-gap-inf").value || 0
+  const gapIzq = +document.getElementById("ab-gap-izq").value || 0
+  const gapDer = +document.getElementById("ab-gap-der").value || 0
+
+  const matMarco = data.pronMat[+document.getElementById("ab-mat-marco").value]
+  const pM = parseProfile(matMarco)
+  if(!pM || !pM.lado1){ res.textContent="Selecciona un material de marco válido del Prontuario"; dibujarVacio(); return }
+  const T1 = pM.lado1
+
+  const igualHoja = document.getElementById("ab-hoja-igual").checked
+  const matHoja = igualHoja ? matMarco : data.pronMat[+document.getElementById("ab-mat-hoja").value]
+  const pH = parseProfile(matHoja)
+  const T2 = pH?.lado1 || T1
+
+  const corteMarco = (document.querySelector('input[name="corte-marco"]:checked')||{}).value || "45"
+  const corteHoja  = (document.querySelector('input[name="corte-hoja"]:checked')||{}).value  || "45"
+
+  /* ---- MARCO ---- */
+  const marco = []
+  if(corteMarco==="45"){
+    marco.push({pieza:"Marco · Horizontal SUP", cantidad:1, largo:W, corte:"45°/45° inglete"})
+    marco.push({pieza:"Marco · Horizontal INF", cantidad:1, largo:W, corte:"45°/45° inglete"})
+    marco.push({pieza:"Marco · Vertical IZQ",   cantidad:1, largo:H, corte:"45°/45° inglete"})
+    marco.push({pieza:"Marco · Vertical DER",   cantidad:1, largo:H, corte:"45°/45° inglete"})
+  } else {
+    // verticales pasantes
+    marco.push({pieza:"Marco · Vertical IZQ",   cantidad:1, largo:H,        corte:"90° (pasante)"})
+    marco.push({pieza:"Marco · Vertical DER",   cantidad:1, largo:H,        corte:"90° (pasante)"})
+    marco.push({pieza:"Marco · Horizontal SUP", cantidad:1, largo:W-2*T1,   corte:"90° (entre verticales)"})
+    marco.push({pieza:"Marco · Horizontal INF", cantidad:1, largo:W-2*T1,   corte:"90° (entre verticales)"})
+  }
+
+  /* ---- HOJA ---- */
+  // Hueco interior del marco = W - 2T1 × H - 2T1
+  // Hoja exterior = hueco - gaps
+  const hojaW = W - 2*T1 - gapIzq - gapDer
+  const hojaH = H - 2*T1 - gapSup - gapInf
+  if(hojaW<=0 || hojaH<=0){ res.textContent="Gaps demasiado grandes para las dimensiones dadas."; dibujarVacio(); return }
+
+  const hoja = []
+  if(corteHoja==="45"){
+    hoja.push({pieza:"Hoja · Horizontal SUP", cantidad:1, largo:hojaW, corte:"45°/45° inglete"})
+    hoja.push({pieza:"Hoja · Horizontal INF", cantidad:1, largo:hojaW, corte:"45°/45° inglete"})
+    hoja.push({pieza:"Hoja · Vertical IZQ",   cantidad:1, largo:hojaH, corte:"45°/45° inglete"})
+    hoja.push({pieza:"Hoja · Vertical DER",   cantidad:1, largo:hojaH, corte:"45°/45° inglete"})
+  } else {
+    hoja.push({pieza:"Hoja · Vertical IZQ",   cantidad:1, largo:hojaH,        corte:"90° (pasante)"})
+    hoja.push({pieza:"Hoja · Vertical DER",   cantidad:1, largo:hojaH,        corte:"90° (pasante)"})
+    hoja.push({pieza:"Hoja · Horizontal SUP", cantidad:1, largo:hojaW-2*T2,   corte:"90° (entre verticales)"})
+    hoja.push({pieza:"Hoja · Horizontal INF", cantidad:1, largo:hojaW-2*T2,   corte:"90° (entre verticales)"})
+  }
+
+  // Interior de la hoja (donde van chapa y barrotes)
+  const intW = hojaW - 2*T2
+  const intH = hojaH - 2*T2
+
+  /* ---- BARROTES ---- */
+  const barr = []
+  let barrInfo = "—"
+  const barrOn = document.getElementById("ab-barr-on").checked
+  let barrCalc = null
+  if(barrOn){
+    const matBarr = data.pronMat[+document.getElementById("ab-mat-barr").value]
+    const pB = parseProfile(matBarr)
+    const ori = (document.querySelector('input[name="barr-ori"]:checked')||{}).value || "V"
+    const sepObj = +document.getElementById("ab-barr-sep").value || 100
+    const dispo = ori==="V" ? intW : intH
+    const longBarr = ori==="V" ? intH : intW
+    if(dispo>0 && sepObj>0){
+      // N+1 gaps entre bordes. N+1 = round(dispo/sepObj)
+      const gaps = Math.max(1, Math.round(dispo/sepObj))
+      const N = Math.max(0, gaps - 1) // barras entre bordes
+      const sepReal = dispo/gaps
+      const dif = sepReal - sepObj
+      const tipoB = matBarr ? matBarr.nombre : "(sin material)"
+      barrInfo = `N = ${N} barrotes · separación real = ${sepReal.toFixed(1)} mm (objetivo ${sepObj}). ${Math.abs(dif)<0.5?"Exacto con el objetivo.":`Sugerencia: ajusta a ${sepReal.toFixed(1)} mm para distribución uniforme.`}`
+      if(N>0) barr.push({pieza:`Barrote ${ori==="V"?"vertical":"horizontal"} · ${tipoB}`, cantidad:N, largo:longBarr, corte:"90°"})
+      barrCalc = { ori, N, sepReal, longBarr, dispo }
+    }
+  }
+
+  /* ---- CHAPA ---- */
+  const chapaList = []
+  const chapaOn = document.getElementById("ab-chapa-on").checked
+  let chapaInfo = "—"
+  let chapaRects = [] // para dibujo (relativo a hoja interior: {x,y,w,h})
+  if(chapaOn){
+    const modo = (document.querySelector('input[name="chapa-modo"]:checked')||{}).value || "completa"
+    const matChapa = data.pronChapa[+document.getElementById("ab-mat-chapa").value]
+    const chName = matChapa ? `${matChapa.nombre} (e=${matChapa.espesor}mm)` : "(sin material)"
+    const ladoCerr = document.getElementById("ab-cerr-lado").value // izq/der
+
+    if(modo==="completa"){
+      chapaList.push({pieza:`Chapa completa · ${chName}`, cantidad:1, largo:`${intW} × ${intH}`, corte:"Recorte rect."})
+      chapaRects.push({x:0,y:0,w:intW,h:intH})
+      chapaInfo = `Chapa completa: ${intW} × ${intH} mm`
+    } else {
+      let recortes = 0
+      tramos.forEach((t,idx)=>{
+        let x=0,y=0,w=intW,h=intH
+        if(t.orient==="H"){
+          const altoT = +t.alto || 0
+          const anchoT = (+t.ancho||0)===0 ? intW : +t.ancho
+          const desde = +t.desde || 0
+          h = altoT
+          w = anchoT
+          if(t.ref==="abajo"){ y = intH - desde - altoT }
+          else               { y = desde }
+          x = 0
+        } else {
+          const anchoT = +t.ancho || 0
+          const altoT = (+t.alto||0)===0 ? intH : +t.alto
+          const desde = +t.desde || 0
+          w = anchoT
+          h = altoT
+          if(t.ref==="cerradura"){
+            if(ladoCerr==="der") x = intW - desde - anchoT
+            else                 x = desde
+          } else {
+            if(ladoCerr==="der") x = desde
+            else                 x = intW - desde - anchoT
+          }
+          y = 0
+        }
+        // Clamp al interior de la hoja (no puede salirse)
+        const origW=w, origH=h, origX=x, origY=y
+        if(x < 0){ w += x; x = 0 }
+        if(y < 0){ h += y; y = 0 }
+        if(x + w > intW) w = intW - x
+        if(y + h > intH) h = intH - y
+        if(w<=0 || h<=0){
+          chapaList.push({pieza:`⚠ Tramo ${idx+1} FUERA de la hoja (ignorado)`, cantidad:0, largo:"-", corte:"revisar medidas"})
+          return
+        }
+        if(origW!==w || origH!==h || origX!==x || origY!==y) recortes++
+        chapaList.push({pieza:`Chapa tramo ${idx+1} · ${chName}`, cantidad:1, largo:`${Math.round(w)} × ${Math.round(h)}`, corte:`${t.orient==="H"?"Horizontal":"Vertical"} · ref ${t.ref}`})
+        chapaRects.push({x,y,w,h})
+      })
+      chapaInfo = `${tramos.length} tramo(s)${recortes?` · ${recortes} recortado(s) al hueco de la hoja`:""}`
+    }
+  }
+
+  /* ---- CERRADURA ---- */
+  const cerrAlt = +document.getElementById("ab-cerr-alt").value || 1050
+  const cerrLado = document.getElementById("ab-cerr-lado").value
+
+  /* ---- OUTPUT TEXTO ---- */
+  document.getElementById("ab-barr-info").textContent = barrInfo
+
+  const fmt = arr => arr.map(p=>` ${p.cantidad} × ${typeof p.largo==="number"?Math.round(p.largo):p.largo} mm   │ ${p.pieza}   [${p.corte}]`).join("\n")
+  let txt = ""
+  txt += `PUERTA ABATIBLE — ${W} × ${H} mm\n`
+  txt += `Marco: ${matMarco.nombre} · corte ${corteMarco}°\n`
+  txt += `Hoja:  ${matHoja ? matHoja.nombre : "(mismo que marco)"} · corte ${corteHoja}°\n`
+  txt += `Gaps: sup ${gapSup}  inf ${gapInf}  izq ${gapIzq}  der ${gapDer}\n`
+  txt += `Hueco marco (interior): ${W-2*T1} × ${H-2*T1} mm\n`
+  txt += `Hoja (exterior): ${hojaW} × ${hojaH} mm · interior: ${intW} × ${intH} mm\n`
+  txt += `Cerradura: lado ${cerrLado==="izq"?"izquierdo":"derecho"} a ${cerrAlt} mm del suelo\n\n`
+  txt += `— CORTES MARCO —\n${fmt(marco)}\n\n— CORTES HOJA —\n${fmt(hoja)}\n`
+  if(barr.length) txt += `\n— BARROTES —\n${fmt(barr)}\n`
+  if(chapaList.length) txt += `\n— CHAPA —\n${fmt(chapaList)}\n`
+
+  res.textContent = txt
+
+  lastCalc = { W,H, T1,T2, hojaW,hojaH, intW,intH, barr, barrCalc, chapaRects, cerrAlt, cerrLado, corteMarco, corteHoja, matMarco, matHoja }
+  proyectoActual = { tipo:"abatible", datos:{W,H,gapSup,gapInf,gapIzq,gapDer,corteMarco,corteHoja}, marco, hoja, barr, chapa:chapaList, cerradura:{lado:cerrLado,alt:cerrAlt} }
+
+  dibujar(lastCalc)
+}
+
+/* =========================================================
+   DIBUJO
+   ========================================================= */
+function dibujarVacio(){
+  const c = document.getElementById("cv"); if(!c) return
+  const ctx = c.getContext("2d")
+  ctx.clearRect(0,0,c.width,c.height)
+  ctx.fillStyle="#64748b"; ctx.font="14px sans-serif"; ctx.textAlign="center"
+  ctx.fillText("Selecciona material e introduce medidas…", c.width/2, c.height/2)
+}
+
+function dibujar(calc){
+  const c = document.getElementById("cv"); if(!c) return
+  const ctx = c.getContext("2d")
+  const CW = c.width, CH = c.height
+  ctx.clearRect(0,0,CW,CH)
+
+  const pad = 40
+  const W = calc.W, H = calc.H
+  const scale = Math.min((CW-2*pad)/W, (CH-2*pad-40)/H)  // -40 reservar para cotas
+  const dx = (CW - W*scale)/2
+  const dy = pad + 10
+
+  const sx = v => dx + v*scale
+  const sy = v => dy + v*scale
+
+  // Marco exterior
+  ctx.lineWidth = 2
+  ctx.strokeStyle = "#0f172a"
+  ctx.fillStyle = "#e2e8f0"
+  ctx.fillRect(sx(0), sy(0), W*scale, H*scale)
+  ctx.strokeRect(sx(0), sy(0), W*scale, H*scale)
+
+  // Hueco interior del marco
+  const T1 = calc.T1
+  ctx.fillStyle = "#fff"
+  ctx.fillRect(sx(T1), sy(T1), (W-2*T1)*scale, (H-2*T1)*scale)
+  ctx.strokeStyle = "#475569"; ctx.lineWidth = 1
+  ctx.strokeRect(sx(T1), sy(T1), (W-2*T1)*scale, (H-2*T1)*scale)
+
+  // Cortes de marco
+  if(calc.corteMarco==="45"){
+    ctx.strokeStyle = "#94a3b8"
+    ctx.beginPath()
+    ctx.moveTo(sx(0),sy(0)); ctx.lineTo(sx(T1),sy(T1))
+    ctx.moveTo(sx(W),sy(0)); ctx.lineTo(sx(W-T1),sy(T1))
+    ctx.moveTo(sx(0),sy(H)); ctx.lineTo(sx(T1),sy(H-T1))
+    ctx.moveTo(sx(W),sy(H)); ctx.lineTo(sx(W-T1),sy(H-T1))
+    ctx.stroke()
+  }
+
+  // Hoja
+  const gapIzq = +document.getElementById("ab-gap-izq").value||0
+  const gapSup = +document.getElementById("ab-gap-sup").value||0
+  const hojaW = calc.hojaW, hojaH = calc.hojaH
+  const hx = T1 + gapIzq
+  const hy = T1 + gapSup
+  ctx.lineWidth = 2
+  ctx.strokeStyle = "#1d4ed8"
+  ctx.fillStyle = "#dbeafe"
+  ctx.fillRect(sx(hx), sy(hy), hojaW*scale, hojaH*scale)
+  ctx.strokeRect(sx(hx), sy(hy), hojaW*scale, hojaH*scale)
+
+  // Hueco interior de la hoja
+  const T2 = calc.T2
+  ctx.fillStyle = "#fff"
+  ctx.fillRect(sx(hx+T2), sy(hy+T2), calc.intW*scale, calc.intH*scale)
+  ctx.strokeStyle = "#1d4ed8"; ctx.lineWidth = 1
+  ctx.strokeRect(sx(hx+T2), sy(hy+T2), calc.intW*scale, calc.intH*scale)
+
+  if(calc.corteHoja==="45"){
+    ctx.strokeStyle = "#60a5fa"
+    ctx.beginPath()
+    ctx.moveTo(sx(hx),sy(hy)); ctx.lineTo(sx(hx+T2),sy(hy+T2))
+    ctx.moveTo(sx(hx+hojaW),sy(hy)); ctx.lineTo(sx(hx+hojaW-T2),sy(hy+T2))
+    ctx.moveTo(sx(hx),sy(hy+hojaH)); ctx.lineTo(sx(hx+T2),sy(hy+hojaH-T2))
+    ctx.moveTo(sx(hx+hojaW),sy(hy+hojaH)); ctx.lineTo(sx(hx+hojaW-T2),sy(hy+hojaH-T2))
+    ctx.stroke()
+  }
+
+  // Chapa (relativa a hoja interior = hx+T2, hy+T2)
+  const iox = hx+T2, ioy = hy+T2
+  if(calc.chapaRects && calc.chapaRects.length){
+    ctx.fillStyle = "rgba(245, 158, 11, 0.35)"
+    ctx.strokeStyle = "#b45309"
+    ctx.lineWidth = 1
+    calc.chapaRects.forEach(r=>{
+      ctx.fillRect(sx(iox+r.x), sy(ioy+r.y), r.w*scale, r.h*scale)
+      ctx.strokeRect(sx(iox+r.x), sy(ioy+r.y), r.w*scale, r.h*scale)
+    })
+  }
+
+  // Barrotes
+  if(calc.barrCalc && calc.barrCalc.N>0){
+    ctx.strokeStyle = "#166534"
+    ctx.lineWidth = 2
+    const {ori, N, sepReal} = calc.barrCalc
+    for(let i=1; i<=N; i++){
+      const off = i*sepReal
+      if(ori==="V"){
+        ctx.beginPath()
+        ctx.moveTo(sx(iox+off), sy(ioy))
+        ctx.lineTo(sx(iox+off), sy(ioy+calc.intH))
+        ctx.stroke()
+      } else {
+        ctx.beginPath()
+        ctx.moveTo(sx(iox),            sy(ioy+off))
+        ctx.lineTo(sx(iox+calc.intW),  sy(ioy+off))
+        ctx.stroke()
+      }
+    }
+  }
+
+  // Cerradura: círculo con "L"
+  const cerrLado = calc.cerrLado
+  const cerrAlt  = calc.cerrAlt
+  // posición: sobre la hoja, en el lateral interior (vertical), a altura cerrAlt desde el SUELO
+  // la puerta va desde y=0 (arriba) a y=H (abajo). "Suelo" = y=H. Altura desde suelo = H - cerrAlt
+  const cy = Math.max(0, Math.min(H, H - cerrAlt))
+  const cx = cerrLado==="izq" ? (hx + T2 + 15) : (hx + hojaW - T2 - 15)
+  ctx.fillStyle = "#dc2626"
+  ctx.beginPath(); ctx.arc(sx(cx), sy(cy), 6, 0, Math.PI*2); ctx.fill()
+  ctx.fillStyle="#fff"; ctx.font="bold 9px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle"
+  ctx.fillText("L", sx(cx), sy(cy))
+
+  // Cotas
+  ctx.fillStyle = "#0f172a"; ctx.font = "11px sans-serif"; ctx.textAlign="center"; ctx.textBaseline="alphabetic"
+  ctx.fillText(`W = ${W} mm`, sx(W/2), sy(H)+18)
+  ctx.save(); ctx.translate(sx(0)-8, sy(H/2)); ctx.rotate(-Math.PI/2)
+  ctx.fillText(`H = ${H} mm`, 0, 0); ctx.restore()
+
+  // Leyenda
+  ctx.textAlign="left"; ctx.font = "10px sans-serif"; ctx.fillStyle = "#475569"
+  let ly = CH - 8
+  ctx.fillStyle="#e2e8f0"; ctx.fillRect(10, ly-10, 10, 10); ctx.strokeStyle="#0f172a"; ctx.strokeRect(10, ly-10, 10, 10)
+  ctx.fillStyle="#475569"; ctx.fillText("Marco", 25, ly-2)
+  ctx.fillStyle="#dbeafe"; ctx.fillRect(75, ly-10, 10, 10); ctx.strokeStyle="#1d4ed8"; ctx.strokeRect(75, ly-10, 10, 10)
+  ctx.fillStyle="#475569"; ctx.fillText("Hoja", 90, ly-2)
+  ctx.fillStyle="rgba(245,158,11,.35)"; ctx.fillRect(130, ly-10, 10, 10); ctx.strokeStyle="#b45309"; ctx.strokeRect(130, ly-10, 10, 10)
+  ctx.fillStyle="#475569"; ctx.fillText("Chapa", 145, ly-2)
+  ctx.strokeStyle="#166534"; ctx.beginPath(); ctx.moveTo(185, ly-5); ctx.lineTo(195, ly-5); ctx.stroke()
+  ctx.fillStyle="#475569"; ctx.fillText("Barrotes", 200, ly-2)
+  ctx.fillStyle="#dc2626"; ctx.beginPath(); ctx.arc(255, ly-5, 4, 0, Math.PI*2); ctx.fill()
+  ctx.fillStyle="#475569"; ctx.fillText("Cerradura", 264, ly-2)
+}
+
+/* =========================================================
+   GUARDAR / HISTORIAL / OPERARIO
+   ========================================================= */
+function guardarProyecto(){
+  const pNombre = document.getElementById("p-nombre").value
+  const pCliente = document.getElementById("p-cliente").value
+  proyectoActual.nombre = pNombre
+  proyectoActual.cliente = pCliente
+  proyectoActual.fecha = new Date().toISOString()
+  historial.push({...proyectoActual})
+  localStorage.setItem(STORE_KEYS.hist, JSON.stringify(historial))
+  alert("Guardado OK")
+}
+
+function renderHistorial(){
+  const cont = document.getElementById("historial-lista")
+  if(!cont) return
+  if(!historial.length){ cont.innerHTML = `<div class="empty">Aún no hay proyectos guardados.</div>`; return }
+  cont.innerHTML = historial.map((p,i)=>
+    `<div class="item">
+      <div class="info"><b>${esc(p.nombre||"(sin nombre)")}</b>${p.cliente?` · ${esc(p.cliente)}`:""} (${esc(p.tipo||"-")})${p.fecha?` — ${new Date(p.fecha).toLocaleString()}`:""}</div>
+      <div class="actions">
+        <button class="warn" onclick="editarHistorial(${i})">Editar</button>
+        <button class="danger" onclick="eliminarHistorial(${i})">Eliminar</button>
+      </div>
+    </div>`
+  ).join("")
+}
+
+function editarHistorial(i){
+  const p = historial[i]
+  if(!p) return
+  if(!confirm(`¿Está seguro que desea editar el proyecto "${p.nombre||"(sin nombre)"}"?`)) return
+  const nuevoNombre = prompt("Nombre del proyecto:", p.nombre||"")
+  if(nuevoNombre===null) return
+  const nuevoCliente = prompt("Cliente:", p.cliente||"")
+  if(nuevoCliente===null) return
+  historial[i].nombre = nuevoNombre
+  historial[i].cliente = nuevoCliente
+  historial[i].fecha_modificacion = new Date().toISOString()
+  localStorage.setItem(STORE_KEYS.hist, JSON.stringify(historial))
+  renderHistorial()
+}
+
+function eliminarHistorial(i){
+  const p = historial[i]
+  if(!p) return
+  if(!confirm(`¿Está seguro que desea eliminar el proyecto "${p.nombre||"(sin nombre)"}"?\n\nEsta acción no se puede deshacer.`)) return
+  historial.splice(i,1)
+  localStorage.setItem(STORE_KEYS.hist, JSON.stringify(historial))
+  renderHistorial()
+}
+
+function enviarOperario(){
+  alert("📤 Función de envío al operario pendiente de conectar en la siguiente fase.\n\nEl proyecto actual ya está calculado y se puede guardar en el Historial con el botón 'Guardar Proyecto'.")
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+window.onload = function(){
+  renderHistorial()
+  renderCategory("stockMat")
+  renderCategory("stockPint")
+  renderCategory("stockChapa")
+  renderCategory("pronMat")
+  renderCategory("pronPint")
+  renderCategory("pronChapa")
+  refreshMateriales()
+  runAb()
+
+  document.addEventListener("keydown", e=>{
+    if(e.key==="Escape") closeModal()
+    if(e.key==="Enter" && document.getElementById("modalBack").classList.contains("open")){
+      if(document.activeElement && document.activeElement.tagName==="INPUT") modalSave()
+    }
+  })
+}
+</script>
+</body>
+</html>
+
 
